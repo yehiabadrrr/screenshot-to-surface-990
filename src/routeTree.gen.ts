@@ -10,33 +10,117 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConsoleRouteImport } from './routes/_console'
+import { Route as ConsoleAttendanceRouteImport } from './routes/_console.attendance'
+import { Route as ConsoleClassesRouteImport } from './routes/_console.classes'
+import { Route as ConsoleFinanceRouteImport } from './routes/_console.finance'
+import { Route as ConsoleOverviewRouteImport } from './routes/_console.overview'
+import { Route as ConsoleStudentsIndexRouteImport } from './routes/_console.students.index'
+import { Route as ConsoleStudentsIdRouteImport } from './routes/_console.students.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConsoleRoute = ConsoleRouteImport.update({
+  id: '/_console',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsoleAttendanceRoute = ConsoleAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleClassesRoute = ConsoleClassesRouteImport.update({
+  id: '/classes',
+  path: '/classes',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleFinanceRoute = ConsoleFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleOverviewRoute = ConsoleOverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleStudentsIndexRoute = ConsoleStudentsIndexRouteImport.update({
+  id: '/students/',
+  path: '/students/',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleStudentsIdRoute = ConsoleStudentsIdRouteImport.update({
+  id: '/students/$id',
+  path: '/students/$id',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/attendance': typeof ConsoleAttendanceRoute
+  '/classes': typeof ConsoleClassesRoute
+  '/finance': typeof ConsoleFinanceRoute
+  '/overview': typeof ConsoleOverviewRoute
+  '/students/$id': typeof ConsoleStudentsIdRoute
+  '/students/': typeof ConsoleStudentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/attendance': typeof ConsoleAttendanceRoute
+  '/classes': typeof ConsoleClassesRoute
+  '/finance': typeof ConsoleFinanceRoute
+  '/overview': typeof ConsoleOverviewRoute
+  '/students/$id': typeof ConsoleStudentsIdRoute
+  '/students': typeof ConsoleStudentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_console': typeof ConsoleRouteWithChildren
+  '/_console/attendance': typeof ConsoleAttendanceRoute
+  '/_console/classes': typeof ConsoleClassesRoute
+  '/_console/finance': typeof ConsoleFinanceRoute
+  '/_console/overview': typeof ConsoleOverviewRoute
+  '/_console/students/$id': typeof ConsoleStudentsIdRoute
+  '/_console/students/': typeof ConsoleStudentsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/attendance'
+    | '/classes'
+    | '/finance'
+    | '/overview'
+    | '/students/$id'
+    | '/students/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/attendance'
+    | '/classes'
+    | '/finance'
+    | '/overview'
+    | '/students/$id'
+    | '/students'
+  id:
+    | '__root__'
+    | '/'
+    | '/_console'
+    | '/_console/attendance'
+    | '/_console/classes'
+    | '/_console/finance'
+    | '/_console/overview'
+    | '/_console/students/$id'
+    | '/_console/students/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConsoleRoute: typeof ConsoleRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +132,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_console': {
+      id: '/_console'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ConsoleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_console/attendance': {
+      id: '/_console/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof ConsoleAttendanceRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/_console/classes': {
+      id: '/_console/classes'
+      path: '/classes'
+      fullPath: '/classes'
+      preLoaderRoute: typeof ConsoleClassesRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/_console/finance': {
+      id: '/_console/finance'
+      path: '/finance'
+      fullPath: '/finance'
+      preLoaderRoute: typeof ConsoleFinanceRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/_console/overview': {
+      id: '/_console/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof ConsoleOverviewRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/_console/students/': {
+      id: '/_console/students/'
+      path: '/students'
+      fullPath: '/students/'
+      preLoaderRoute: typeof ConsoleStudentsIndexRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/_console/students/$id': {
+      id: '/_console/students/$id'
+      path: '/students/$id'
+      fullPath: '/students/$id'
+      preLoaderRoute: typeof ConsoleStudentsIdRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
   }
 }
 
+interface ConsoleRouteChildren {
+  ConsoleAttendanceRoute: typeof ConsoleAttendanceRoute
+  ConsoleClassesRoute: typeof ConsoleClassesRoute
+  ConsoleFinanceRoute: typeof ConsoleFinanceRoute
+  ConsoleOverviewRoute: typeof ConsoleOverviewRoute
+  ConsoleStudentsIdRoute: typeof ConsoleStudentsIdRoute
+  ConsoleStudentsIndexRoute: typeof ConsoleStudentsIndexRoute
+}
+
+const ConsoleRouteChildren: ConsoleRouteChildren = {
+  ConsoleAttendanceRoute: ConsoleAttendanceRoute,
+  ConsoleClassesRoute: ConsoleClassesRoute,
+  ConsoleFinanceRoute: ConsoleFinanceRoute,
+  ConsoleOverviewRoute: ConsoleOverviewRoute,
+  ConsoleStudentsIdRoute: ConsoleStudentsIdRoute,
+  ConsoleStudentsIndexRoute: ConsoleStudentsIndexRoute,
+}
+
+const ConsoleRouteWithChildren =
+  ConsoleRoute._addFileChildren(ConsoleRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConsoleRoute: ConsoleRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
