@@ -25,7 +25,7 @@ const opts: { v: St; icon: typeof Check; cls: string }[] = [
 
 function AttendancePage() {
   const { t } = useI18n();
-  const [classId, setClassId] = useState(classes[0].id);
+  const [classId, setClassId] = useState(classes[0]!.id);
   const [date, setDate] = useState("2026-11-17");
   const [marks, setMarks] = useState<Record<string, St>>({});
   const [submitted, setSubmitted] = useState<Record<string, boolean>>({});

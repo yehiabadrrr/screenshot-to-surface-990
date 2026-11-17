@@ -30,7 +30,7 @@ export function Panel({ title, action, children, className, bodyClass }: { title
   );
 }
 
-export function Delta({ value, invert = false, suffix = "%" }: { value: number; invert?: boolean; suffix?: string }) {
+export function Delta({ value, invert = false, suffix = "%" }: { value: number; invert?: boolean | undefined; suffix?: string }) {
   const good = invert ? value <= 0 : value >= 0;
   const Icon = value >= 0 ? ArrowUpRight : ArrowDownRight;
   return (
@@ -40,7 +40,7 @@ export function Delta({ value, invert = false, suffix = "%" }: { value: number; 
   );
 }
 
-export function KpiCard({ label, value, delta, invert, spark }: { label: string; value: string; delta: number; invert?: boolean; spark?: number[] }) {
+export function KpiCard({ label, value, delta, invert, spark }: { label: string; value: string; delta: number; invert?: boolean | undefined; spark?: number[] }) {
   const { t } = useI18n();
   const good = invert ? delta <= 0 : delta >= 0;
   const color = good ? "var(--positive)" : "var(--destructive)";

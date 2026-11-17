@@ -88,7 +88,7 @@ function Overview() {
             {top.slice(0, 5).map((c) => (
               <div key={c.id}>
                 <div className="flex justify-between text-[13px]"><span className="truncate">{c.name}</span><Money value={c.revenue} /></div>
-                <div className="mt-1 h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-brand" style={{ width: `${(c.revenue / top[0].revenue) * 100}%` }} /></div>
+                <div className="mt-1 h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-brand" style={{ width: `${(c.revenue / top[0]!.revenue) * 100}%` }} /></div>
               </div>
             ))}
           </div>

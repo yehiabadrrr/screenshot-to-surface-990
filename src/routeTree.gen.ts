@@ -13,8 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConsoleRouteImport } from './routes/_console'
 import { Route as ConsoleAttendanceRouteImport } from './routes/_console.attendance'
 import { Route as ConsoleClassesRouteImport } from './routes/_console.classes'
+import { Route as ConsoleCommunicationsRouteImport } from './routes/_console.communications'
 import { Route as ConsoleFinanceRouteImport } from './routes/_console.finance'
 import { Route as ConsoleOverviewRouteImport } from './routes/_console.overview'
+import { Route as ConsoleReportsRouteImport } from './routes/_console.reports'
+import { Route as ConsoleSettingsRouteImport } from './routes/_console.settings'
+import { Route as ConsoleTeachersRouteImport } from './routes/_console.teachers'
 import { Route as ConsoleStudentsIndexRouteImport } from './routes/_console.students.index'
 import { Route as ConsoleStudentsIdRouteImport } from './routes/_console.students.$id'
 
@@ -37,6 +41,11 @@ const ConsoleClassesRoute = ConsoleClassesRouteImport.update({
   path: '/classes',
   getParentRoute: () => ConsoleRoute,
 } as any)
+const ConsoleCommunicationsRoute = ConsoleCommunicationsRouteImport.update({
+  id: '/communications',
+  path: '/communications',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 const ConsoleFinanceRoute = ConsoleFinanceRouteImport.update({
   id: '/finance',
   path: '/finance',
@@ -45,6 +54,21 @@ const ConsoleFinanceRoute = ConsoleFinanceRouteImport.update({
 const ConsoleOverviewRoute = ConsoleOverviewRouteImport.update({
   id: '/overview',
   path: '/overview',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleReportsRoute = ConsoleReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleSettingsRoute = ConsoleSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleTeachersRoute = ConsoleTeachersRouteImport.update({
+  id: '/teachers',
+  path: '/teachers',
   getParentRoute: () => ConsoleRoute,
 } as any)
 const ConsoleStudentsIndexRoute = ConsoleStudentsIndexRouteImport.update({
@@ -62,8 +86,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/attendance': typeof ConsoleAttendanceRoute
   '/classes': typeof ConsoleClassesRoute
+  '/communications': typeof ConsoleCommunicationsRoute
   '/finance': typeof ConsoleFinanceRoute
   '/overview': typeof ConsoleOverviewRoute
+  '/reports': typeof ConsoleReportsRoute
+  '/settings': typeof ConsoleSettingsRoute
+  '/teachers': typeof ConsoleTeachersRoute
   '/students/$id': typeof ConsoleStudentsIdRoute
   '/students/': typeof ConsoleStudentsIndexRoute
 }
@@ -71,8 +99,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/attendance': typeof ConsoleAttendanceRoute
   '/classes': typeof ConsoleClassesRoute
+  '/communications': typeof ConsoleCommunicationsRoute
   '/finance': typeof ConsoleFinanceRoute
   '/overview': typeof ConsoleOverviewRoute
+  '/reports': typeof ConsoleReportsRoute
+  '/settings': typeof ConsoleSettingsRoute
+  '/teachers': typeof ConsoleTeachersRoute
   '/students/$id': typeof ConsoleStudentsIdRoute
   '/students': typeof ConsoleStudentsIndexRoute
 }
@@ -82,8 +114,12 @@ export interface FileRoutesById {
   '/_console': typeof ConsoleRouteWithChildren
   '/_console/attendance': typeof ConsoleAttendanceRoute
   '/_console/classes': typeof ConsoleClassesRoute
+  '/_console/communications': typeof ConsoleCommunicationsRoute
   '/_console/finance': typeof ConsoleFinanceRoute
   '/_console/overview': typeof ConsoleOverviewRoute
+  '/_console/reports': typeof ConsoleReportsRoute
+  '/_console/settings': typeof ConsoleSettingsRoute
+  '/_console/teachers': typeof ConsoleTeachersRoute
   '/_console/students/$id': typeof ConsoleStudentsIdRoute
   '/_console/students/': typeof ConsoleStudentsIndexRoute
 }
@@ -93,8 +129,12 @@ export interface FileRouteTypes {
     | '/'
     | '/attendance'
     | '/classes'
+    | '/communications'
     | '/finance'
     | '/overview'
+    | '/reports'
+    | '/settings'
+    | '/teachers'
     | '/students/$id'
     | '/students/'
   fileRoutesByTo: FileRoutesByTo
@@ -102,8 +142,12 @@ export interface FileRouteTypes {
     | '/'
     | '/attendance'
     | '/classes'
+    | '/communications'
     | '/finance'
     | '/overview'
+    | '/reports'
+    | '/settings'
+    | '/teachers'
     | '/students/$id'
     | '/students'
   id:
@@ -112,8 +156,12 @@ export interface FileRouteTypes {
     | '/_console'
     | '/_console/attendance'
     | '/_console/classes'
+    | '/_console/communications'
     | '/_console/finance'
     | '/_console/overview'
+    | '/_console/reports'
+    | '/_console/settings'
+    | '/_console/teachers'
     | '/_console/students/$id'
     | '/_console/students/'
   fileRoutesById: FileRoutesById
@@ -153,6 +201,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleClassesRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/_console/communications': {
+      id: '/_console/communications'
+      path: '/communications'
+      fullPath: '/communications'
+      preLoaderRoute: typeof ConsoleCommunicationsRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/_console/finance': {
       id: '/_console/finance'
       path: '/finance'
@@ -165,6 +220,27 @@ declare module '@tanstack/react-router' {
       path: '/overview'
       fullPath: '/overview'
       preLoaderRoute: typeof ConsoleOverviewRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/_console/reports': {
+      id: '/_console/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ConsoleReportsRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/_console/settings': {
+      id: '/_console/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof ConsoleSettingsRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/_console/teachers': {
+      id: '/_console/teachers'
+      path: '/teachers'
+      fullPath: '/teachers'
+      preLoaderRoute: typeof ConsoleTeachersRouteImport
       parentRoute: typeof ConsoleRoute
     }
     '/_console/students/': {
@@ -187,8 +263,12 @@ declare module '@tanstack/react-router' {
 interface ConsoleRouteChildren {
   ConsoleAttendanceRoute: typeof ConsoleAttendanceRoute
   ConsoleClassesRoute: typeof ConsoleClassesRoute
+  ConsoleCommunicationsRoute: typeof ConsoleCommunicationsRoute
   ConsoleFinanceRoute: typeof ConsoleFinanceRoute
   ConsoleOverviewRoute: typeof ConsoleOverviewRoute
+  ConsoleReportsRoute: typeof ConsoleReportsRoute
+  ConsoleSettingsRoute: typeof ConsoleSettingsRoute
+  ConsoleTeachersRoute: typeof ConsoleTeachersRoute
   ConsoleStudentsIdRoute: typeof ConsoleStudentsIdRoute
   ConsoleStudentsIndexRoute: typeof ConsoleStudentsIndexRoute
 }
@@ -196,8 +276,12 @@ interface ConsoleRouteChildren {
 const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsoleAttendanceRoute: ConsoleAttendanceRoute,
   ConsoleClassesRoute: ConsoleClassesRoute,
+  ConsoleCommunicationsRoute: ConsoleCommunicationsRoute,
   ConsoleFinanceRoute: ConsoleFinanceRoute,
   ConsoleOverviewRoute: ConsoleOverviewRoute,
+  ConsoleReportsRoute: ConsoleReportsRoute,
+  ConsoleSettingsRoute: ConsoleSettingsRoute,
+  ConsoleTeachersRoute: ConsoleTeachersRoute,
   ConsoleStudentsIdRoute: ConsoleStudentsIdRoute,
   ConsoleStudentsIndexRoute: ConsoleStudentsIndexRoute,
 }

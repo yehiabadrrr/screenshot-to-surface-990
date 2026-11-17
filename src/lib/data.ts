@@ -3,7 +3,7 @@ import { teacherPayout } from "./finance";
 
 let seed = 42;
 const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
-const pick = <T,>(a: T[]) => a[Math.floor(rnd() * a.length)];
+const pick = <T,>(a: T[]) => a[Math.floor(rnd() * a.length)]!;
 
 export const branches = ["Nasr City", "Heliopolis", "Maadi"] as const;
 export type Branch = (typeof branches)[number];
@@ -28,7 +28,7 @@ const teacherSeed: [string, string, CompensationModel][] = [
   ["Ingy Wahba","English",{ type: "monthly", amount: 9500 }],
 ];
 export const teachers: Teacher[] = teacherSeed.map(([name, subject, model], i) => ({
-  id: `T-${101 + i}`, name, subject, model, phone: phone(), branch: branches[i % 3],
+  id: `T-${101 + i}`, name, subject, model, phone: phone(), branch: branches[i % 3]!,
   sessions: 10 + Math.floor(rnd() * 10), attending: 120 + Math.floor(rnd() * 160),
   collected: 18000 + Math.floor(rnd() * 26000), attendance: 90 + Math.floor(rnd() * 10),
 }));
@@ -48,7 +48,7 @@ const timeOpts = ["3:00 PM","4:30 PM","6:00 PM","7:30 PM","9:00 PM"];
 export const classes: ClassItem[] = classSeed.map(([name, ti, kind, fee], i) => {
   const capacity = kind === "Tutoring" ? 30 : 14;
   const enrolled = Math.max(6, capacity - Math.floor(rnd() * 10));
-  return { id: `C-${201 + i}`, name, kind, teacherId: teachers[ti].id, branch: teachers[ti].branch, days: dayOpts[i % 5], time: timeOpts[(i * 2) % 5], capacity, enrolled, fee, revenue: enrolled * fee, attendance: 84 + Math.floor(rnd() * 15) };
+  return { id: `C-${201 + i}`, name, kind, teacherId: teachers[ti]!.id, branch: teachers[ti]!.branch, days: dayOpts[i % 5]!, time: timeOpts[(i * 2) % 5]!, capacity, enrolled, fee, revenue: enrolled * fee, attendance: 84 + Math.floor(rnd() * 15) };
 });
 
 export interface Student { id: string; name: string; phone: string; guardian: string; guardianPhone: string; classIds: string[]; balance: number; paid: number; attendance: number; status: "Active" | "Paused" | "Inactive"; branch: Branch; grade: string; joined: string; }
@@ -71,7 +71,7 @@ export const students: Student[] = Array.from({ length: 300 }, (_, i) => {
 export const methods = ["Cash", "InstaPay", "Fawry", "Bank transfer", "Other"] as const;
 export interface Txn { id: string; studentId: string; type: "Payment" | "Refund" | "Discount"; amount: number; method: (typeof methods)[number]; date: string; status: "Completed" | "Pending" | "Reversed"; }
 export const transactions: Txn[] = Array.from({ length: 60 }, (_, i) => {
-  const s = students[Math.floor(rnd() * 284)];
+  const s = students[Math.floor(rnd() * 284)]!;
   const r = rnd();
   const type: Txn["type"] = r < 0.88 ? "Payment" : r < 0.94 ? "Discount" : "Refund";
   const d = new Date(Date.UTC(2026, 10, 17) - i * 0.4 * 86400000);

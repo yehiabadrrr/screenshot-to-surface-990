@@ -24,7 +24,7 @@ export function RecordPaymentDialog({ trigger, studentId }: { trigger: ReactNode
           className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!s || !Number(amount)) return toast.error("Choose a student and enter an amount.");
+            if (!s || !Number(amount)) { toast.error("Choose a student and enter an amount."); return; }
             toast.success(`Payment of EGP ${Number(amount).toLocaleString()} recorded for ${s.name}`, { description: `${method} · receipt ready` });
             setOpen(false); setAmount("");
           }}
