@@ -24,24 +24,24 @@ export interface LedgerEntry {
   id: string;
   type: EntryType;
   studentId: string;
-  classId?: string;
+  classId?: string | undefined;
   branch: string;
   /** Business date, YYYY-MM-DD. */
   date: string;
   /** Always positive; the type decides the direction. */
   amount: number;
-  method?: Method;
+  method?: Method | undefined;
   status: "Completed" | "Pending";
-  reference?: string;
-  note?: string;
+  reference?: string | undefined;
+  note?: string | undefined;
   enteredBy: string;
   /** ISO timestamp of when it was entered. */
   enteredAt: string;
   /** Reversal → the entry it cancels. */
-  reversesId?: string;
+  reversesId?: string | undefined;
   /** Replacement payment → the entry it corrects. */
-  replacesId?: string;
-  reason?: string;
+  replacesId?: string | undefined;
+  reason?: string | undefined;
 }
 
 export interface Filter { from: string; to: string; branch: string | "all" }

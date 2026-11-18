@@ -9,7 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { students, classById, branches, classes } from "@/lib/data";
+import { students as baseStudents, classById, branches, classes } from "@/lib/data";
+import { balancesAsOf } from "@/lib/ledger";
+import { useLedger, todayIso } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
 import { pageHead, downloadCsv } from "@/lib/head";
 import { cn } from "@/lib/utils";
@@ -28,10 +30,12 @@ function StudentsPage() {
   const [branch, setBranch] = useState("all");
   const [bal, setBal] = useState("all");
   const [page, setPage] = useState(0);
+  const { entries } = useLedger();
+  const students = useMemo(() => { const b = balancesAsOf(entries, todayIso()); return baseStudents.map((s) => ({ ...s, balance: b.get(s.id) ?? 0 })); }, [entries]);
   const rows = useMemo(() => students.filter((s) =>
     (!q || `${s.name} ${s.id} ${s.phone}`.toLowerCase().includes(q.toLowerCase())) &&
     (status === "all" || s.status === status) && (branch === "all" || s.branch === branch) &&
-    (bal === "all" || (bal === "due" ? s.balance > 0 : bal === "prepaid" ? s.balance < 0 : s.balance === 0))), [q, status, branch, bal]);
+    (bal === "all" || (bal === "due" ? s.balance > 0 : bal === "prepaid" ? s.balance < 0 : s.balance === 0))), [students, q, status, branch, bal]);
   const view = rows.slice(page * PAGE, page * PAGE + PAGE);
   const reset = (f: (v: string) => void) => (v: string) => { f(v); setPage(0); };
 
