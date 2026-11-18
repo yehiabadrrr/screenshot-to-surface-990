@@ -18,7 +18,8 @@
  */
 export const METHODS = ["Cash", "InstaPay", "Fawry", "Bank transfer", "Other"] as const;
 export type Method = (typeof METHODS)[number];
-export type EntryType = "Charge" | "Payment" | "Refund" | "Discount" | "Reversal";
+/** PackageUse consumes one prepaid session; it has no money effect (amount 0). */
+export type EntryType = "Charge" | "Payment" | "Refund" | "Discount" | "Reversal" | "PackageUse";
 
 export interface LedgerEntry {
   id: string;
@@ -42,6 +43,10 @@ export interface LedgerEntry {
   /** Replacement payment → the entry it corrects. */
   replacesId?: string | undefined;
   reason?: string | undefined;
+  /** Attendance session this entry was posted from. */
+  sessionId?: string | undefined;
+  /** On a Charge: number of prepaid sessions bought. */
+  packageSessions?: number | undefined;
 }
 
 export interface Filter { from: string; to: string; branch: string | "all" }
@@ -57,7 +62,7 @@ export function displayStatus(e: LedgerEntry, reversed: Set<string>): DisplaySta
 
 /** Counts toward totals: completed and not reversed. Reversal rows themselves never count. */
 const counts = (e: LedgerEntry, reversed: Set<string>) =>
-  e.type !== "Reversal" && e.status === "Completed" && !reversed.has(e.id);
+  e.type !== "Reversal" && e.type !== "PackageUse" && e.status === "Completed" && !reversed.has(e.id);
 
 const inBranch = (e: LedgerEntry, branch: Filter["branch"]) => branch === "all" || e.branch === branch;
 const inRange = (e: LedgerEntry, f: Filter) => e.date >= f.from && e.date <= f.to && inBranch(e, f.branch);
@@ -158,10 +163,11 @@ export function comparisonFilter(current: Filter): Filter {
 }
 
 /* ---------- writes (append-only) ---------- */
-export function nextTxnId(entries: LedgerEntry[]) {
-  const max = entries.reduce((m, e) => (e.id.startsWith("TX-") ? Math.max(m, Number(e.id.slice(3)) || 0) : m), 0);
-  return `TX-${max + 1}`;
+export function nextId(entries: LedgerEntry[], prefix: "TX-" | "INV-") {
+  const max = entries.reduce((m, e) => (e.id.startsWith(prefix) ? Math.max(m, Number(e.id.slice(prefix.length)) || 0) : m), 0);
+  return `${prefix}${max + 1}`;
 }
+export const nextTxnId = (entries: LedgerEntry[]) => nextId(entries, "TX-");
 
 export type NewPayment = Omit<LedgerEntry, "id" | "type" | "enteredAt"> & { type?: "Payment" };
 
@@ -183,7 +189,7 @@ export function correctEntry(
 ) {
   const original = entries.find((e) => e.id === id);
   if (!original) throw new Error("Transaction not found");
-  if (original.type === "Charge" || original.type === "Reversal") throw new Error("This entry cannot be corrected here");
+  if (original.type === "Charge" || original.type === "Reversal" || original.type === "PackageUse") throw new Error("This entry cannot be corrected here");
   if (reversedIds(entries).has(id)) throw new Error("Already reversed");
   if (!opts.reason.trim()) throw new Error("A reason is required");
   let next = [...entries];

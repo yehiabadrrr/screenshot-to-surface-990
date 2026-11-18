@@ -1,4 +1,5 @@
-import { students, staff, classById } from "./data";
+import { students, staff, classById, classes, teacherById, seedEnrollmentRules, enrollmentKey, SESSION_BILLING_SINCE } from "./data";
+import { sessionOutcome, sessionIdFor, classWeekdays, weekdayOf, type BillingRule, type Mark } from "./billing";
 import type { LedgerEntry, Method } from "./ledger";
 
 /** Demo ledger, Jun 2026 → 17 Nov 2026. Deterministic so every screen agrees. */
@@ -31,6 +32,8 @@ function build(): LedgerEntry[] {
       if (s.status === "Paused" && ym === "2026-11") return;
       for (const cid of s.classIds) {
         const c = classById(cid);
+        const rule = seedEnrollmentRules[enrollmentKey(s.id, cid)] ?? c.rule;
+        if (rule.kind !== "monthly" && `${ym}-01` >= SESSION_BILLING_SINCE) continue; // billed per session below
         const date = `${ym}-01`;
         out.push({ type: "Charge", studentId: s.id, classId: cid, branch: c.branch, date, amount: c.fee, status: "Completed", enteredBy: "System", enteredAt: `${date}T06:00:00Z`, note: `Tuition ${ym}` });
         let due = c.fee;
@@ -50,6 +53,56 @@ function build(): LedgerEntry[] {
         out.push({ type: "Payment", studentId: s.id, classId: cid, branch: c.branch, date: pdate, amount, method, status: "Completed", reference: ref(method), enteredBy: clerk(), enteredAt: at(pdate) });
       }
     });
+  }
+
+  // Session-billed enrollments: attendance history Oct 1 → Nov 16, posted with the same rules as live finalization.
+  const sessionClasses = classes.filter((c) => c.rule.kind !== "monthly" || students.some((s) => seedEnrollmentRules[enrollmentKey(s.id, c.id)]));
+  for (const c of sessionClasses) {
+    const wd = classWeekdays(c.days);
+    const roster = students.filter((s) => s.status === "Active" && s.classIds.includes(c.id));
+    const left = new Map<string, number>();
+    const monthDue = new Map<string, number>();
+    for (let t = Date.UTC(2026, 9, 1); t <= Date.UTC(2026, 10, 16); t += 86400000) {
+      const date = new Date(t).toISOString().slice(0, 10);
+      if (!wd.includes(weekdayOf(date))) continue;
+      const sessionId = sessionIdFor(c.id, date);
+      const marks: Record<string, Mark> = {};
+      const by = teacherById(c.teacherId).name;
+      const at = `${date}T${c.time.includes("9:00") ? "22" : "20"}:15:00Z`;
+      for (const s of roster) {
+        if (s.joined > date) continue;
+        const r = rnd();
+        const mark: Mark = r < 0.85 ? "Present" : r < 0.94 ? "Absent" : "Excused";
+        marks[s.id] = mark;
+        const rule: BillingRule = seedEnrollmentRules[enrollmentKey(s.id, c.id)] ?? c.rule;
+        if (rule.kind === "monthly") continue;
+        let remaining = left.get(s.id) ?? 0;
+        if (rule.kind === "package" && remaining <= 0 && sessionOutcome(rule, mark, 1).kind === "package_use") {
+          // Student buys the next package before this session and pays for it.
+          out.push({ type: "Charge", studentId: s.id, classId: c.id, branch: c.branch, date, amount: rule.price, packageSessions: rule.sessions, status: "Completed", enteredBy: staff.frontDesk, enteredAt: `${date}T15:00:00Z`, note: `Package · ${rule.sessions} sessions` });
+          const method = methodPick();
+          out.push({ type: "Payment", studentId: s.id, classId: c.id, branch: c.branch, date, amount: rule.price, method, status: "Completed", reference: ref(method), enteredBy: staff.frontDesk, enteredAt: `${date}T15:05:00Z`, note: "Package purchase" });
+          remaining += rule.sessions;
+        }
+        const o = sessionOutcome(rule, mark, remaining);
+        if (o.kind === "package_use") {
+          out.push({ type: "PackageUse", studentId: s.id, classId: c.id, branch: c.branch, date, amount: 0, status: "Completed", enteredBy: by, enteredAt: at, sessionId, note: `Session ${date} · 1 package session` });
+          remaining -= 1;
+        } else if (o.kind === "charge") {
+          out.push({ type: "Charge", studentId: s.id, classId: c.id, branch: c.branch, date, amount: o.amount, status: "Completed", enteredBy: by, enteredAt: at, sessionId, note: `Session ${date}` });
+          monthDue.set(`${s.id}|${date.slice(0, 7)}`, (monthDue.get(`${s.id}|${date.slice(0, 7)}`) ?? 0) + o.amount);
+        }
+        left.set(s.id, remaining);
+      }
+      seedSessions[sessionId] = { sessionId, classId: c.id, date, marks, finalized: { by, at }, audit: [] };
+    }
+    // Per-session charges are settled at month end (October only; November is still open).
+    for (const [k, amount] of monthDue) {
+      const [sid, ym] = k.split("|") as [string, string];
+      if (ym !== "2026-10" || rnd() < 0.12) continue;
+      const method = methodPick();
+      out.push({ type: "Payment", studentId: sid, classId: c.id, branch: c.branch, date: "2026-10-28", amount, method, status: "Completed", reference: ref(method), enteredBy: clerk(), enteredAt: "2026-10-28T12:00:00Z", note: "October sessions" });
+    }
   }
 
   // Pending: recent transfers awaiting confirmation (excluded from collections).
@@ -88,5 +141,8 @@ function build(): LedgerEntry[] {
   return entries;
 }
 
+export interface AuditItem { studentId: string; from: Mark; to: Mark; by: string; at: string; reason: string; reversalId?: string | undefined; createdId?: string | undefined }
+export interface SessionRecord { sessionId: string; classId: string; date: string; marks: Record<string, Mark>; finalized?: { by: string; at: string } | undefined; audit: AuditItem[] }
+export const seedSessions: Record<string, SessionRecord> = {};
 export const seedLedger: LedgerEntry[] = build();
 export { MONTHS as LEDGER_MONTHS };

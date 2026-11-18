@@ -1,5 +1,6 @@
 import type { CompensationModel } from "./finance";
 import { teacherPayout } from "./finance";
+import type { BillingRule } from "./billing";
 
 let seed = 42;
 const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
@@ -35,7 +36,7 @@ export const teachers: Teacher[] = teacherSeed.map(([name, subject, model], i) =
 /** Monthly payable. `collected` = gross collections for the teacher's classes in the period (from the ledger). */
 export const payableOf = (t: Teacher, collected: number) => teacherPayout(t.model, { sessions: t.sessions, attendingStudentSessions: t.attending, collectedTuition: collected });
 
-export interface ClassItem { id: string; name: string; kind: "Tutoring" | "Language course"; teacherId: string; branch: Branch; days: string; time: string; capacity: number; enrolled: number; fee: number; revenue: number; attendance: number; }
+export interface ClassItem { id: string; name: string; kind: "Tutoring" | "Language course"; teacherId: string; branch: Branch; days: string; time: string; capacity: number; enrolled: number; fee: number; revenue: number; attendance: number; /** Default billing rule for enrollments in this class. */ rule: BillingRule; }
 const classSeed: [string, number, ClassItem["kind"], number][] = [
   ["Physics · Thanaweya 3",0,"Tutoring",450],["Physics · Thanaweya 2",0,"Tutoring",400],["Chemistry · Thanaweya 3",1,"Tutoring",450],
   ["Math · Thanaweya 3 (Pure)",2,"Tutoring",420],["Math · Prep 3",8,"Tutoring",300],["Biology · Thanaweya 3",3,"Tutoring",420],
@@ -44,12 +45,21 @@ const classSeed: [string, number, ClassItem["kind"], number][] = [
   ["History · Thanaweya 3",10,"Tutoring",300],["English Conversation",11,"Language course",1400],["Chemistry · Thanaweya 2",1,"Tutoring",380],
   ["Kids English · Level 2",11,"Language course",1200],["Physics · Prep 3",0,"Tutoring",280],["IELTS General",5,"Language course",2500],
 ];
+/** Demo rule mix: most classes monthly, some per attended session, some prepaid packages. */
+const PER_SESSION = new Set(["C-205", "C-213", "C-217"]);
+const PACKAGE: Record<string, { sessions: number; price: number }> = { "C-214": { sessions: 8, price: 1200 }, "C-218": { sessions: 12, price: 3000 } };
+function defaultRule(id: string, fee: number): BillingRule {
+  if (PER_SESSION.has(id)) return { kind: "per_session", rate: Math.round((fee / 8) * 1.25 / 5) * 5, chargeNoShow: false };
+  const p = PACKAGE[id];
+  if (p) return { kind: "package", ...p, countNoShow: true };
+  return { kind: "monthly", fee };
+}
 const dayOpts = ["Sat · Tue","Sun · Wed","Mon · Thu","Sat · Wed","Fri"];
 const timeOpts = ["3:00 PM","4:30 PM","6:00 PM","7:30 PM","9:00 PM"];
 export const classes: ClassItem[] = classSeed.map(([name, ti, kind, fee], i) => {
   const capacity = kind === "Tutoring" ? 30 : 14;
   const enrolled = Math.max(6, capacity - Math.floor(rnd() * 10));
-  return { id: `C-${201 + i}`, name, kind, teacherId: teachers[ti]!.id, branch: teachers[ti]!.branch, days: dayOpts[i % 5]!, time: timeOpts[(i * 2) % 5]!, capacity, enrolled, fee, revenue: enrolled * fee, attendance: 84 + Math.floor(rnd() * 15) };
+  return { id: `C-${201 + i}`, name, kind, rule: defaultRule(`C-${201 + i}`, fee), teacherId: teachers[ti]!.id, branch: teachers[ti]!.branch, days: dayOpts[i % 5]!, time: timeOpts[(i * 2) % 5]!, capacity, enrolled, fee, revenue: enrolled * fee, attendance: 84 + Math.floor(rnd() * 15) };
 });
 
 export interface Student { id: string; name: string; phone: string; guardian: string; guardianPhone: string; classIds: string[]; attendance: number; status: "Active" | "Paused" | "Inactive"; branch: Branch; grade: string; joined: string; }
@@ -78,3 +88,12 @@ export const attendanceHistory = [
 ];
 
 export const staff = { owner: "Yehia Hazem", frontDesk: "Reem Adel", accountant: "Karim Samy" };
+
+/** Per-enrollment overrides (`studentId|classId`). A few Physics T3 students pay per session. */
+export const seedEnrollmentRules: Record<string, BillingRule> = Object.fromEntries(
+  students.filter((s) => s.classIds.includes("C-201") && s.status === "Active").filter((_, i) => i % 6 === 0)
+    .map((s) => [`${s.id}|C-201`, { kind: "per_session", rate: 70, chargeNoShow: true } satisfies BillingRule]),
+);
+export const enrollmentKey = (studentId: string, classId: string) => `${studentId}|${classId}`;
+/** Billing switched from monthly to session-based rules on this date (demo history). */
+export const SESSION_BILLING_SINCE = "2026-10-01";
