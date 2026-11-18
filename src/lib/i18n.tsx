@@ -21,7 +21,7 @@ const ar: Record<string, string> = {
   Revenue: "الإيرادات", Collections: "التحصيل", "Branch comparison": "مقارنة الفروع", Templates: "القوالب", "Send on WhatsApp": "إرسال عبر واتساب",
 };
 
-const Ctx = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: (k: string) => string }>({
+const Ctx = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: (k: string, v?: Record<string, string | number>) => string }>({
   lang: "en", setLang: () => {}, t: (k) => k,
 });
 
@@ -36,7 +36,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   }, [lang]);
   const setLang = (l: Lang) => { setLangState(l); localStorage.setItem("centeros-lang", l); };
-  const t = (k: string) => (lang === "ar" ? ar[k] ?? k : k);
+  const t = (k: string, v?: Record<string, string | number>) => {
+    const base = lang === "ar" ? ar[k] ?? k : k;
+    return v ? base.replace(/\{(\w+)\}/g, (m, n: string) => (n in v ? String(v[n]) : m)) : base;
+  };
   return <Ctx.Provider value={{ lang, setLang, t }}>{children}</Ctx.Provider>;
 }
 
