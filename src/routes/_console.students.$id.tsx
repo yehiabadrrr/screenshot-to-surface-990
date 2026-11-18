@@ -88,5 +88,5 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
 function TxnList({ rows }: { rows: { id: string; type: string; amount: number; method: string; date: string; status: string }[] }) {
   return <ul className="divide-y">{rows.map((x) => (
     <li key={x.id} className="flex items-center gap-3 px-5 py-2.5 text-sm"><div className="flex-1"><div className="font-medium">{x.type}</div><div className="text-xs text-muted-foreground">{x.id} · {x.method} · {shortDate(x.date)}</div></div>
-      <span className={cn("font-medium", x.type === "Payment" ? "text-positive" : "text-muted-foreground")}><Money value={x.amount} /></span></li>))}</ul>;
+      <span className={cn("font-medium", x.type === "Payment" && x.status === "Completed" ? "text-positive" : "text-muted-foreground", x.status === "Reversed" && "line-through")}><Money value={x.amount} />{x.status !== "Completed" && <span className="ms-1 text-xs font-normal">({x.status})</span>}</span></li>))}</ul>;
 }

@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Finance
+- Every money figure (KPIs, finance cards, method breakdowns, student balances, teacher % payouts) is computed from the ledger in `src/lib/ledger.ts` via `useFinance`/`useLedger`; never hardcode totals. Why: hardcoded KPIs drifted from the transaction list.
+- The ledger is append-only: corrections add a Reversal (with reason) and optionally a replacement payment; completed entries are never edited and IDs are never reused. Why: audit trail.
+- Overview and Finance share one period + branch filter from `LedgerProvider`. Why: both screens must show the same numbers.
+- Until a backend exists, the ledger is in-memory demo data and the UI must say so. Why: never imply a payment reached a real ledger.

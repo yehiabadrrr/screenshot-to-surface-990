@@ -48,7 +48,7 @@ export function KpiCard({ label, value, delta, invert, spark, hint }: { label: s
   return (
     <div className="surface flex flex-col p-4">
       <div className="text-[13px] text-muted-foreground">{t(label)}</div>
-      <div className="mt-1.5 text-[22px] font-semibold tracking-tight text-foreground num">{value}</div>
+      <div className="mt-1.5 whitespace-nowrap text-xl font-semibold tracking-tight text-foreground num">{value}</div>
       {hint && <div className="mt-0.5 text-xs text-muted-foreground num">{hint}</div>}
       <div className="mt-2 flex items-end justify-between gap-2">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Delta value={delta} invert={invert} /> <span className="hidden xl:inline">{t("vs last month")}</span></div>
