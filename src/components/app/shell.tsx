@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { branches } from "@/lib/data";
+import { useLedger } from "@/lib/ledger-store";
 import { Logo } from "./logo";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -26,7 +27,7 @@ const nav = [
 function SidebarBody({ collapsed, onNav }: { collapsed: boolean; onNav?: () => void }) {
   const { t } = useI18n();
   const path = useRouterState({ select: (r) => r.location.pathname });
-  const [branch, setBranch] = useState<string>("All branches");
+  const { branch, setBranch } = useLedger();
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className={cn("flex h-14 items-center gap-2.5 px-4", collapsed && "justify-center px-0")}>
@@ -40,13 +41,13 @@ function SidebarBody({ collapsed, onNav }: { collapsed: boolean; onNav?: () => v
               <div className="grid size-8 place-items-center rounded-md bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">NA</div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] font-medium text-sidebar-accent-foreground">Nile Academy</div>
-                <div className="truncate text-xs">{t(branch)}</div>
+                <div className="truncate text-xs">{t(branch === "all" ? "All branches" : branch)}</div>
               </div>
               <ChevronsUpDown className="size-4 opacity-60" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
               {["All branches", ...branches].map((b) => (
-                <DropdownMenuItem key={b} onClick={() => setBranch(b)}>{t(b)}</DropdownMenuItem>
+                <DropdownMenuItem key={b} onClick={() => setBranch(b === "All branches" ? "all" : b)}>{t(b)}</DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -104,6 +105,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Search className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input placeholder={`${t("Search")}…`} className="h-9 w-full rounded-md border bg-card ps-8 pe-3 text-sm outline-none focus:ring-2 focus:ring-ring/30" />
           </div>
+          <span className="hidden items-center gap-1.5 rounded-full border border-warning/40 bg-warning-soft px-2.5 py-1 text-xs font-medium text-foreground sm:inline-flex" title="Sample data. New payments and corrections live only in this browser tab and disappear on refresh. Nothing is saved to a real ledger.">
+            <span className="size-1.5 rounded-full bg-warning" />Demo data · not saved
+          </span>
           <div className="ms-auto flex items-center gap-1">
             <button onClick={() => setLang(lang === "en" ? "ar" : "en")} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-muted">
               <Languages className="size-4" /> {lang === "en" ? "العربية" : "English"}

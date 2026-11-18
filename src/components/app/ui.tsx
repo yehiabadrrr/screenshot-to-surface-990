@@ -40,7 +40,7 @@ export function Delta({ value, invert = false, suffix = "%" }: { value: number; 
   );
 }
 
-export function KpiCard({ label, value, delta, invert, spark }: { label: string; value: string; delta: number; invert?: boolean | undefined; spark?: number[] }) {
+export function KpiCard({ label, value, delta, invert, spark, hint }: { label: string; value: string; delta: number; invert?: boolean | undefined; spark?: number[]; hint?: ReactNode }) {
   const { t } = useI18n();
   const good = invert ? delta <= 0 : delta >= 0;
   const color = good ? "var(--positive)" : "var(--destructive)";
@@ -49,6 +49,7 @@ export function KpiCard({ label, value, delta, invert, spark }: { label: string;
     <div className="surface flex flex-col p-4">
       <div className="text-[13px] text-muted-foreground">{t(label)}</div>
       <div className="mt-1.5 text-[22px] font-semibold tracking-tight text-foreground num">{value}</div>
+      {hint && <div className="mt-0.5 text-xs text-muted-foreground num">{hint}</div>}
       <div className="mt-2 flex items-end justify-between gap-2">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Delta value={delta} invert={invert} /> <span className="hidden xl:inline">{t("vs last month")}</span></div>
         {spark && (

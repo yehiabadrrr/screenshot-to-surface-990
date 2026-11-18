@@ -12,7 +12,7 @@ const first = ["Youssef","Omar","Mariam","Malak","Ahmed","Nour","Hana","Ali","Sa
 const last = ["Mahmoud","Hassan","Ibrahim","El-Sayed","Abdelrahman","Farouk","Mansour","Saleh","Fathy","Ragab","Shawky","Naguib","Zaki","Gamal","Hegazy","Soliman","Tawfik","Badawy"];
 const phone = () => `01${pick(["0","1","2","5"])}${String(Math.floor(rnd() * 1e8)).padStart(8, "0")}`;
 
-export interface Teacher { id: string; name: string; subject: string; phone: string; branch: Branch; model: CompensationModel; sessions: number; attending: number; collected: number; attendance: number; }
+export interface Teacher { id: string; name: string; subject: string; phone: string; branch: Branch; model: CompensationModel; sessions: number; attending: number; attendance: number; }
 const teacherSeed: [string, string, CompensationModel][] = [
   ["Dr. Hesham Abdelaziz","Physics",{ type: "percentage", percent: 40 }],
   ["Mona El-Sherif","Chemistry",{ type: "percentage", percent: 35 }],
@@ -30,9 +30,10 @@ const teacherSeed: [string, string, CompensationModel][] = [
 export const teachers: Teacher[] = teacherSeed.map(([name, subject, model], i) => ({
   id: `T-${101 + i}`, name, subject, model, phone: phone(), branch: branches[i % 3]!,
   sessions: 10 + Math.floor(rnd() * 10), attending: 120 + Math.floor(rnd() * 160),
-  collected: 18000 + Math.floor(rnd() * 26000), attendance: 90 + Math.floor(rnd() * 10),
+  attendance: 90 + Math.floor(rnd() * 10),
 }));
-export const payableOf = (t: Teacher) => teacherPayout(t.model, { sessions: t.sessions, attendingStudentSessions: t.attending, collectedTuition: t.collected });
+/** Monthly payable. `collected` = gross collections for the teacher's classes in the period (from the ledger). */
+export const payableOf = (t: Teacher, collected: number) => teacherPayout(t.model, { sessions: t.sessions, attendingStudentSessions: t.attending, collectedTuition: collected });
 
 export interface ClassItem { id: string; name: string; kind: "Tutoring" | "Language course"; teacherId: string; branch: Branch; days: string; time: string; capacity: number; enrolled: number; fee: number; revenue: number; attendance: number; }
 const classSeed: [string, number, ClassItem["kind"], number][] = [
@@ -51,52 +52,29 @@ export const classes: ClassItem[] = classSeed.map(([name, ti, kind, fee], i) => 
   return { id: `C-${201 + i}`, name, kind, teacherId: teachers[ti]!.id, branch: teachers[ti]!.branch, days: dayOpts[i % 5]!, time: timeOpts[(i * 2) % 5]!, capacity, enrolled, fee, revenue: enrolled * fee, attendance: 84 + Math.floor(rnd() * 15) };
 });
 
-export interface Student { id: string; name: string; phone: string; guardian: string; guardianPhone: string; classIds: string[]; balance: number; paid: number; attendance: number; status: "Active" | "Paused" | "Inactive"; branch: Branch; grade: string; joined: string; }
+export interface Student { id: string; name: string; phone: string; guardian: string; guardianPhone: string; classIds: string[]; attendance: number; status: "Active" | "Paused" | "Inactive"; branch: Branch; grade: string; joined: string; }
 export const students: Student[] = Array.from({ length: 300 }, (_, i) => {
   const ln = pick(last);
   const cls = [pick(classes)]; if (rnd() > 0.55) cls.push(pick(classes));
   const ids = [...new Set(cls.map((c) => c.id))];
-  const r = rnd();
-  const balance = r < 0.22 ? Math.round((150 + rnd() * 1100) / 50) * 50 : r < 0.3 ? -Math.round((100 + rnd() * 500) / 50) * 50 : 0;
   const status: Student["status"] = i < 284 ? "Active" : i < 292 ? "Paused" : "Inactive";
   return {
     id: `S-${String(1001 + i)}`, name: `${pick(first)} ${ln}`, phone: phone(), guardian: `${pick(["Mohamed","Ahmed","Hany","Sherif","Amal","Rania","Ashraf","Ehab"])} ${ln}`, guardianPhone: phone(),
-    classIds: ids, balance, paid: ids.reduce((s, id) => s + classes.find((c) => c.id === id)!.fee, 0) * (2 + Math.floor(rnd() * 3)),
-    attendance: 70 + Math.floor(rnd() * 30), status, branch: pick([...branches]),
+    classIds: ids,
+    attendance: 70 + Math.floor(rnd() * 30), status, branch: classes.find((c) => c.id === ids[0])!.branch,
     grade: pick(["Thanaweya 3","Thanaweya 2","Thanaweya 1","Prep 3","Adult"]),
     joined: `2026-${String(1 + Math.floor(rnd() * 10)).padStart(2, "0")}-${String(1 + Math.floor(rnd() * 27)).padStart(2, "0")}`,
   };
-});
-
-export const methods = ["Cash", "InstaPay", "Fawry", "Bank transfer", "Other"] as const;
-export interface Txn { id: string; studentId: string; type: "Payment" | "Refund" | "Discount"; amount: number; method: (typeof methods)[number]; date: string; status: "Completed" | "Pending" | "Reversed"; }
-export const transactions: Txn[] = Array.from({ length: 60 }, (_, i) => {
-  const s = students[Math.floor(rnd() * 284)]!;
-  const r = rnd();
-  const type: Txn["type"] = r < 0.88 ? "Payment" : r < 0.94 ? "Discount" : "Refund";
-  const d = new Date(Date.UTC(2026, 10, 17) - i * 0.4 * 86400000);
-  return { id: `TX-${8840 - i}`, studentId: s.id, type, amount: Math.round((type === "Payment" ? 300 + rnd() * 2500 : 100 + rnd() * 400) / 50) * 50,
-    method: pick([...methods, "Cash", "InstaPay", "Cash"] as Txn["method"][]), date: d.toISOString(), status: rnd() < 0.9 ? "Completed" : rnd() < 0.7 ? "Pending" : "Reversed" };
 });
 
 export const studentById = (id: string) => students.find((s) => s.id === id);
 export const teacherById = (id: string) => teachers.find((t) => t.id === id)!;
 export const classById = (id: string) => classes.find((c) => c.id === id)!;
 
-export const monthly = [
-  { m: "Jun", revenue: 168000, collected: 151000, students: 241, attendance: 89.2 },
-  { m: "Jul", revenue: 174000, collected: 158500, students: 252, attendance: 90.1 },
-  { m: "Aug", revenue: 181500, collected: 162000, students: 259, attendance: 88.4 },
-  { m: "Sep", revenue: 198000, collected: 171000, students: 268, attendance: 91.3 },
-  { m: "Oct", revenue: 214000, collected: 176500, students: 277, attendance: 92.0 },
-  { m: "Nov", revenue: 227000, collected: 185000, students: 284, attendance: 92.6 },
+/** Operational attendance history (not financial; not branch-filtered in the demo). */
+export const attendanceHistory = [
+  { m: "2026-06", attendance: 89.2 }, { m: "2026-07", attendance: 90.1 }, { m: "2026-08", attendance: 88.4 },
+  { m: "2026-09", attendance: 91.3 }, { m: "2026-10", attendance: 92.0 }, { m: "2026-11", attendance: 92.6 },
 ];
 
-export const kpis = {
-  revenue: 227000, revenuePrev: 214000,
-  collected: 185000, collectedPrev: 176500,
-  outstanding: 42000, outstandingPrev: 37500,
-  active: 284, activePrev: 277,
-  attendance: 92.6, attendancePrev: 92.0,
-  payables: teachers.reduce((s, t) => s + payableOf(t), 0), payablesPrev: 118400,
-};
+export const staff = { owner: "Yehia Hazem", frontDesk: "Reem Adel", accountant: "Karim Samy" };
