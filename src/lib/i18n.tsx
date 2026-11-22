@@ -2,7 +2,9 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 export type Lang = "en" | "ar";
 
-const ar: Record<string, string> = {
+import { arExtra } from "./i18n-ar";
+
+const arBase: Record<string, string> = {
   Overview: "نظرة عامة", Students: "الطلاب", "Classes & Courses": "الفصول والكورسات", Attendance: "الحضور",
   "Payments & Finance": "المدفوعات والمالية", "Teacher Management": "إدارة المدرسين", "Reports & Analytics": "التقارير والتحليلات",
   Communications: "التواصل", Settings: "الإعدادات", Search: "بحث", "All branches": "كل الفروع",
@@ -20,6 +22,8 @@ const ar: Record<string, string> = {
   "New class": "فصل جديد", Schedule: "الجدول", Branch: "الفرع", Capacity: "السعة", Payable: "المستحق", Language: "اللغة",
   Revenue: "الإيرادات", Collections: "التحصيل", "Branch comparison": "مقارنة الفروع", Templates: "القوالب", "Send on WhatsApp": "إرسال عبر واتساب",
 };
+
+const ar: Record<string, string> = { ...arBase, ...arExtra };
 
 const Ctx = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: (k: string, v?: Record<string, string | number>) => string }>({
   lang: "en", setLang: () => {}, t: (k) => k,

@@ -7,4 +7,4 @@
 - [ ] Phone-friendly attendance + teacher view; multi-class enrollment with per-enrollment rule
 - [ ] Full EN/AR for attendance, student and billing screens; verify RTL at phone width
 - [ ] Teachers, Reports, Communications, Settings pages (placeholders today)
-- [ ] Phase 2: Lovable Cloud (real logins, saved ledger)
+- [ ] Phase 2: Lovable Cloud (real logins, saved ledger) — on hold: user chose to stay on sample data for now
