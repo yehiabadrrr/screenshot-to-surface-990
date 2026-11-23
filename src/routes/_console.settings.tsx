@@ -13,7 +13,7 @@ function Page() {
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader title={t("Settings")} />
-      <Panel><EmptyState title="This page is next in line" hint="It will be built in the next step." /></Panel>
+      <Panel><EmptyState title={t("This page is next in line")} hint={t("It will be built in the next step.")} /></Panel>
     </div>
   );
 }

@@ -37,3 +37,27 @@ export function outcomeText(o: Outcome, t: T, lang: Lang) {
     case "package_exhausted": return t("Package used up · charge {amount}", { amount: egp(o.kind === "charge" ? o.amount : 0, lang) });
   }
 }
+
+/** Percent with locale digits and the Arabic percent sign in Arabic mode. */
+export const pct = (n: number, lang: Lang) => (lang === "ar" ? `${fmtNum(n, lang)}٪` : `${fmtNum(n, lang)}%`);
+export const monthShort = (ym: string, lang: Lang) =>
+  new Date(`${ym}-15T00:00:00Z`).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-GB", { month: "short", timeZone: "UTC" });
+/** Compact axis label: 12k / ١٢ ألف. */
+export const kAxis = (v: number, lang: Lang) => (lang === "ar" ? `${fmtNum(Math.round(v / 1000), lang)} ألف` : `${Math.round(v / 1000)}k`);
+
+/** Sample-ledger notes and reasons follow a few fixed patterns; translate them for display. Free text a user typed is shown as-is. */
+export function noteText(s: string | undefined, t: T, lang: Lang): string | undefined {
+  if (!s) return s;
+  let m = /^Tuition (\d{4}-\d{2})$/.exec(s);
+  if (m) return t("Tuition · {month}", { month: monthShort(m[1]!, lang) });
+  m = /^Package · (\d+) sessions$/.exec(s);
+  if (m) return t("Package · {n} sessions", { n: fmtNum(Number(m[1]), lang) });
+  m = /^Session (\d{4}-\d{2}-\d{2}) · 1 package session$/.exec(s);
+  if (m) return t("Session {date} · 1 package session", { date: shortDateL(m[1]!, lang) });
+  m = /^Session (\d{4}-\d{2}-\d{2})$/.exec(s);
+  if (m) return t("Session {date}", { date: shortDateL(m[1]!, lang) });
+  return t(s);
+}
+
+/** Errors thrown by the ledger/billing helpers carry English keys; show them in the current language. */
+export const errText = (e: unknown, t: T) => t(e instanceof Error ? e.message : String(e));

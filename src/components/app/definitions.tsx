@@ -11,13 +11,16 @@ const DEFS: [string, string][] = [
   ["Teacher payables", "Accrued for the period from each teacher's pay model. Percentage models use gross collections for that teacher's classes."],
 ];
 
+import { useI18n } from "@/lib/i18n";
+
 export function FinanceDefinitions() {
+  const { t } = useI18n();
   return (
     <dl className="grid gap-x-8 gap-y-3 text-sm md:grid-cols-2">
       {DEFS.map(([k, v]) => (
-        <div key={k}><dt className="font-medium text-foreground">{k}</dt><dd className="text-muted-foreground">{v}</dd></div>
+        <div key={k}><dt className="font-medium text-foreground">{t(k)}</dt><dd className="text-muted-foreground">{t(v)}</dd></div>
       ))}
-      <div className="md:col-span-2 text-xs text-muted-foreground">Every figure follows the month and branch selected above. A month in progress runs to today and is compared with the same days of the previous month.</div>
+      <div className="md:col-span-2 text-xs text-muted-foreground">{t("Every figure follows the month and branch selected above. A month in progress runs to today and is compared with the same days of the previous month.")}</div>
     </dl>
   );
 }

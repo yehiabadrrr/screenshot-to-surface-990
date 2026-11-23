@@ -14,7 +14,8 @@ import { studentById } from "@/lib/data";
 import { METHODS, displayStatus, reversedIds, type LedgerEntry } from "@/lib/ledger";
 import { useLedger, monthLabel } from "@/lib/ledger-store";
 import { useFinance } from "@/lib/use-finance";
-import { shortDate } from "@/lib/format";
+import { egp } from "@/lib/format";
+import { fmtNum, noteText, shortDateL } from "@/lib/l10n";
 import { useI18n } from "@/lib/i18n";
 import { pageHead, downloadCsv } from "@/lib/head";
 import { cn } from "@/lib/utils";
@@ -48,23 +49,23 @@ function FinancePage() {
   const set = (f: (v: string) => void) => (v: string) => { f(v); setPage(0); };
 
   const primary: [string, number, string, string][] = [
-    ["Billed revenue", c.billed, "", `Net billed ${fmt(c.netBilled)} after discounts`],
-    ["Gross collections", c.grossCollections, "text-positive", "Completed payments only"],
-    ["Net collections", c.netCollections, "", `Gross − refunds ${fmt(c.refunds)}`],
-    ["Outstanding receivables", c.outstanding, "text-destructive", `${c.studentsOwing} students owe · end of period`],
+    [t("Billed revenue"), c.billed, "", t("Net billed {amount} after discounts", { amount: egp(c.netBilled, lang) })],
+    [t("Gross collections"), c.grossCollections, "text-positive", t("Completed payments only")],
+    [t("Net collections"), c.netCollections, "", t("Gross − refunds {amount}", { amount: egp(c.refunds, lang) })],
+    [t("Outstanding receivables"), c.outstanding, "text-destructive", t("{n} students owe · end of period", { n: fmtNum(c.studentsOwing, lang) })],
   ];
   const secondary: [string, number, string][] = [
-    ["Discounts", c.discounts, "Reduce billed revenue"],
-    ["Refunds", c.refunds, "Paid back to students"],
-    ["Pending", c.pending, `${c.pendingCount} payments · not counted`],
-    ["Reversed", c.reversed, `${c.reversedCount} entries · not counted`],
-    ["Prepaid balances", c.prepaid, "Student credit · end of period"],
-    ["Teacher payables", payables, "Accrued this period"],
+    [t("Discounts"), c.discounts, t("Reduce billed revenue")],
+    [t("Refunds"), c.refunds, t("Paid back to students")],
+    [t("Pending"), c.pending, t("{n} payments · not counted", { n: fmtNum(c.pendingCount, lang) })],
+    [t("Reversed"), c.reversed, t("{n} entries · not counted", { n: fmtNum(c.reversedCount, lang) })],
+    [t("Prepaid balances"), c.prepaid, t("Student credit · end of period")],
+    [t("Teacher payables"), payables, t("Accrued this period")],
   ];
 
   return (
     <div className="mx-auto max-w-7xl">
-      <PageHeader title={t("Payments & Finance")} subtitle={`${monthLabel(period, lang)} · ${branch === "all" ? t("All branches") : branch}`}
+      <PageHeader title={t("Payments & Finance")} subtitle={`${monthLabel(period, lang)} · ${branch === "all" ? t("All branches") : t(branch)}`}
         actions={<>
           <PeriodBranchFilter />
           <Button variant="outline" onClick={() => downloadCsv(`transactions-${period}.csv`, [["ID","Date","Student","Type","Amount","Method","Branch","Reference","Note","Reason","Reverses","Replaces","Status","Entered by","Entered at"], ...rows.map((x) => [x.id, x.date, studentById(x.studentId)?.name ?? "", x.type, x.amount, x.method ?? "", x.branch, x.reference ?? "", x.note ?? "", x.reason ?? "", x.reversesId ?? "", x.replacesId ?? "", displayStatus(x, rev), x.enteredBy, x.enteredAt])])}><Download className="size-4" />{t("Export")}</Button>
@@ -83,77 +84,76 @@ function FinancePage() {
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-4">
-        <Panel title="Gross collections by method">
+        <Panel title={t("Gross collections by method")}>
           <div className="space-y-3">
             {c.byMethod.map((b) => (
               <div key={b.method}>
-                <div className="flex justify-between text-[13px]"><span>{b.method} <span className="text-muted-foreground">· {b.count}</span></span><Money value={b.amount} /></div>
+                <div className="flex justify-between text-[13px]"><span>{t(b.method)} <span className="text-muted-foreground">· {fmtNum(b.count, lang)}</span></span><Money value={b.amount} /></div>
                 <div className="mt-1 h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-positive" style={{ width: `${(b.amount / maxM) * 100}%` }} /></div>
               </div>
             ))}
           </div>
           <dl className="mt-4 space-y-1.5 border-t pt-3 text-[13px]">
-            <div className="flex justify-between font-semibold"><dt>Total = gross collections</dt><dd><Money value={methodTotal} /></dd></div>
-            <div className="flex justify-between text-muted-foreground"><dt>− Refunds</dt><dd><Money value={c.refunds} /></dd></div>
-            <div className="flex justify-between font-semibold text-positive"><dt>= Net collections</dt><dd><Money value={c.netCollections} /></dd></div>
+            <div className="flex justify-between font-semibold"><dt>{t("Total = gross collections")}</dt><dd><Money value={methodTotal} /></dd></div>
+            <div className="flex justify-between text-muted-foreground"><dt>− {t("Refunds")}</dt><dd><Money value={c.refunds} /></dd></div>
+            <div className="flex justify-between font-semibold text-positive"><dt>= {t("Net collections")}</dt><dd><Money value={c.netCollections} /></dd></div>
           </dl>
-          <p className="mt-3 text-xs text-muted-foreground">Pending ({c.pendingCount}) and reversed ({c.reversedCount}) payments are excluded.</p>
+          <p className="mt-3 text-xs text-muted-foreground">{t("Pending ({p}) and reversed ({r}) payments are excluded.", { p: fmtNum(c.pendingCount, lang), r: fmtNum(c.reversedCount, lang) })}</p>
         </Panel>
 
         <div className="surface overflow-hidden lg:col-span-3">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
-            <h2 className="text-sm font-semibold">Transactions <span className="font-normal text-muted-foreground">· {rows.length}</span></h2>
+            <h2 className="text-sm font-semibold">{t("Transactions")} <span className="font-normal text-muted-foreground">· {fmtNum(rows.length, lang)}</span></h2>
             <div className="flex flex-wrap gap-2">
-              <Select value={type} onValueChange={set(setType)}><SelectTrigger className="h-8 w-32 text-xs" aria-label="Type"><SelectValue /></SelectTrigger><SelectContent>{TYPES.map((x) => <SelectItem key={x} value={x}>{x === "all" ? "All types" : x}</SelectItem>)}</SelectContent></Select>
-              <Select value={status} onValueChange={set(setStatus)}><SelectTrigger className="h-8 w-32 text-xs" aria-label="Status"><SelectValue /></SelectTrigger><SelectContent>{["all", "Completed", "Pending", "Reversed"].map((x) => <SelectItem key={x} value={x}>{x === "all" ? "All statuses" : x}</SelectItem>)}</SelectContent></Select>
+              <Select value={type} onValueChange={set(setType)}><SelectTrigger className="h-8 w-32 text-xs" aria-label={t("Type")}><SelectValue /></SelectTrigger><SelectContent>{TYPES.map((x) => <SelectItem key={x} value={x}>{x === "all" ? t("All types") : t(x)}</SelectItem>)}</SelectContent></Select>
+              <Select value={status} onValueChange={set(setStatus)}><SelectTrigger className="h-8 w-32 text-xs" aria-label={t("Status")}><SelectValue /></SelectTrigger><SelectContent>{["all", "Completed", "Pending", "Reversed"].map((x) => <SelectItem key={x} value={x}>{x === "all" ? t("All statuses") : t(x)}</SelectItem>)}</SelectContent></Select>
             </div>
           </div>
-          <div className="border-b px-4 py-2">
-            <Tabs value={method} onValueChange={set(setMethod)}><TabsList className="h-8">{["all", ...METHODS].map((m) => <TabsTrigger key={m} value={m} className="text-xs">{m === "all" ? "All methods" : m}</TabsTrigger>)}</TabsList></Tabs>
+          <div className="overflow-x-auto border-b px-4 py-2">
+            <Tabs value={method} onValueChange={set(setMethod)}><TabsList className="h-8">{["all", ...METHODS].map((m) => <TabsTrigger key={m} value={m} className="text-xs">{m === "all" ? t("All methods") : t(m)}</TabsTrigger>)}</TabsList></Tabs>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-xs text-muted-foreground"><tr>{["ID", t("Date"), t("Student"), t("Type"), t("Amount"), t("Method"), "Reference / reason", "Entered by", t("Status"), ""].map((h, i) => <th key={i} className="whitespace-nowrap px-3 py-2.5 text-start font-medium">{h}</th>)}</tr></thead>
+              <thead className="bg-muted/50 text-xs text-muted-foreground"><tr>{[t("ID"), t("Date"), t("Student"), t("Type"), t("Amount"), t("Method"), t("Reference / reason"), t("Entered by"), t("Status"), ""].map((h, i) => <th key={i} className="whitespace-nowrap px-3 py-2.5 text-start font-medium">{h}</th>)}</tr></thead>
               <tbody className="divide-y">{view.map((x) => {
                 const st = displayStatus(x, rev);
                 const canCorrect = st === "Completed" && x.type !== "Reversal";
                 return (
                   <tr key={x.id} className={cn("hover:bg-muted/40", st === "Reversed" && "text-muted-foreground")}>
-                    <td className="whitespace-nowrap px-3 py-2.5 text-muted-foreground num">{x.id}</td>
-                    <td className="whitespace-nowrap px-3 py-2.5 num">{shortDate(x.date)}</td>
-                    <td className="px-3 py-2.5"><div className="font-medium">{studentById(x.studentId)?.name}</div><div className="text-xs text-muted-foreground">{x.branch}</div></td>
-                    <td className="whitespace-nowrap px-3 py-2.5">{x.type}{x.reversesId && <div className="text-xs text-muted-foreground">of {x.reversesId}</div>}{x.replacesId && <div className="text-xs text-muted-foreground">replaces {x.replacesId}</div>}</td>
+                    <td className="whitespace-nowrap px-3 py-2.5 text-muted-foreground num" dir="ltr">{x.id}</td>
+                    <td className="whitespace-nowrap px-3 py-2.5 num">{shortDateL(x.date, lang)}</td>
+                    <td className="px-3 py-2.5"><div className="font-medium">{studentById(x.studentId)?.name}</div><div className="text-xs text-muted-foreground">{t(x.branch)}</div></td>
+                    <td className="whitespace-nowrap px-3 py-2.5">{t(x.type)}{x.reversesId && <div className="text-xs text-muted-foreground">{t("of {id}", { id: x.reversesId })}</div>}{x.replacesId && <div className="text-xs text-muted-foreground">{t("replaces {id}", { id: x.replacesId })}</div>}</td>
                     <td className={cn("whitespace-nowrap px-3 py-2.5 font-medium", x.type === "Payment" && st === "Completed" ? "text-positive" : "", st === "Reversed" && "line-through")}>{x.type === "Payment" ? "+" : "−"}<Money value={x.amount} /></td>
-                    <td className="whitespace-nowrap px-3 py-2.5">{x.method ?? "—"}</td>
-                    <td className="max-w-48 px-3 py-2.5"><div className="truncate text-xs" title={[x.reference, x.reason, x.note].filter(Boolean).join(" · ")}>{x.reference ?? x.reason ?? x.note ?? "—"}</div></td>
-                    <td className="whitespace-nowrap px-3 py-2.5 text-xs">{x.enteredBy}</td>
-                    <td className="px-3 py-2.5"><Pill tone={st === "Completed" ? "positive" : st === "Pending" ? "warning" : "neutral"}>{st}</Pill></td>
+                    <td className="whitespace-nowrap px-3 py-2.5">{x.method ? t(x.method) : "—"}</td>
+                    <td className="max-w-48 px-3 py-2.5"><div className="truncate text-xs" title={[x.reference, noteText(x.reason, t, lang), noteText(x.note, t, lang)].filter(Boolean).join(" · ")}>{x.reference ? <bdi>{x.reference}</bdi> : noteText(x.reason ?? x.note, t, lang) ?? "—"}</div></td>
+                    <td className="whitespace-nowrap px-3 py-2.5 text-xs">{t(x.enteredBy)}</td>
+                    <td className="px-3 py-2.5"><Pill tone={st === "Completed" ? "positive" : st === "Pending" ? "warning" : "neutral"}>{t(st)}</Pill></td>
                     <td className="px-2 py-2.5">
                       {canCorrect && (
-                        <DropdownMenu><DropdownMenuTrigger className="rounded p-1 hover:bg-muted" aria-label={`Actions for ${x.id}`}><MoreHorizontal className="size-4" /></DropdownMenuTrigger>
-                          <DropdownMenuContent align="end"><DropdownMenuItem onClick={() => setCorrecting(x)}>Correct or reverse…</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
+                        <DropdownMenu><DropdownMenuTrigger className="rounded p-1 hover:bg-muted" aria-label={t("Actions for {id}", { id: x.id })}><MoreHorizontal className="size-4" /></DropdownMenuTrigger>
+                          <DropdownMenuContent align="end"><DropdownMenuItem onClick={() => setCorrecting(x)}>{t("Correct or reverse…")}</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
                       )}
                     </td>
                   </tr>
                 );
               })}</tbody>
             </table>
-            {view.length === 0 && <EmptyState title="No transactions match" hint="Try another method, type, status, month or branch." />}
+            {view.length === 0 && <EmptyState title={t("No transactions match")} hint={t("Try another method, type, status, month or branch.")} />}
           </div>
           <div className="flex items-center justify-between border-t px-4 py-3 text-xs text-muted-foreground">
-            <span>Showing {rows.length ? page * PAGE + 1 : 0}–{Math.min(rows.length, page * PAGE + PAGE)} of {rows.length}</span>
+            <span>{t("Showing {a}–{b} of {n}", { a: fmtNum(rows.length ? page * PAGE + 1 : 0, lang), b: fmtNum(Math.min(rows.length, page * PAGE + PAGE), lang), n: fmtNum(rows.length, lang) })}</span>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button>
-              <Button size="sm" variant="outline" disabled={(page + 1) * PAGE >= rows.length} onClick={() => setPage(page + 1)}>Next</Button>
+              <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage(page - 1)}>{t("Previous")}</Button>
+              <Button size="sm" variant="outline" disabled={(page + 1) * PAGE >= rows.length} onClick={() => setPage(page + 1)}>{t("Next")}</Button>
             </div>
           </div>
         </div>
       </div>
 
-      <Panel title="How these numbers are calculated" className="mt-4"><FinanceDefinitions /></Panel>
+      <Panel title={t("How these numbers are calculated")} className="mt-4"><FinanceDefinitions /></Panel>
       <CorrectEntryDialog entry={correcting} onClose={() => setCorrecting(null)} />
     </div>
   );
 }
 
-const fmt = (n: number) => `EGP ${Math.round(n).toLocaleString("en-US")}`;
