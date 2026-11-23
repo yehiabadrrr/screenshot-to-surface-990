@@ -7,12 +7,12 @@ import { formatMoney } from "@/lib/format";
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div className="mb-6 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 sm:flex sm:flex-wrap sm:justify-between">
       <div className="min-w-0">
         <h1 className="break-words text-page-title font-semibold text-foreground">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
       </div>
-      {actions && <div className="flex max-w-full flex-wrap items-center gap-2">{actions}</div>}
+      {actions && <div className="col-span-2 flex min-w-0 max-w-full flex-wrap items-center gap-2 sm:col-auto">{actions}</div>}
     </div>
   );
 }

@@ -14,13 +14,16 @@ import { egp } from "@/lib/format";
 
 const NO_CLASS = "none";
 
-export function RecordPaymentDialog({ trigger, studentId }: { trigger: ReactNode; studentId?: string }) {
+export function RecordPaymentDialog({ trigger, studentId, controlledOpen, onOpenChange }: { trigger: ReactNode; studentId?: string; controlledOpen?: boolean; onOpenChange?: (open: boolean) => void }) {
   const { t } = useI18n();
   const { entries, students, recordPayment, filter } = useLedger();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = (value: boolean) => { setInternalOpen(value); onOpenChange?.(value); };
   const [sid, setSid] = useState(studentId ?? "");
-  const [classId, setClassId] = useState(NO_CLASS);
-  const [branch, setBranch] = useState<string>("");
+  const initialStudent = students.find((student) => student.id === studentId);
+  const [classId, setClassId] = useState(initialStudent?.classIds[0] ?? NO_CLASS);
+  const [branch, setBranch] = useState<string>(initialStudent?.branch ?? "");
   const [method, setMethod] = useState<Method>("Cash");
   const [status, setStatus] = useState<"Completed" | "Pending">("Completed");
   const [amount, setAmount] = useState("");
