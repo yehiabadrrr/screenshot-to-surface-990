@@ -10,7 +10,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { RecordPaymentDialog } from "@/components/app/record-payment";
-import { studentById } from "@/lib/data";
 import { METHODS, displayStatus, reversedIds, type LedgerEntry } from "@/lib/ledger";
 import { useLedger, monthLabel } from "@/lib/ledger-store";
 import { useFinance } from "@/lib/use-finance";
@@ -30,7 +29,8 @@ const TYPES = ["all", "Payment", "Refund", "Discount", "Reversal"] as const;
 
 function FinancePage() {
   const { t, lang } = useI18n();
-  const { entries, filter, period, branch } = useLedger();
+  const { entries, students, filter, period, branch } = useLedger();
+  const studentMap = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
   const { current: c, payables } = useFinance();
   const [method, setMethod] = useState("all");
   const [type, setType] = useState<string>("all");
@@ -68,7 +68,7 @@ function FinancePage() {
       <PageHeader title={t("Payments & Finance")} subtitle={`${monthLabel(period, lang)} · ${branch === "all" ? t("All branches") : t(branch)}`}
         actions={<>
           <PeriodBranchFilter />
-          <Button variant="outline" onClick={() => downloadCsv(`transactions-${period}.csv`, [["ID","Date","Student","Type","Amount","Method","Branch","Reference","Note","Reason","Reverses","Replaces","Status","Entered by","Entered at"], ...rows.map((x) => [x.id, x.date, studentById(x.studentId)?.name ?? "", x.type, x.amount, x.method ?? "", x.branch, x.reference ?? "", x.note ?? "", x.reason ?? "", x.reversesId ?? "", x.replacesId ?? "", displayStatus(x, rev), x.enteredBy, x.enteredAt])])}><Download className="size-4" />{t("Export")}</Button>
+          <Button variant="outline" onClick={() => downloadCsv(`transactions-${period}.csv`, [["ID","Date","Student","Type","Amount","Method","Branch","Reference","Note","Reason","Reverses","Replaces","Status","Entered by","Entered at"], ...rows.map((x) => [x.id, x.date, studentMap.get(x.studentId)?.name ?? x.studentId, x.type, x.amount, x.method ?? "", x.branch, x.reference ?? "", x.note ?? "", x.reason ?? "", x.reversesId ?? "", x.replacesId ?? "", displayStatus(x, rev), x.enteredBy, x.enteredAt])])}><Download className="size-4" />{t("Export")}</Button>
           <RecordPaymentDialog trigger={<Button size="lg"><Plus className="size-4" />{t("Record payment")}</Button>} />
         </>} />
 
@@ -114,7 +114,7 @@ function FinancePage() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-xs text-muted-foreground"><tr>{[t("ID"), t("Date"), t("Student"), t("Type"), t("Amount"), t("Method"), t("Reference / reason"), t("Entered by"), t("Status"), ""].map((h, i) => <th key={i} className="whitespace-nowrap px-3 py-2.5 text-start font-medium">{h}</th>)}</tr></thead>
+              <thead className="bg-muted/50 text-xs text-muted-foreground"><tr>{[t("ID"), t("Date"), t("Student"), t("Type"), t("Amount"), t("Method"), t("Reference / reason"), t("Entered by"), t("Status"), ""].map((h, i) => <th key={i} className={cn("whitespace-nowrap px-3 py-2.5 font-medium", i === 4 ? "text-right" : "text-start")}>{h}</th>)}</tr></thead>
               <tbody className="divide-y">{view.map((x) => {
                 const st = displayStatus(x, rev);
                 const canCorrect = st === "Completed" && x.type !== "Reversal";
@@ -122,9 +122,9 @@ function FinancePage() {
                   <tr key={x.id} className={cn("hover:bg-muted/40", st === "Reversed" && "text-muted-foreground")}>
                     <td className="whitespace-nowrap px-3 py-2.5 text-muted-foreground num" dir="ltr">{x.id}</td>
                     <td className="whitespace-nowrap px-3 py-2.5 num">{shortDateL(x.date, lang)}</td>
-                    <td className="px-3 py-2.5"><div className="font-medium">{studentById(x.studentId)?.name}</div><div className="text-xs text-muted-foreground">{t(x.branch)}</div></td>
+                    <td className="px-3 py-2.5"><div className="font-medium"><bdi>{studentMap.get(x.studentId)?.name ?? x.studentId}</bdi></div><div className="text-xs text-muted-foreground">{t(x.branch)}</div></td>
                     <td className="whitespace-nowrap px-3 py-2.5">{t(x.type)}{x.reversesId && <div className="text-xs text-muted-foreground">{t("of {id}", { id: x.reversesId })}</div>}{x.replacesId && <div className="text-xs text-muted-foreground">{t("replaces {id}", { id: x.replacesId })}</div>}</td>
-                    <td className={cn("whitespace-nowrap px-3 py-2.5 font-medium", x.type === "Payment" && st === "Completed" ? "text-positive" : "", st === "Reversed" && "line-through")}>{x.type === "Payment" ? "+" : "−"}<Money value={x.amount} /></td>
+                    <td className={cn("whitespace-nowrap px-3 py-2.5 text-right font-medium num", x.type === "Payment" && st === "Completed" ? "text-positive" : "", st === "Reversed" && "line-through")}><bdi>{x.type === "Payment" ? "+" : "−"}<Money value={x.amount} /></bdi></td>
                     <td className="whitespace-nowrap px-3 py-2.5">{x.method ? t(x.method) : "—"}</td>
                     <td className="max-w-48 px-3 py-2.5"><div className="truncate text-xs" title={[x.reference, noteText(x.reason, t, lang), noteText(x.note, t, lang)].filter(Boolean).join(" · ")}>{x.reference ? <bdi>{x.reference}</bdi> : noteText(x.reason ?? x.note, t, lang) ?? "—"}</div></td>
                     <td className="whitespace-nowrap px-3 py-2.5 text-xs">{t(x.enteredBy)}</td>

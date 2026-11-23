@@ -21,6 +21,10 @@ import { pageHead } from "@/lib/head";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_console/attendance")({
+  validateSearch: (search: Record<string, unknown>): { classId?: string; date?: string } => ({
+    ...(typeof search['classId'] === "string" && classes.some((c) => c.id === search['classId']) ? { classId: search['classId'] } : {}),
+    ...(typeof search['date'] === "string" && /^\d{4}-\d{2}-\d{2}$/.test(search['date']) && search['date'] <= todayIso() ? { date: search['date'] } : {}),
+  }),
   head: pageHead("Attendance", "Mark Present, Absent or Excused, see how each student is billed, and finalize the session."),
   component: AttendancePage,
 });
@@ -32,13 +36,14 @@ const opts: { v: AttendanceStatus; icon: typeof Check; cls: string }[] = [
 ];
 
 function AttendancePage() {
+  const search = Route.useSearch();
   const { t, lang } = useI18n();
   const L = useLedger();
   const { actor, setActor, entries } = L;
   const visible = actor.kind === "teacher" ? classes.filter((c) => c.teacherId === actor.teacherId) : classes;
-  const [pickedClass, setPickedClass] = useState(classes[0]!.id);
+  const [pickedClass, setPickedClass] = useState(search.classId ?? classes[0]?.id ?? "");
   const classId = visible.some((c) => c.id === pickedClass) ? pickedClass : visible[0]?.id;
-  const [date, setDate] = useState(todayIso());
+  const [date, setDate] = useState(search.date ?? todayIso());
   const [amending, setAmending] = useState<{ studentId: string; to: Mark } | null>(null);
   const [reason, setReason] = useState("");
   const [amendError, setAmendError] = useState("");

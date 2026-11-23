@@ -30,6 +30,7 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Finance
+- Overview display selectors stay in `overview-display.ts` and never calculate money; attendance deep links select an existing class/date without changing posting rules.
 - Center metadata and sample actor identity come from `center-config.ts`; compatibility exports must reference it so displayed and recorded identities agree.
 - Presentation formatting lives in `format.ts`; `Money` and localization helpers delegate to it, without changing ledger calculations.
 - The shell command search uses the ledger store's live students and read-only class catalog; sidebar preference is hydrated after mount to avoid SSR mismatches.

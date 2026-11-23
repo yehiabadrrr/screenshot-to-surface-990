@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { appendPayment, comparisonFilter, computeMetrics, correctEntry, periodFilter, type LedgerEntry } from "./ledger";
+import { formatMoney } from "./format";
 
 const base = { branch: "Maadi", enteredBy: "Test", enteredAt: "2026-11-01T00:00:00Z", status: "Completed" as const };
 const fixture: LedgerEntry[] = [
@@ -17,6 +18,19 @@ const fixture: LedgerEntry[] = [
 const nov = { from: "2026-11-01", to: "2026-11-30", branch: "Maadi" };
 
 describe("collections", () => {
+  it("keeps whole-pound and piastre collections reconciled in display", () => {
+    const entries: LedgerEntry[] = [
+      { ...base, id: "TX-101", type: "Payment", studentId: "A", date: "2026-11-03", amount: 1000, method: "Cash" },
+      { ...base, id: "TX-102", type: "Payment", studentId: "A", date: "2026-11-03", amount: 250.25, method: "InstaPay" },
+      { ...base, id: "TX-103", type: "Refund", studentId: "A", date: "2026-11-03", amount: 20.5, method: "Cash" },
+    ];
+    const metrics = computeMetrics(entries, nov);
+    expect(metrics.byMethod.reduce((sum, item) => sum + item.amount, 0)).toBe(1250.25);
+    expect(metrics.grossCollections).toBe(1250.25);
+    expect(metrics.netCollections).toBe(1229.75);
+    expect(formatMoney(metrics.grossCollections)).toBe("EGP 1,250.25");
+    expect(formatMoney(metrics.netCollections, "ar")).toBe("1,229.75 ج.م");
+  });
   const m = computeMetrics(fixture, nov);
   it("excludes pending and reversed payments from gross collections", () => {
     expect(m.grossCollections).toBe(1400);

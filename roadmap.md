@@ -4,7 +4,9 @@
 - [x] Phase 1: design tokens, typography, spacing, shared components and accurate locale formatters
 - [x] Phase 2: central sample profile, grouped shell, remembered collapse, mobile More, command search, payment recipient fix and read-only Settings
 - [x] Verify tests, preview desktop/Arabic phone and automatic build; checkpoint and stop before Phase 3
-- Phase 3 onward: on hold for review; WhatsApp adapter belongs to Phase 6, not this change.
+- [x] Pre-Phase 3: live student lookups, money alignment, catalog review list and verification
+- [x] Phase 3: consolidated Overview, today's attendance links, attention and recent activity; QA and checkpoint
+- Phase 4 onward: on hold for review; WhatsApp adapter belongs to Phase 6, not this change.
 
 - [x] Phase 1 core screens (login, overview, students, profile, classes, attendance, finance)
 - [x] Finance audit: one ledger for all money figures, shared date/branch filters, definitions, reconciled method breakdown

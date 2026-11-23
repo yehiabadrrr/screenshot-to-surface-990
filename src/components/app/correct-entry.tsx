@@ -8,12 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { LedgerEntry } from "@/lib/ledger";
 import { useLedger, CURRENT_USER } from "@/lib/ledger-store";
-import { studentById } from "@/lib/data";
 import { egp } from "@/lib/format";
 
 /** Corrections never edit the original: they append a reversal (and optionally a corrected replacement). */
 export function CorrectEntryDialog({ entry, onClose }: { entry: LedgerEntry | null; onClose: () => void }) {
-  const { correct } = useLedger();
+  const { correct, students } = useLedger();
   const [mode, setMode] = useState<"reverse" | "adjust">("reverse");
   const [reason, setReason] = useState("");
   const [amount, setAmount] = useState("");
@@ -41,7 +40,7 @@ export function CorrectEntryDialog({ entry, onClose }: { entry: LedgerEntry | nu
           }}>
             <div className="rounded-lg border bg-muted/40 p-3 text-sm">
               <div className="font-medium">{entry.type} · {egp(entry.amount)} · {entry.method ?? "—"}</div>
-              <div className="text-xs text-muted-foreground">{studentById(entry.studentId)?.name} · {entry.date} · entered by {entry.enteredBy}</div>
+              <div className="text-xs text-muted-foreground"><bdi>{students.find((s) => s.id === entry.studentId)?.name ?? entry.studentId}</bdi> · {entry.date} · entered by {entry.enteredBy}</div>
             </div>
             <RadioGroup value={mode} onValueChange={(v) => setMode(v as "reverse" | "adjust")} className="gap-2">
               <label className="flex items-start gap-2 text-sm"><RadioGroupItem value="reverse" className="mt-0.5" /><span><b className="font-medium">Reverse only</b><br /><span className="text-muted-foreground">e.g. bounced transfer, duplicate entry</span></span></label>
