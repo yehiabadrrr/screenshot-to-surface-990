@@ -2,15 +2,18 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState, type
 import { seedLedger, seedSessions, LEDGER_MONTHS, type SessionRecord, type AuditItem } from "./ledger-seed";
 import { appendPayment, correctEntry, nextId, periodFilter, comparisonFilter, type Filter, type LedgerEntry, type NewPayment } from "./ledger";
 import { amendAttendance, finalizeSession, sessionIdFor, type BillingRule, type Mark } from "./billing";
-import { staff, students as seedStudents, classes, classById, teachers, seedEnrollmentRules, enrollmentKey, type Student } from "./data";
+import { students as seedStudents, classes, classById, teachers, seedEnrollmentRules, enrollmentKey, type Student } from "./data";
+import { centerProfile } from "./center-config";
 
 /** Demo identity. There is no real sign-in or access control yet. */
-export const CURRENT_USER = { name: staff.owner, role: "Owner" };
+export const CURRENT_USER = centerProfile.currentUser;
 export type Actor = { kind: "admin"; name: string } | { kind: "teacher"; teacherId: string; name: string };
 
 export const todayIso = () => new Date().toISOString().slice(0, 10);
 
 interface Store {
+  classes: typeof classes;
+  teachers: typeof teachers;
   entries: LedgerEntry[];
   period: string; setPeriod: (p: string) => void;
   branch: string; setBranch: (b: string) => void;
@@ -158,6 +161,7 @@ export function LedgerProvider({ children }: { children: ReactNode }) {
 
   const studentMap = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
   const value: Store = {
+    classes, teachers,
     entries, period, setPeriod, branch, setBranch, months: LEDGER_MONTHS, filter, compare, today, recordPayment, correct,
     students, findStudent: (id) => studentMap.get(id), addStudent, ruleFor, classRule: (id) => classRules[id] ?? classById(id).rule,
     setClassRule, setEnrollmentRule, sellPackage,
@@ -173,6 +177,6 @@ export function useLedger() {
 }
 
 export const monthLabel = (ym: string, lang: "en" | "ar" = "en") =>
-  new Date(`${ym}-15T00:00:00Z`).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
+  new Date(`${ym}-15T00:00:00Z`).toLocaleDateString(lang === "ar" ? "ar-EG-u-nu-latn" : "en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
 
 export const teacherActors = teachers.map((t) => ({ kind: "teacher" as const, teacherId: t.id, name: t.name }));

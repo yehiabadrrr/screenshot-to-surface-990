@@ -1,12 +1,13 @@
 import type { CompensationModel } from "./finance";
 import { teacherPayout } from "./finance";
 import type { BillingRule } from "./billing";
+import { centerProfile } from "./center-config";
 
 let seed = 42;
 const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
 const pick = <T,>(a: T[]) => a[Math.floor(rnd() * a.length)]!;
 
-export const branches = ["Nasr City", "Heliopolis", "Maadi"] as const;
+export const branches = centerProfile.branches;
 export type Branch = (typeof branches)[number];
 
 const first = ["Youssef","Omar","Mariam","Malak","Ahmed","Nour","Hana","Ali","Salma","Karim","Farida","Mostafa","Jana","Hamza","Laila","Adham","Rana","Seif","Habiba","Ziad","Judy","Marwan","Tasneem","Yassin","Retaj","Khaled","Logy","Mohamed","Aya","Hussein"];
@@ -87,7 +88,7 @@ export const attendanceHistory = [
   { m: "2026-09", attendance: 91.3 }, { m: "2026-10", attendance: 92.0 }, { m: "2026-11", attendance: 92.6 },
 ];
 
-export const staff = { owner: "Yehia Hazem", frontDesk: "Reem Adel", accountant: "Karim Samy" };
+export const staff = { owner: centerProfile.currentUser.name, frontDesk: "Reem Adel", accountant: "Karim Samy" };
 
 /** Per-enrollment overrides (`studentId|classId`). A few Physics T3 students pay per session. */
 export const seedEnrollmentRules: Record<string, BillingRule> = Object.fromEntries(

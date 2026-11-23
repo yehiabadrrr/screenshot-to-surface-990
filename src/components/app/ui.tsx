@@ -3,15 +3,16 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import { formatMoney } from "@/lib/format";
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+      <div className="min-w-0">
+        <h1 className="break-words text-page-title font-semibold text-foreground">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+      {actions && <div className="flex max-w-full flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
@@ -21,7 +22,7 @@ export function Panel({ title, action, children, className, bodyClass }: { title
     <section className={cn("surface overflow-hidden", className)}>
       {title && (
         <div className="flex items-center justify-between border-b px-5 py-3.5">
-          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+          <h2 className="text-section-title font-semibold text-foreground">{title}</h2>
           {action}
         </div>
       )}
@@ -44,11 +45,10 @@ export function KpiCard({ label, value, delta, invert, spark, hint }: { label: s
   const { t } = useI18n();
   const good = invert ? delta <= 0 : delta >= 0;
   const color = good ? "var(--positive)" : "var(--destructive)";
-  const id = label.replace(/\W/g, "");
   return (
     <div className="surface flex flex-col p-4">
       <div className="text-[13px] text-muted-foreground">{t(label)}</div>
-      <div className="mt-1.5 whitespace-nowrap text-xl font-semibold tracking-tight text-foreground num">{value}</div>
+      <div className="mt-1.5 break-words text-metric font-semibold text-foreground num">{value}</div>
       {hint && <div className="mt-0.5 text-xs text-muted-foreground num">{hint}</div>}
       <div className="mt-2 flex items-end justify-between gap-2">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Delta value={delta} invert={invert} /> <span className="hidden xl:inline">{t("vs last month")}</span></div>
@@ -56,8 +56,7 @@ export function KpiCard({ label, value, delta, invert, spark, hint }: { label: s
           <div className="h-8 w-20">
             <ResponsiveContainer>
               <AreaChart data={spark.map((v) => ({ v }))}>
-                <defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={color} stopOpacity={0.25} /><stop offset="1" stopColor={color} stopOpacity={0} /></linearGradient></defs>
-                <Area dataKey="v" stroke={color} strokeWidth={1.5} fill={`url(#${id})`} isAnimationActive={false} />
+                <Area dataKey="v" stroke={color} strokeWidth={1.5} fill="none" isAnimationActive={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -80,9 +79,7 @@ export function Pill({ tone = "neutral", children }: { tone?: keyof typeof tones
 
 export function Money({ value, signed }: { value: number; signed?: boolean }) {
   const { lang } = useI18n();
-  const v = Math.round(value);
-  const s = lang === "ar" ? `${Math.abs(v).toLocaleString("ar-EG")} ج.م` : `EGP ${Math.abs(v).toLocaleString("en-US")}`;
-  return <span className="num">{signed && v < 0 ? "−" : ""}{s}</span>;
+  return <bdi className="num">{formatMoney(value, lang, signed)}</bdi>;
 }
 
 export function EmptyState({ title, hint }: { title: string; hint?: string }) {

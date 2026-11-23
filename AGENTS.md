@@ -30,6 +30,9 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Finance
+- Center metadata and sample actor identity come from `center-config.ts`; compatibility exports must reference it so displayed and recorded identities agree.
+- Presentation formatting lives in `format.ts`; `Money` and localization helpers delegate to it, without changing ledger calculations.
+- The shell command search uses the ledger store's live students and read-only class catalog; sidebar preference is hydrated after mount to avoid SSR mismatches.
 - Every money figure (KPIs, finance cards, method breakdowns, student balances, teacher % payouts) is computed from the ledger in `src/lib/ledger.ts` via `useFinance`/`useLedger`; never hardcode totals. Why: hardcoded KPIs drifted from the transaction list.
 - The ledger is append-only: corrections add a Reversal (with reason) and optionally a replacement payment; completed entries are never edited and IDs are never reused. Why: audit trail.
 - Overview and Finance share one period + branch filter from `LedgerProvider`. Why: both screens must show the same numbers.

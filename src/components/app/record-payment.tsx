@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { students, branches, classById } from "@/lib/data";
+import { branches, classById } from "@/lib/data";
 import { METHODS, balancesAsOf, type Method } from "@/lib/ledger";
 import { useLedger, CURRENT_USER, todayIso } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
@@ -16,7 +16,7 @@ const NO_CLASS = "none";
 
 export function RecordPaymentDialog({ trigger, studentId }: { trigger: ReactNode; studentId?: string }) {
   const { t } = useI18n();
-  const { entries, recordPayment, filter } = useLedger();
+  const { entries, students, recordPayment, filter } = useLedger();
   const [open, setOpen] = useState(false);
   const [sid, setSid] = useState(studentId ?? "");
   const [classId, setClassId] = useState(NO_CLASS);

@@ -4,7 +4,6 @@ import { Logo } from "@/components/app/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useI18n } from "@/lib/i18n";
 import { Languages } from "lucide-react";
 
@@ -31,9 +30,9 @@ function Login() {
       <div className="flex flex-col px-6 py-8 sm:px-12">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5"><Logo className="size-8" /><span className="text-lg font-semibold tracking-tight">CenterOS</span></div>
-          <button onClick={() => setLang(lang === "en" ? "ar" : "en")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" onClick={() => setLang(lang === "en" ? "ar" : "en")} className="gap-1.5 text-sm text-muted-foreground hover:text-foreground">
             <Languages className="size-4" />{lang === "en" ? "العربية" : "English"}
-          </button>
+          </Button>
         </div>
         <form
           className="mx-auto my-auto w-full max-w-sm py-12"
@@ -44,13 +43,12 @@ function Login() {
           <div className="mt-8 space-y-4">
             <div className="space-y-1.5"><Label htmlFor="email">{t("Email")}</Label><Input id="email" type="email" required defaultValue="yehia@nileacademy.eg" /></div>
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between"><Label htmlFor="pw">{t("Password")}</Label><a href="#" className="text-xs font-medium text-brand hover:underline">{t("Forgot password?")}</a></div>
+              <Label htmlFor="pw">{t("Password")}</Label>
               <Input id="pw" type="password" required defaultValue="demo-password" />
             </div>
-            <label className="flex items-center gap-2 text-sm text-muted-foreground"><Checkbox defaultChecked /> {t("Remember me")}</label>
             <Button type="submit" className="h-10 w-full" disabled={loading}>{loading ? "…" : t("Sign in")}</Button>
           </div>
-          <p className="mt-6 text-center text-xs text-muted-foreground">{lang === "ar" ? "نسخة تجريبية ببيانات افتراضية" : "Demo workspace with sample data."}</p>
+          <p className="mt-6 text-center text-xs text-muted-foreground">{t("Demo data")} · {t("No real sign-in. Credentials are not checked.")}</p>
         </form>
       </div>
       <div className="relative hidden overflow-hidden bg-primary p-12 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
@@ -58,13 +56,6 @@ function Login() {
         <div className="absolute -end-12 -top-12 size-[18rem] rounded-full border border-primary-foreground/10" />
         <div className="relative max-w-md text-3xl font-semibold leading-tight tracking-tight">
           {lang === "ar" ? "كل جنيه، كل حصة، كل طالب — في مكان واحد." : "Every pound, every session, every student — in one place."}
-        </div>
-        <div className="relative grid max-w-md grid-cols-2 gap-3">
-          {[["Collected this month","EGP 185,000"],["Attendance","92.6%"],["Outstanding","EGP 42,000"],["Active students","284"]].map(([k, v]) => (
-            <div key={k} className="rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 p-4">
-              <div className="text-xs opacity-70">{k}</div><div className="mt-1 text-xl font-semibold num">{v}</div>
-            </div>
-          ))}
         </div>
       </div>
     </div>

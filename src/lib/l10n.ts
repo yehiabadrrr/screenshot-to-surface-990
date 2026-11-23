@@ -1,20 +1,19 @@
 import type { Lang } from "./i18n";
-import { egp } from "./format";
+import { egp, formatNumber, formatPercent } from "./format";
 import type { BillingRule, Outcome } from "./billing";
 
 type T = (k: string, v?: Record<string, string | number>) => string;
-const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 
-export const fmtNum = (n: number, lang: Lang) => n.toLocaleString(lang === "ar" ? "ar-EG" : "en-US");
+export const fmtNum = formatNumber;
 export const localTime = (s: string, lang: Lang) =>
-  lang === "ar" ? s.replace("PM", "م").replace("AM", "ص").replace(/\d/g, (d) => AR_DIGITS[+d]!) : s;
+  lang === "ar" ? s.replace("PM", "م").replace("AM", "ص") : s;
 export const localDays = (days: string, t: T) => days.split(" · ").map((d) => t(d)).join(" · ");
 export const longDate = (date: string, lang: Lang) =>
-  new Date(`${date}T12:00:00Z`).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+  new Date(`${date}T12:00:00Z`).toLocaleDateString(lang === "ar" ? "ar-EG-u-nu-latn" : "en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 export const shortDateL = (iso: string, lang: Lang) =>
-  new Date(iso.length === 10 ? `${iso}T12:00:00Z` : iso).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+  new Date(iso.length === 10 ? `${iso}T12:00:00Z` : iso).toLocaleDateString(lang === "ar" ? "ar-EG-u-nu-latn" : "en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 export const timeOfDay = (iso: string, lang: Lang) =>
-  new Date(iso).toLocaleString(lang === "ar" ? "ar-EG" : "en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Cairo" });
+  new Date(iso).toLocaleString(lang === "ar" ? "ar-EG-u-nu-latn" : "en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Cairo" });
 
 export const ruleKindLabel = (r: BillingRule, t: T) =>
   t(r.kind === "monthly" ? "Monthly fee" : r.kind === "per_session" ? "Per attended session" : "Session package");
@@ -39,9 +38,9 @@ export function outcomeText(o: Outcome, t: T, lang: Lang) {
 }
 
 /** Percent with locale digits and the Arabic percent sign in Arabic mode. */
-export const pct = (n: number, lang: Lang) => (lang === "ar" ? `${fmtNum(n, lang)}٪` : `${fmtNum(n, lang)}%`);
+export const pct = formatPercent;
 export const monthShort = (ym: string, lang: Lang) =>
-  new Date(`${ym}-15T00:00:00Z`).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-GB", { month: "short", timeZone: "UTC" });
+  new Date(`${ym}-15T00:00:00Z`).toLocaleDateString(lang === "ar" ? "ar-EG-u-nu-latn" : "en-GB", { month: "short", timeZone: "UTC" });
 /** Compact axis label: 12k / ١٢ ألف. */
 export const kAxis = (v: number, lang: Lang) => (lang === "ar" ? `${fmtNum(Math.round(v / 1000), lang)} ألف` : `${Math.round(v / 1000)}k`);
 

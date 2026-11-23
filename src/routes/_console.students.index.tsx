@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Download, Upload, UserPlus, Search, MoreHorizontal } from "lucide-react";
+import { Download, UserPlus, Search, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, Pill, Money, EmptyState } from "@/components/app/ui";
 import { RuleEditor, ruleIsValid } from "@/components/app/rule-editor";
@@ -11,7 +11,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { classById, branches, classes } from "@/lib/data";
 import { balancesAsOf } from "@/lib/ledger";
 import type { BillingRule } from "@/lib/billing";
@@ -49,9 +48,6 @@ function StudentsPage() {
     <div className="mx-auto max-w-7xl">
       <PageHeader title={t("Students")} subtitle={t("{a} active · {n} total", { a: fmtNum(students.filter((s) => s.status === "Active").length, lang), n: fmtNum(students.length, lang) })}
         actions={<>
-          <TooltipProvider><Tooltip><TooltipTrigger asChild>
-            <span tabIndex={0}><Button variant="outline" disabled><Upload className="size-4" />{t("Import")}</Button></span>
-          </TooltipTrigger><TooltipContent>{t("Importing needs saved data, which isn't set up yet.")}</TooltipContent></Tooltip></TooltipProvider>
           <Button variant="outline" onClick={() => downloadCsv("students.csv", [["ID","Name","Phone","Classes","Balance","Attendance","Status"], ...rows.map((s) => [s.id, s.name, s.phone, s.classIds.map((c) => classById(c).name).join(" | "), s.balance, s.attendance, s.status])])}><Download className="size-4" />{t("Export")}</Button>
           <AddStudent />
         </>} />
