@@ -55,11 +55,12 @@ function AttendancePage() {
   const marks = rec?.marks ?? {};
   const finalized = rec?.finalized;
   const roster = useMemo(() => (cls ? L.students.filter((s) => s.status === "Active" && s.classIds.includes(cls.id) && s.joined <= date) : []), [L.students, cls, date]);
-  const rows = useMemo(() => roster.map((s) => {
-    const { rule, source } = L.ruleFor(s.id, cls!.id);
-    const remaining = rule.kind === "package" ? packageRemaining(entries, s.id, cls!.id) : 0;
+  const rows = useMemo(() => roster.flatMap((s) => {
+    if (!cls) return [];
+    const { rule, source } = L.ruleFor(s.id, cls.id);
+    const remaining = rule.kind === "package" ? packageRemaining(entries, s.id, cls.id) : 0;
     const posted = finalized ? linkedEntry(entries, sid, s.id) : undefined;
-    return { s, rule, source, remaining, posted, outcome: sessionOutcome(rule, marks[s.id], remaining) };
+    return [{ s, rule, source, remaining, posted, outcome: sessionOutcome(rule, marks[s.id], remaining) }];
   }), [roster, L, cls, entries, finalized, sid, marks]);
 
   if (!cls) {
@@ -99,7 +100,7 @@ function AttendancePage() {
         title={actor.kind === "teacher" ? t("My classes · attendance") : t("Attendance")}
         subtitle={t("Tap a status for each student. Unmarked students are never charged.")}
         actions={
-          <Select value={actor.kind === "admin" ? "admin" : actor.teacherId} onValueChange={(v) => setActor(v === "admin" ? { kind: "admin", name: CURRENT_USER.name } : teacherActors.find((a) => a.teacherId === v)!)}>
+          <Select value={actor.kind === "admin" ? "admin" : actor.teacherId} onValueChange={(v) => { if (v === "admin") setActor({ kind: "admin", name: CURRENT_USER.name }); else { const next = teacherActors.find((a) => a.teacherId === v); if (next) setActor(next); } }}>
             <SelectTrigger className="h-9 w-56" aria-label={t("Viewing as")}><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="admin">{t("Viewing as")}: {CURRENT_USER.name} ({t("Owner")})</SelectItem>
@@ -110,7 +111,7 @@ function AttendancePage() {
       />
       {actor.kind === "teacher" && <p className="-mt-3 mb-4 text-xs text-muted-foreground">{t("Teacher view shows only this teacher's classes. It is a demo preview, not access control: there are no real sign-ins yet.")}</p>}
 
-      <div className="surface mb-4 space-y-3 p-4">
+      <div className="surface mb-4 space-y-4 p-5">
         <div className="grid gap-3 sm:grid-cols-[1fr_180px]">
           <Select value={cls.id} onValueChange={setPickedClass}>
             <SelectTrigger className="h-11" aria-label={t("Class")}><SelectValue /></SelectTrigger>
@@ -154,7 +155,7 @@ function AttendancePage() {
 
       <div className="surface divide-y">
         {rows.map(({ s, rule, source, remaining, posted, outcome }) => (
-          <div key={s.id} className="flex flex-col gap-2.5 px-4 py-3 sm:flex-row sm:items-center">
+          <div key={s.id} className="flex flex-col gap-2.5 px-5 py-4 sm:flex-row sm:items-center">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="truncate font-medium">{s.name}</span>
@@ -169,10 +170,10 @@ function AttendancePage() {
             </div>
             <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-1.5">
               {opts.map((o) => (
-                <button key={o.v} type="button" data-on={marks[s.id] === o.v} onClick={() => tap(s.id, o.v)} aria-pressed={marks[s.id] === o.v} aria-label={`${t(o.v)} · ${s.name}`}
+                <Button variant="outline" key={o.v} type="button" data-on={marks[s.id] === o.v} onClick={() => tap(s.id, o.v)} aria-pressed={marks[s.id] === o.v} aria-label={`${t(o.v)} · ${s.name}`}
                   className={cn("flex h-12 items-center justify-center gap-1.5 rounded-lg border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted sm:h-10 sm:text-xs", o.cls)}>
                   <o.icon className="size-5 sm:size-4" /><span>{t(o.v)}</span>
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -195,7 +196,7 @@ function AttendancePage() {
         </div>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-card/95 px-4 py-3 shadow-pop backdrop-blur md:sticky md:bottom-4 md:mt-4 md:rounded-xl md:border">
+      <div className="attendance-dock fixed inset-x-0 z-20 border-t bg-card px-4 py-3 shadow-card md:sticky md:mt-4 md:rounded-lg md:border">
         <div className="mx-auto flex max-w-4xl items-center gap-3">
           <div className="min-w-0 flex-1 text-sm">
             <div className="font-medium num">{t("{m} marked · {u} unmarked", { m: fmtNum(marked, lang), u: fmtNum(unmarked, lang) })}</div>

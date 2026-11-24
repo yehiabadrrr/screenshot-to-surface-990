@@ -21,13 +21,13 @@ import { cn } from "@/lib/utils";
 import { StudentBalance } from "@/components/app/student-balance";
 
 export const Route = createFileRoute("/_console/students/$id")({
-  validateSearch: (search: Record<string, unknown>): { tab?: string } => typeof search["tab"] === "string" && ["enroll", "att", "fin", "edit"].includes(search["tab"]) ? { tab: search["tab"] } : {},
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => typeof search["tab"] === "string" && ["overview", "enroll", "att", "fin", "guardian", "edit"].includes(search["tab"]) ? { tab: search["tab"] } : {},
   head: () => ({
     meta: [
-      { title: "Student profile — CenterOS" },
+      { title: "Student profile — Markazly" },
       { name: "description", content: "Student profile: enrollments, billing rules, attendance and financial history." },
-      { property: "og:title", content: "Student profile — CenterOS" },
-      { property: "og:description", content: "Student profile on CenterOS." },
+      { property: "og:title", content: "Student profile — Markazly" },
+      { property: "og:description", content: "Student profile on Markazly." },
       { property: "og:type", content: "profile" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -38,8 +38,8 @@ export const Route = createFileRoute("/_console/students/$id")({
 function Profile() {
   const { id } = Route.useParams();
   const search = Route.useSearch();
-  const [tab, setTab] = useState(search.tab ?? "enroll");
-  useEffect(() => setTab(search.tab ?? "enroll"), [search.tab, id]);
+  const [tab, setTab] = useState(search.tab ?? "overview");
+  useEffect(() => setTab(search.tab ?? "overview"), [search.tab, id]);
   const { t, lang } = useI18n();
   const L = useLedger();
   const s = L.findStudent(id);
@@ -68,7 +68,7 @@ function Profile() {
   return (
     <div className="mx-auto max-w-6xl">
       <Link to="/students" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4 rtl:rotate-180" /> {t("Students")}</Link>
-      <header className="mb-5 border-b pb-5">
+      <header className="surface mb-5 p-5 sm:p-6">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
           <div className="flex min-w-0 items-start gap-3"><div className="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-lg font-semibold text-brand">{initials}</div><div className="min-w-0"><h1 className="break-words text-xl font-semibold"><bdi>{s.name}</bdi></h1><div className="mt-1 text-xs text-muted-foreground"><bdi>{s.id}</bdi> · {t(s.grade)} · {t(s.branch)}</div><div className="mt-2"><Pill tone={s.status === "Active" ? "positive" : s.status === "Paused" ? "warning" : "neutral"}>{t(s.status)}</Pill></div></div></div>
           <div className="shrink-0"><StudentBalance value={balance} /></div>
@@ -78,11 +78,13 @@ function Profile() {
           <div className="col-span-2 flex flex-wrap justify-end gap-2 sm:col-auto"><Button variant="outline" onClick={() => setTab("edit")}><Pencil />{t("Edit")}</Button><RecordPaymentDialog studentId={s.id} trigger={<Button><Plus />{t("Record payment")}</Button>} /></div>
         </div>
       </header>
-      <div className="mb-5 grid grid-cols-3 gap-3 border-b pb-4">
+      <div className="mb-6 grid grid-cols-3 gap-4 border-b pb-5">
         <Stat label={t("Total paid")} value={<Money value={paid} />} /><Stat label={t("Attendance")} value={`${fmtNum(presentPct, lang)}%`} /><Stat label={t("Enrolled classes")} value={fmtNum(s.classIds.length, lang)} />
       </div>
       <Tabs value={tab} onValueChange={setTab} dir={lang === "ar" ? "rtl" : "ltr"}>
-        <div className="overflow-x-auto"><TabsList className="h-auto min-w-full justify-start gap-1"><TabsTrigger value="enroll">{t("Enrollments & Billing Rules")}</TabsTrigger><TabsTrigger value="att">{t("Attendance")}</TabsTrigger><TabsTrigger value="fin">{t("Ledger")}</TabsTrigger><TabsTrigger value="edit">{t("Edit")}</TabsTrigger></TabsList></div>
+        <div className="overflow-x-auto"><TabsList className="workspace-tabs h-auto min-w-full justify-start gap-3"><TabsTrigger value="overview">{t("Overview")}</TabsTrigger><TabsTrigger value="enroll">{t("Enrollments & Billing Rules")}</TabsTrigger><TabsTrigger value="att">{t("Attendance")}</TabsTrigger><TabsTrigger value="fin">{t("Ledger")}</TabsTrigger><TabsTrigger value="guardian">{t("Parent / Guardian")}</TabsTrigger><TabsTrigger value="edit">{t("Edit")}</TabsTrigger></TabsList></div>
+        <TabsContent value="overview" className="mt-5"><div className="grid gap-5 lg:grid-cols-2"><Panel title={t("Personal information")}><dl className="grid grid-cols-2 gap-5 text-sm">{[[t("Full name"), s.name], [t("Phone"), s.phone], [t("Grade"), t(s.grade)], [t("Branch"), t(s.branch)], [t("Joined"), shortDateL(s.joined, lang)]].map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words font-medium"><bdi>{value}</bdi></dd></div>)}</dl></Panel><Panel title={t("Enrolled classes")}><ul className="divide-y">{s.classIds.map((cid) => <li key={cid} className="py-3 first:pt-0"><bdi className="block text-sm font-medium">{classById(cid).name}</bdi><p className="mt-1 text-xs text-muted-foreground">{ruleSummary(L.ruleFor(s.id, cid).rule, t, lang)}</p></li>)}</ul></Panel></div></TabsContent>
+        <TabsContent value="guardian" className="mt-5"><Panel title={t("Parent / Guardian")}><div className="grid gap-4 sm:grid-cols-2"><div><p className="text-xs text-muted-foreground">{t("Guardian name")}</p><bdi className="mt-1 block font-medium">{s.guardian}</bdi></div><div><p className="text-xs text-muted-foreground">{t("Guardian phone")}</p><bdi className="mt-1 block font-medium">{s.guardianPhone || "—"}</bdi></div></div>{s.guardianPhone && <div className="mt-5 flex gap-2"><Button asChild variant="outline"><a href={`tel:${s.guardianPhone}`}><Phone />{t("Call")}</a></Button><Button asChild variant="outline"><a href={`https://wa.me/2${s.guardianPhone}`} target="_blank" rel="noreferrer"><MessageCircle />{t("WhatsApp")}</a></Button></div>}</Panel></TabsContent>
         <TabsContent value="enroll" className="mt-4"><Panel bodyClass="p-0"><ul className="divide-y">
           {s.classIds.map((cid) => {
             const c = classById(cid);

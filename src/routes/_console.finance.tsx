@@ -74,7 +74,7 @@ function FinancePage() {
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {primary.map(([l, v, cls, hint]) => (
-          <div key={l} className="surface p-4"><div className="text-[13px] text-muted-foreground">{l}</div><div className={cn("mt-1.5 text-2xl font-semibold tracking-tight", cls)}><Money value={v} /></div><div className="mt-0.5 text-xs text-muted-foreground num">{hint}</div></div>
+          <div key={l} className="surface p-5"><div className="text-[13px] text-muted-foreground">{l}</div><div className={cn("mt-2 break-words text-metric font-semibold", cls)}><Money value={v} /></div><div className="mt-0.5 text-xs text-muted-foreground num">{hint}</div></div>
         ))}
       </div>
       <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
@@ -83,7 +83,7 @@ function FinancePage() {
         ))}
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-4">
+      <div className="mt-4 grid gap-4 xl:grid-cols-4">
         <Panel title={t("Gross collections by method")}>
           <div className="space-y-3">
             {c.byMethod.map((b) => (
@@ -101,19 +101,19 @@ function FinancePage() {
           <p className="mt-3 text-xs text-muted-foreground">{t("Pending ({p}) and reversed ({r}) payments are excluded.", { p: fmtNum(c.pendingCount, lang), r: fmtNum(c.reversedCount, lang) })}</p>
         </Panel>
 
-        <div className="surface overflow-hidden lg:col-span-3">
+        <div className="surface overflow-hidden min-w-0 xl:col-span-3">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
             <h2 className="text-sm font-semibold">{t("Transactions")} <span className="font-normal text-muted-foreground">· {fmtNum(rows.length, lang)}</span></h2>
             <div className="flex flex-wrap gap-2">
-              <Select value={type} onValueChange={set(setType)}><SelectTrigger className="h-8 w-32 text-xs" aria-label={t("Type")}><SelectValue /></SelectTrigger><SelectContent>{TYPES.map((x) => <SelectItem key={x} value={x}>{x === "all" ? t("All types") : t(x)}</SelectItem>)}</SelectContent></Select>
-              <Select value={status} onValueChange={set(setStatus)}><SelectTrigger className="h-8 w-32 text-xs" aria-label={t("Status")}><SelectValue /></SelectTrigger><SelectContent>{["all", "Completed", "Pending", "Reversed"].map((x) => <SelectItem key={x} value={x}>{x === "all" ? t("All statuses") : t(x)}</SelectItem>)}</SelectContent></Select>
+              <Select dir={lang === "ar" ? "rtl" : "ltr"} value={type} onValueChange={set(setType)}><SelectTrigger className="h-8 w-32 text-xs" aria-label={t("Type")}><SelectValue /></SelectTrigger><SelectContent>{TYPES.map((x) => <SelectItem key={x} value={x}>{x === "all" ? t("All types") : t(x)}</SelectItem>)}</SelectContent></Select>
+              <Select dir={lang === "ar" ? "rtl" : "ltr"} value={status} onValueChange={set(setStatus)}><SelectTrigger className="h-8 w-32 text-xs" aria-label={t("Status")}><SelectValue /></SelectTrigger><SelectContent>{["all", "Completed", "Pending", "Reversed"].map((x) => <SelectItem key={x} value={x}>{x === "all" ? t("All statuses") : t(x)}</SelectItem>)}</SelectContent></Select>
             </div>
           </div>
           <div className="overflow-x-auto border-b px-4 py-2">
-            <Tabs value={method} onValueChange={set(setMethod)}><TabsList className="h-8">{["all", ...METHODS].map((m) => <TabsTrigger key={m} value={m} className="text-xs">{m === "all" ? t("All methods") : t(m)}</TabsTrigger>)}</TabsList></Tabs>
+            <Tabs dir={lang === "ar" ? "rtl" : "ltr"} value={method} onValueChange={set(setMethod)}><TabsList className="h-8">{["all", ...METHODS].map((m) => <TabsTrigger key={m} value={m} className="text-xs">{m === "all" ? t("All methods") : t(m)}</TabsTrigger>)}</TabsList></Tabs>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="workspace-table w-full text-sm">
               <thead className="bg-muted/50 text-xs text-muted-foreground"><tr>{[t("ID"), t("Date"), t("Student"), t("Type"), t("Amount"), t("Method"), t("Reference / reason"), t("Entered by"), t("Status"), ""].map((h, i) => <th key={i} className={cn("whitespace-nowrap px-3 py-2.5 font-medium", i === 4 ? "text-right" : "text-start")}>{h}</th>)}</tr></thead>
               <tbody className="divide-y">{view.map((x) => {
                 const st = displayStatus(x, rev);
@@ -131,7 +131,7 @@ function FinancePage() {
                     <td className="px-3 py-2.5"><Pill tone={st === "Completed" ? "positive" : st === "Pending" ? "warning" : "neutral"}>{t(st)}</Pill></td>
                     <td className="px-2 py-2.5">
                       {canCorrect && (
-                        <DropdownMenu><DropdownMenuTrigger className="rounded p-1 hover:bg-muted" aria-label={t("Actions for {id}", { id: x.id })}><MoreHorizontal className="size-4" /></DropdownMenuTrigger>
+                        <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={t("Actions for {id}", { id: x.id })}><MoreHorizontal /></Button></DropdownMenuTrigger>
                           <DropdownMenuContent align="end"><DropdownMenuItem onClick={() => setCorrecting(x)}>{t("Correct or reverse…")}</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
                       )}
                     </td>
@@ -141,7 +141,7 @@ function FinancePage() {
             </table>
             {view.length === 0 && <EmptyState title={t("No transactions match")} hint={t("Try another method, type, status, month or branch.")} />}
           </div>
-          <div className="flex items-center justify-between border-t px-4 py-3 text-xs text-muted-foreground">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-t px-4 py-3 text-xs text-muted-foreground">
             <span>{t("Showing {a}–{b} of {n}", { a: fmtNum(rows.length ? page * PAGE + 1 : 0, lang), b: fmtNum(Math.min(rows.length, page * PAGE + PAGE), lang), n: fmtNum(rows.length, lang) })}</span>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage(page - 1)}>{t("Previous")}</Button>
