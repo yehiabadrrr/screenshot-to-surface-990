@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { LayoutDashboard, Users, BookOpen, CalendarCheck, Wallet, GraduationCap, BarChart3, MessageSquare, Settings, ChevronsUpDown, PanelLeft, Languages, MoreHorizontal } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, CalendarCheck, Wallet, GraduationCap, BarChart3, MessageSquare, Settings, ChevronsUpDown, PanelLeft, Languages, MoreHorizontal, Menu, ChevronRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useLedger } from "@/lib/ledger-store";
 import { centerProfile, initials } from "@/lib/center-config";
@@ -12,13 +12,13 @@ import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/
 import { cn } from "@/lib/utils";
 
 const nav = [
-  { to: "/overview", label: "Overview", icon: LayoutDashboard, group: "Daily work" },
+  { to: "/overview", label: "Dashboard", icon: LayoutDashboard, group: "Daily work" },
   { to: "/students", label: "Students", icon: Users, group: "Daily work" },
   { to: "/attendance", label: "Attendance", icon: CalendarCheck, group: "Daily work" },
-  { to: "/classes", label: "Classes & Courses", icon: BookOpen, group: "Daily work" },
-  { to: "/finance", label: "Payments & Finance", icon: Wallet, group: "Financial management" },
-  { to: "/teachers", label: "Teacher Management", icon: GraduationCap, group: "Financial management" },
-  { to: "/reports", label: "Reports & Analytics", icon: BarChart3, group: "Financial management" },
+  { to: "/classes", label: "Classes", icon: BookOpen, group: "Daily work" },
+  { to: "/finance", label: "Finance", icon: Wallet, group: "Financial management" },
+  { to: "/teachers", label: "Teachers", icon: GraduationCap, group: "Financial management" },
+  { to: "/reports", label: "Reports", icon: BarChart3, group: "Financial management" },
   { to: "/communications", label: "Communications", icon: MessageSquare, group: "Center" },
   { to: "/settings", label: "Settings", icon: Settings, group: "Center" },
 ] as const;
@@ -30,13 +30,13 @@ function SidebarBody({ collapsed, onNav }: { collapsed: boolean; onNav?: () => v
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { branch, setBranch } = useLedger();
   return <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-    <div className={cn("flex h-14 items-center gap-2.5 px-4", collapsed && "justify-center px-0")}>
-      <Logo className="size-7" />{!collapsed && <span className="text-[15px] font-semibold text-sidebar-accent-foreground">CenterOS</span>}
+    <div className={cn("flex h-20 items-center gap-3 px-5", collapsed && "justify-center px-0")}>
+      <Logo className="size-9 shrink-0" />{!collapsed && <span className="text-xl font-semibold text-foreground">Markazly<span className="mt-0.5 block text-[10px] font-medium text-muted-foreground">{t("CENTER MANAGEMENT")}</span></span>}
     </div>
-    {!collapsed && <div className="px-3 pb-3">
+    {!collapsed && <div className="px-4 pb-5">
       <DropdownMenu dir={lang === "ar" ? "rtl" : "ltr"}>
-        <DropdownMenuTrigger asChild><Button variant="ghost" className="h-auto w-full justify-start border border-sidebar-border px-2.5 py-2 text-start text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">{initials(centerProfile.name)}</span>
+        <DropdownMenuTrigger asChild><Button variant="ghost" className="h-auto w-full justify-start border border-sidebar-border px-2.5 py-2 text-start text-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-teal-soft text-xs font-bold text-teal">{initials(centerProfile.name)}</span>
           <span className="min-w-0 flex-1"><bdi className="block truncate text-[13px] font-medium">{centerProfile.name}</bdi><span className="block truncate text-xs text-sidebar-foreground">{t(branch === "all" ? "All branches" : branch)}</span></span><ChevronsUpDown className="size-4" />
         </Button></DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56">
@@ -45,21 +45,21 @@ function SidebarBody({ collapsed, onNav }: { collapsed: boolean; onNav?: () => v
         </DropdownMenuContent>
       </DropdownMenu>
     </div>}
-    <nav aria-label={t("Main navigation")} className="min-h-0 flex-1 overflow-y-auto px-2">
-      {groups.map((group) => <div key={group} className="mb-3">
-        {!collapsed && <div className="px-2.5 py-2 text-xs font-medium text-sidebar-foreground">{t(group)}</div>}
+    <nav aria-label={t("Main navigation")} className="min-h-0 flex-1 overflow-y-auto px-3">
+      {groups.map((group) => <div key={group} className="mb-5">
+        {!collapsed && <div className="px-3 py-2 text-[10px] font-semibold uppercase text-muted-foreground">{t(group)}</div>}
         {nav.filter((item) => item.group === group).map((item) => {
           const active = path === item.to || path.startsWith(item.to + "/");
           return <Link key={item.to} to={item.to} onClick={onNav} aria-current={active ? "page" : undefined} title={collapsed ? t(item.label) : undefined}
-            className={cn("flex min-h-10 items-center gap-3 rounded-md px-2.5 py-2 text-[13.5px] transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", active && "bg-sidebar-accent font-medium text-sidebar-accent-foreground", collapsed && "justify-center")}>
-            <item.icon className={cn("size-4 shrink-0", active && "text-sidebar-primary")} />{!collapsed && <span>{t(item.label)}</span>}
+            className={cn("flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-[13px] transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", active && "bg-sidebar-primary font-medium text-sidebar-primary-foreground shadow-card", collapsed && "justify-center")}>
+            <item.icon className={cn("size-4 shrink-0", active && "text-sidebar-primary-foreground")} />{!collapsed && <span>{t(item.label)}</span>}
           </Link>;
         })}
       </div>)}
     </nav>
-    <div className={cn("flex items-center gap-2.5 border-t border-sidebar-border p-3", collapsed && "justify-center")}>
+    <div className={cn("flex items-center gap-2.5 border-t border-sidebar-border p-4", collapsed && "justify-center")}>
       <span className="grid size-8 shrink-0 place-items-center rounded-full bg-sidebar-accent text-xs font-semibold text-sidebar-accent-foreground">{initials(centerProfile.currentUser.name)}</span>
-      {!collapsed && <div className="min-w-0"><bdi className="block truncate text-[13px] font-medium text-sidebar-accent-foreground">{centerProfile.currentUser.name}</bdi><div className="text-xs">{t(centerProfile.currentUser.role)} · {t("Demo data")}</div></div>}
+      {!collapsed && <div className="min-w-0"><bdi className="block truncate text-[13px] font-medium text-foreground">{centerProfile.currentUser.name}</bdi><div className="text-xs">{t(centerProfile.currentUser.role)} · {t("Demo data")}</div></div>}
     </div>
   </div>;
 }
@@ -71,17 +71,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (r) => r.location.pathname });
   useEffect(() => { try { setCollapsed(localStorage.getItem("centeros-sidebar-collapsed") === "true"); } catch { /* Storage may be unavailable. */ } }, []);
   const toggle = () => setCollapsed((value) => { const next = !value; try { localStorage.setItem("centeros-sidebar-collapsed", String(next)); } catch { /* Still usable without storage. */ } return next; });
+  const current = nav.find((item) => path === item.to || path.startsWith(item.to + "/"));
   return <div className="flex min-h-screen w-full bg-background">
-    <aside aria-label={t("Sidebar")} className={cn("sticky top-0 hidden h-screen shrink-0 motion-safe:transition-[width] md:block", collapsed ? "w-16" : "w-60")}><SidebarBody collapsed={collapsed} /></aside>
+    <aside aria-label={t("Sidebar")} className={cn("sticky top-0 hidden h-screen shrink-0 motion-safe:transition-[width] md:block border-e border-sidebar-border", collapsed ? "w-18" : "w-60")}><SidebarBody collapsed={collapsed} /></aside>
     <div className="flex min-w-0 flex-1 flex-col">
-      <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background px-page-mobile md:gap-3 md:px-6">
+      <header className="sticky top-0 z-20 grid min-h-16 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b bg-card px-page-mobile md:flex md:gap-4 md:px-8">
         <Button variant="ghost" size="icon" aria-label={t("Toggle sidebar")} title={t("Toggle sidebar")} aria-expanded={!collapsed} className="hidden md:inline-flex" onClick={toggle}><PanelLeft /></Button>
-        <Logo className="size-6 shrink-0 md:hidden" />
-        <CommandSearch />
-        {centerProfile.isDemo && <span className="inline-flex shrink-0 items-center gap-1.5 rounded border border-warning/40 bg-warning-soft px-2 py-1 text-xs font-medium" title={t("Sample data resets on refresh. Nothing is saved.")}><span className="size-1.5 rounded-full bg-warning" />{t("Demo data")}</span>}
-        <Button variant="ghost" onClick={() => setLang(lang === "en" ? "ar" : "en")} className="ms-auto h-10 gap-1.5 px-2 text-muted-foreground"><Languages />{lang === "en" ? "العربية" : "English"}</Button>
+        <Button variant="ghost" size="icon" aria-label={t("Main navigation")} className="md:hidden" onClick={() => setMore(true)}><Menu /></Button>
+        <div className="hidden min-w-0 items-center gap-2 text-xs text-muted-foreground lg:flex"><span>Markazly</span><ChevronRight className="size-3 rtl:rotate-180" /><span className="font-medium text-foreground">{t(current?.label ?? "Dashboard")}</span></div>
+        <div className="min-w-0 md:ms-auto">
+        <CommandSearch /></div>
+        {centerProfile.isDemo && <span className="hidden sm:inline-flex shrink-0 items-center gap-1.5 rounded border border-warning/40 bg-warning-soft px-2 py-1 text-xs font-medium" title={t("Sample data resets on refresh. Nothing is saved.")}><span className="size-1.5 rounded-full bg-warning" />{t("Demo data")}</span>}
+        <Button variant="ghost" onClick={() => setLang(lang === "en" ? "ar" : "en")} className="h-10 shrink-0 gap-1.5 px-2 text-muted-foreground"><Languages />{lang === "en" ? "العربية" : "English"}</Button>
       </header>
-      <main className="min-w-0 flex-1 px-page-mobile pt-6 pb-24 md:px-page md:pb-6">{children}</main>
+      <main className="min-w-0 flex-1 px-page-mobile pt-6 pb-24 md:px-page md:pt-8 md:pb-8"><div className="mb-4 flex items-center gap-1.5 text-[11px] text-muted-foreground sm:hidden"><span className="size-1.5 rounded-full bg-warning" />{t("Demo data")} · <bdi>{centerProfile.name}</bdi></div>{children}</main>
       <nav aria-label={t("Mobile navigation")} className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t bg-background md:hidden">
         {bottomNav.map((item) => {
           const active = path === item.to || path.startsWith(item.to + "/");
@@ -92,7 +95,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </nav>
     </div>
     <Sheet open={more} onOpenChange={setMore}>
-      <SheetContent side="bottom" dir={lang === "ar" ? "rtl" : "ltr"} className="h-[85dvh] p-0 [&>button]:text-sidebar-accent-foreground">
+      <SheetContent side={lang === "ar" ? "right" : "left"} dir={lang === "ar" ? "rtl" : "ltr"} className="w-72 p-0">
         <SheetTitle className="sr-only">{t("More")}</SheetTitle><SheetDescription className="sr-only">{t("Main navigation")}</SheetDescription>
         <SidebarBody collapsed={false} onNav={() => setMore(false)} />
       </SheetContent>

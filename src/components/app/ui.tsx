@@ -7,7 +7,7 @@ import { formatMoney } from "@/lib/format";
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
   return (
-    <div className="mb-6 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 sm:flex sm:flex-wrap sm:justify-between">
+    <div className="mb-7 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 sm:flex sm:flex-wrap sm:justify-between">
       <div className="min-w-0">
         <h1 className="break-words text-page-title font-semibold text-foreground">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
@@ -21,7 +21,7 @@ export function Panel({ title, action, children, className, bodyClass }: { title
   return (
     <section className={cn("surface overflow-hidden", className)}>
       {title && (
-        <div className="flex items-center justify-between border-b px-5 py-3.5">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-5 py-4">
           <h2 className="text-section-title font-semibold text-foreground">{title}</h2>
           {action}
         </div>

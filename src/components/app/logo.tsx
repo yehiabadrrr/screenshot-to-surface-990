@@ -2,8 +2,7 @@ export function Logo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden>
       <rect width="32" height="32" rx="8" className="fill-sidebar-primary" />
-      <path d="M21.5 11.2A7 7 0 1 0 21.5 20.8" fill="none" strokeWidth="3.2" strokeLinecap="round" className="stroke-primary-foreground" />
-      <circle cx="21.6" cy="16" r="2" className="fill-primary-foreground" />
+      <path d="M8 23V9L16 17L24 9V23" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="stroke-primary-foreground" />
     </svg>
   );
 }

@@ -30,12 +30,12 @@
  */
 
 @theme inline {
-  --text-page-title: 1.5rem;
-  --text-page-title--line-height: 2rem;
-  --text-section-title: 0.875rem;
-  --text-section-title--line-height: 1.25rem;
-  --text-metric: 1.25rem;
-  --text-metric--line-height: 1.75rem;
+  --text-page-title: 1.75rem;
+  --text-page-title--line-height: 2.25rem;
+  --text-section-title: 1rem;
+  --text-section-title--line-height: 1.5rem;
+  --text-metric: 1.5rem;
+  --text-metric--line-height: 2rem;
   --spacing-page: 2rem;
   --spacing-page-mobile: 1rem;
   --radius-sm: calc(var(--radius) - 4px);
@@ -71,6 +71,11 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
   --color-brand: var(--brand);
+  --color-teal: var(--teal);
+  --color-teal-soft: var(--teal-soft);
+  --color-welcome: var(--welcome);
+  --color-welcome-foreground: var(--welcome-foreground);
+  --color-welcome-muted: var(--welcome-muted);
   --color-brand-foreground: var(--brand-foreground);
   --color-positive: var(--positive);
   --color-positive-foreground: var(--positive-foreground);
@@ -95,27 +100,32 @@
 :root {
   --overlay: oklch(0.15 0.015 255 / 0.6);
   --radius: 0.5rem;
-  --background: oklch(0.982 0.002 255);
-  --foreground: oklch(0.24 0.025 255);
+  --background: oklch(0.972 0.007 245);
+  --foreground: oklch(0.25 0.028 252);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.24 0.025 255);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.24 0.025 255);
-  --primary: oklch(0.5 0.13 252);
+  --primary: oklch(0.47 0.115 246);
   --primary-foreground: oklch(0.985 0.004 255);
   --secondary: oklch(0.955 0.012 255);
   --secondary-foreground: oklch(0.29 0.07 255);
   --muted: oklch(0.962 0.008 255);
-  --muted-foreground: oklch(0.58 0.03 255);
-  --accent: oklch(0.95 0.02 250);
+  --muted-foreground: oklch(0.52 0.025 252);
+  --accent: oklch(0.949 0.026 245);
   --accent-foreground: oklch(0.29 0.07 255);
   --destructive: oklch(0.56 0.17 25);
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.92 0.01 255);
   --input: oklch(0.9 0.012 255);
   --ring: oklch(0.5 0.13 252);
-  --brand: oklch(0.5 0.13 252);
+  --brand: oklch(0.47 0.115 246);
   --brand-foreground: oklch(0.985 0 0);
+  --teal: oklch(0.5 0.085 187);
+  --teal-soft: oklch(0.956 0.023 187);
+  --welcome: oklch(0.37 0.079 244);
+  --welcome-foreground: oklch(0.995 0.001 245);
+  --welcome-muted: oklch(0.84 0.028 245);
   --positive: oklch(0.48 0.13 150);
   --positive-foreground: oklch(0.985 0 0);
   --positive-soft: oklch(0.96 0.03 150);
@@ -123,17 +133,17 @@
   --warning: oklch(0.72 0.14 70);
   --warning-soft: oklch(0.96 0.04 80);
   --chart-1: oklch(0.29 0.07 255);
-  --chart-2: oklch(0.65 0.11 185);
+  --chart-2: oklch(0.59 0.10 185);
   --chart-3: oklch(0.5 0.13 252);
   --chart-4: oklch(0.78 0.06 240);
   --chart-5: oklch(0.72 0.14 70);
-  --sidebar: oklch(0.29 0.07 255);
-  --sidebar-foreground: oklch(0.86 0.02 255);
-  --sidebar-primary: oklch(0.8 0.09 245);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.5 0.027 252);
+  --sidebar-primary: oklch(0.47 0.115 246);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.35 0.07 255);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.36 0.06 255);
+  --sidebar-accent: oklch(0.949 0.026 245);
+  --sidebar-accent-foreground: oklch(0.32 0.065 246);
+  --sidebar-border: oklch(0.92 0.01 255);
   --sidebar-ring: oklch(0.65 0.11 185);
   --shadow-card: 0 1px 2px oklch(0.29 0.07 255 / 0.04), 0 1px 1px oklch(0.29 0.07 255 / 0.03);
   --shadow-pop: 0 12px 32px -12px oklch(0.29 0.07 255 / 0.25);
@@ -159,6 +169,13 @@
 @utility surface { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-card); }
 
 .mobile-bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
+.workspace-table th { background: var(--muted); padding-top: 0.85rem; padding-bottom: 0.85rem; font-weight: 500; }
+.workspace-table td { padding-top: 1rem; padding-bottom: 1rem; }
+.workspace-tabs { background: transparent; padding: 0; gap: 0.75rem; border-radius: 0; }
+.workspace-tabs [role="tab"] { border-radius: 0; padding: 0.75rem 0.25rem; border-bottom: 2px solid transparent; box-shadow: none; background: transparent; }
+.workspace-tabs [role="tab"][data-state="active"] { border-color: var(--primary); color: var(--primary); background: transparent; }
+.attendance-dock { bottom: calc(4rem + env(safe-area-inset-bottom)); }
+@media (min-width: 768px) { .attendance-dock { bottom: 1rem; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

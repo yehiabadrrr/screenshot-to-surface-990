@@ -1,4 +1,14 @@
-# CenterOS roadmap
+# Markazly roadmap
+
+## Reference-led UI redesign
+- [ ] Global design system and application shell
+- [ ] Dashboard using existing operational and ledger data
+- [ ] Students directory and profile presentation
+- [ ] Class cards with existing billing rules and working navigation
+- [ ] Attendance workspace and Finance presentation
+- [ ] Consistent read-only remaining modules
+- [ ] English/Arabic, mobile/desktop interaction checks, tests and checkpoint
+
 
 ## Approved UI transformation
 - [x] Phase 1: design tokens, typography, spacing, shared components and accurate locale formatters

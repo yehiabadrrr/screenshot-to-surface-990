@@ -83,10 +83,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CenterOS — Education Center Management" },
+      { title: "Markazly — Education Center Management" },
       { name: "description", content: "Run your tutoring center or language institute: students, attendance, payments and teacher payouts in one place." },
-      { name: "author", content: "CenterOS" },
-      { property: "og:title", content: "CenterOS" },
+      { name: "author", content: "Markazly" },
+      { property: "og:title", content: "Markazly" },
       { property: "og:description", content: "Education center management and financial operations for Egypt." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

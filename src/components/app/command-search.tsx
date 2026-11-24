@@ -23,8 +23,8 @@ export function CommandSearch() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
   return <>
-    <Button variant="outline" aria-label={t("Search students and classes")} title={t("Search students and classes")} onClick={() => setOpen(true)} className="size-10 justify-center p-0 md:h-9 md:w-72 md:justify-start md:px-3">
-      <Search className="size-4 shrink-0" /><span className="hidden md:inline">{t("Search students and classes")}</span>
+    <Button variant="outline" aria-label={t("Search students and classes")} title={t("Search students and classes")} onClick={() => setOpen(true)} className="h-9 w-full justify-start border-transparent bg-muted/65 px-3 text-muted-foreground shadow-none md:w-64">
+      <Search className="size-4 shrink-0" /><span className="min-w-0 truncate text-xs">{t("Search students and classes")}</span>
     </Button>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent dir={lang === "ar" ? "rtl" : "ltr"} className="overflow-hidden p-0" >
