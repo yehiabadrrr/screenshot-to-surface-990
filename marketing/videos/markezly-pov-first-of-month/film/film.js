@@ -18,8 +18,8 @@
   // the snap: everything collapses into the exact point where the logo's teal dot will sit
   const TM = { ms: pick(150, 120, 150), my: pick(170, 150, 560) };
   const DOT = { x: PAD + TM.ms / 2, y: TM.my + TM.ms * 0.75, d: TM.ms * 5.2 / 32 };
-  const EM = { ms: pick(130, 120, 150), y0: pick(220, 330, 600) };
-  const TILE = { x: pick(PAD, W - 96 - 290, PAD), y: pick(700, 700, 980), s: pick(260, 290, 500) };   // 9:16: lower third (51–79 %)
+  const EM = { ms: pick(130, 120, 150), y0: pick(220, 330, 680) };
+  const TILE = { x: pick(PAD, W - 96 - 290, PAD), y: pick(700, 700, 940), s: pick(260, 290, 500) };   // 9:16: lower third (51–79 %)
   const tileHTML = (ts) => `<div style="height:${ts * 0.27}px;background:#1E3555;color:#C9D4E3;font:700 ${ts * 0.12}px UI, sans-serif;letter-spacing:.18em;display:flex;align-items:center;justify-content:center">DEC</div>
          <div style="font:800 ${ts * 0.62}px Display, sans-serif;color:#0B1A2E;text-align:center;line-height:1.25;letter-spacing:-.04em">1</div>`;
   const tileEl = (root) => reg(el('div', { class: 'abs', style: `left:${TILE.x}px;top:${TILE.y}px;width:${TILE.s}px;height:${TILE.s * 1.08}px;border-radius:34px;background:var(--paper);overflow:hidden;box-shadow:0 40px 90px -30px rgba(0,0,0,.8);transform-origin:50% 50%` }, root, tileHTML(TILE.s)), { o: 0 });
@@ -117,8 +117,8 @@
       rise(t, S.l[1], -1.2, null, { stagger: 0.04 });
       rise(t, S.l[2], beatOf('hook_l2') - 0.2, null, { stagger: 0.04 });
       rise(t, S.l[3], beatOf('hook_l2') + 0.05, null, { stagger: 0.04 });
-      const p = spHit(t, 'hook_date', 'heavy', SNAP);
-      put(S.tile, { o: p > 0.001 ? 1 : 0, s: (0.82 + 0.18 * p) * tileS(t), r: -6 * (1 - p) });   // keeps drifting: the held shot never stops
+      const p = C.sp(t, beatOf('hook_date') - 0.2, { response: 0.16, damping: 0.85 });   // 0.40 s → lands on the 0.5 s thump
+      put(S.tile, { o: p > 0.001 ? 1 : 0, y: 80 * (1 - p), s: (0.6 + 0.4 * p) * tileS(t), r: -6 * (1 - p) });   // keeps drifting: the held shot never stops
     },
   });
 
@@ -140,7 +140,7 @@
   ];
   const NOTE_AT = [4, 5.5, 7, 8.5, 10, 12, 12.5, 13, 13.5, 14, 14.5, 15, 15.5];
   scene({
-    name: 'messages', from: 'n1', to: 'snap',
+    name: 'messages', from: 'n1', to: 'snap', post: 0.3,
     build(root, S) {
       // everything that collapses into the dot lives in one wrapper; the dot itself stays outside it
       S.content = reg(el('div', { class: 'abs', style: `width:${W}px;height:${H}px` }, root));
@@ -175,16 +175,19 @@
       const spacing = lerp(gapBase, (fanBottom - top - S.nh) / (NOTE_AT.length - 1), compress);
       const jit = (i, a) => Math.sin(i * 12.9898) * a;      // fixed per-card offsets (deterministic)
       S.notes.forEach((n, i) => {
-        const p = spHit(t, NOTE_AT[i], 'default', i >= 5 ? 0 : SNAP);
+        const fast = { response: 0.14, damping: 0.88 };
+        const p = i >= 5 ? C.sp(t, NOTE_AT[i] - 0.08, fast) : spHit(t, NOTE_AT[i], 'default', SNAP);
         if (p <= 0.001) { put(n, { o: 0 }); return; }
         // depth = how many cards arrived after this one (springs, so the push-down is continuous)
         let depth = 0;
-        for (let j = i + 1; j < NOTE_AT.length; j++) depth += spHit(t, NOTE_AT[j], 'default', j >= 5 ? 0 : SNAP);
+        for (let j = i + 1; j < NOTE_AT.length; j++) depth += j >= 5 ? C.sp(t, NOTE_AT[j] - 0.08, { response: 0.14, damping: 0.88 }) : spHit(t, NOTE_AT[j], 'default', SNAP);
         // once the avalanche starts, a covered card shows no text at all (binary, on the frame it is covered)
-        const covered = i + 1 < NOTE_AT.length && t >= bt(NOTE_AT[i + 1]) - 0.02 && t >= bt(11.9);
+        // hidden only once the incoming card actually covers it (its drop is ≥ 60 % done)
+        const nextP = i + 1 < NOTE_AT.length ? C.sp(t, NOTE_AT[i + 1] - 0.08, { response: 0.14, damping: 0.88 }) : 0;
+        const covered = i + 1 >= 5 && nextP >= 0.6 && spacing < S.nh * 0.6;   // only once the pile really overlaps it
         put(n.querySelector('.nt'), { o: covered ? 0 : 1 });
-        const y = top + depth * spacing + 110 * (1 - p);
-        const s = (0.92 + 0.08 * p) * (1 - Math.min(0.1, depth * 0.02 * compress));
+        const y = top + depth * spacing - (i >= 5 ? 140 : 60) * (1 - p);
+        const s = (i >= 5 ? 1.08 - 0.08 * p : 0.96 + 0.04 * p) * (1 - Math.min(0.1, depth * 0.02 * compress));
         const dim = Math.min(0.3, depth * 0.05 * compress);
         put(n, { o: 1, y, x: jit(i, 40) * compress, r: jit(i + 7, 3) * compress, s, filter: `brightness(${(1 - dim).toFixed(3)})` });
       });
@@ -192,23 +195,25 @@
       const arrived = NOTE_AT.filter((a) => t >= bt(a) - C.leadFor('default')).length;
       const pc = spHit(t, 'pile', 'snappy');
       const unread = Math.min(27, 5 + Math.max(0, arrived - 5) * 3 - (arrived >= 13 ? 0 : 0));
-      const gone = sp(t, 15.55, 'heavy');
+      const gone = sp(t, 15.5, 'snappy');
       put(S.counter, { o: pc > 0.001 ? 1 : 0, s: 0.9 + 0.1 * pc, y: H * 1.15 * gone, hide: gone > 0.98, text: `${arrived >= 13 ? 27 : unread} unread` });
       // Every. Single. Month.
       const away = sp(t, 15.55, 'heavy');                    // pushed off the bottom; hidden once gone so the collapse can't pull it back
       put(S.stack, { y: H * 1.15 * away, hide: away > 0.98 });
-      put(S.tileWrap, { y: H * 1.15 * away, hide: away > 0.98 });
+      // the tile leaves first (pushed down as the avalanche starts) so it never peeks between pile cards
+      const tileAway = sp(t, 11.6, 'heavy');
+      put(S.tileWrap, { y: H * 1.15 * tileAway, hide: tileAway > 0.98 });
       rise(t, S.every[0], beatOf('every_1') - 0.1, null, { stagger: 0 });
       rise(t, S.every[1], beatOf('every_2') - 0.2, null, { stagger: 0 });
       rise(t, S.every[2], beatOf('every_3') - 0.2, null, { stagger: 0 });
       // camera: slow push through the chaos, then the whole frame collapses into one teal dot (peaks on the snap)
       const push = 1 + 0.1 * seg(t, 4, 19);
-      const col = sp(t, 19.3, 'heavy');                     // ~0.35 s spring: < 0.1 scale by the snap
+      const col = sp(t, 19.35, 'heavy');                    // still ~125 px at 9.93 s; a speck (≤ 24 px) at ~b20.17
       const cx = DOT.x, cy = DOT.y;
       const k = push * (1 - 0.995 * col);                    // scale about the logo-dot point
-      put(S.content, { s: k, x: cx * (1 - k), y: cy * (1 - k), hide: k < 0.02 });
-      const dp = sp(t, 19.93, 'snappy');                     // arrives once the words have shrunk away
-      put(S.dot, { o: dp > 0.01 ? 1 : 0, x: cx - 20, y: cy - 20, s: (DOT.d / 40) * dp });
+      const tiny = k < 0.035;                                // the "Every." block is ≤ ~24 px: it becomes the dot
+      put(S.content, { s: k, x: cx * (1 - k), y: cy * (1 - k), hide: tiny });
+      put(S.dot, { o: tiny ? 1 : 0, x: cx - 20, y: cy - 20, s: DOT.d / 40 });
     },
   });
 
@@ -229,7 +234,7 @@
       // dot: lands centred where the pile collapsed, then travels into the logo's center point as the mark grows around it
       const m = sp(t, 'turn_logo', 'heavy');
       const beat = sp(t, 'snap', 'snappy') - sp(t, 20.3, 'default');      // the dot lands with one firm pulse
-      put(S.dot, { o: t >= bt(19.95) ? 1 : 0, x: DOT.x - 20, y: DOT.y - 20, s: (DOT.d / 40) * (1 + 0.5 * beat) });
+      put(S.dot, { o: t >= bt(20.18) ? 1 : 0, x: DOT.x - 20, y: DOT.y - 20, s: (DOT.d / 40) * (1 + 0.5 * beat) });
       // the mark grows continuously out of the dot (its own centre dot stays where the dot is)
       const m0 = (DOT.d * 1.15) / S.ms;
       put(S.mark, { o: m > 0.001 ? 1 : 0, s: m0 + (1 - m0) * m });
@@ -267,7 +272,7 @@
       captionRun(t, S.cap, 'f2', 'f2_b');
       const onRow = t >= bt('f2_row') ? 1 : 0;
       const c = onRow
-        ? trkObj(t, [['f2_row', { x: 1130, y: 420, s: pick(2.6, 3.0, 3.0) }], [31, { x: 1694, y: 420, s: pick(2.6, 3.0, 3.1) }]], 'default')
+        ? trkObj(t, [['f2_row', { x: 1115, y: 420, s: pick(2.8, 3.3, 3.3) }], [31, { x: 1694, y: 420, s: pick(2.6, 3.0, 3.1) }]], 'default')
         : trkObj(t, [[27, { x: 960, y: 560, s: pick(1.5, 1.9, 2.1) }], [28.2, { x: 840, y: 650, s: pick(2.6, 3.1, 3.4) }]], 'default');
       const v = cam(S, c, onRow);
       if (!onRow) ring(S, v, BOXES.pay.ref, sp(t, 'f2_ring', 'snappy'));
@@ -303,9 +308,9 @@
     },
     run(t, b, S) {
       boxIn(S, t, 'f4', 'end');
-      captionRun(t, S.cap, 'f4', 'f4_b', 40.4);
+      captionRun(t, S.cap, 'f4', 'f4_b', 40.55);
       // hand-off: the card collapses about the end card's teal dot and is ≤ 2 % size by the cut (the lockup grows out of the dot)
-      const col = ease.expoIn(seg(t, 40.5, 41)), B = S.B;       // push-through style: holds, then pulls into the dot on the cut
+      const col = ease.inOut(seg(t, 40.6, 41)), B = S.B;        // shrinks steadily about the dot; ≤ 1 % by the cut
       if (col > 0.001) {
         const k = Math.max(0.004, 1 - 0.998 * col);
         put(S.box, { o: k > 0.006 ? 1 : 0, s: k, x: (END_DOT.x - B.x) * (1 - k), y: (END_DOT.y - B.y) * (1 - k), r: 0 });
