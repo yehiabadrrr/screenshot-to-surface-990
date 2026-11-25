@@ -41,9 +41,12 @@ function AttendancePage() {
   const L = useLedger();
   const { actor, setActor, entries } = L;
   const visible = actor.kind === "teacher" ? classes.filter((c) => c.teacherId === actor.teacherId) : classes;
-  const [pickedClass, setPickedClass] = useState(search.classId ?? classes[0]?.id ?? "");
-  const classId = visible.some((c) => c.id === pickedClass) ? pickedClass : visible[0]?.id;
+  const [pickedClass, setPickedClass] = useState(search.classId ?? "");
   const [date, setDate] = useState(search.date ?? todayIso());
+  // With no class picked, open on the first class actually scheduled for the selected date.
+  const classId = visible.some((c) => c.id === pickedClass)
+    ? pickedClass
+    : (visible.find((c) => classWeekdays(c.days).includes(weekdayOf(date))) ?? visible[0])?.id;
   const [amending, setAmending] = useState<{ studentId: string; to: Mark } | null>(null);
   const [reason, setReason] = useState("");
   const [amendError, setAmendError] = useState("");

@@ -78,6 +78,18 @@ export const students: Student[] = Array.from({ length: 300 }, (_, i) => {
   };
 });
 
+// Keep demo names unique: a duplicate takes the next unused first name with the same surname (no extra rnd() calls, so all other seed data is unchanged).
+{
+  const used = new Set<string>();
+  for (const s of students) {
+    const [fn, ...rest] = s.name.split(" ");
+    const ln = rest.join(" ");
+    let i = first.indexOf(fn!);
+    for (let n = 0; used.has(s.name) && n < first.length; n++) { i = (i + 1) % first.length; s.name = `${first[i]} ${ln}`; }
+    used.add(s.name);
+  }
+}
+
 export const studentById = (id: string) => students.find((s) => s.id === id);
 export const teacherById = (id: string) => teachers.find((t) => t.id === id)!;
 export const classById = (id: string) => classes.find((c) => c.id === id)!;

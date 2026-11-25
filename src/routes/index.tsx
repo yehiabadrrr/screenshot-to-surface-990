@@ -10,9 +10,9 @@ import { Languages } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Sign in — CenterOS" },
-      { name: "description", content: "Sign in to CenterOS to manage students, attendance, payments and teacher payouts." },
-      { property: "og:title", content: "Sign in — CenterOS" },
+      { title: "Sign in — Markazly" },
+      { name: "description", content: "Sign in to Markazly to manage students, attendance, payments and teacher payouts." },
+      { property: "og:title", content: "Sign in — Markazly" },
       { property: "og:description", content: "Education center management and financial operations for Egypt." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -29,7 +29,7 @@ function Login() {
     <div className="grid min-h-screen bg-background lg:grid-cols-[1fr_1.05fr]">
       <div className="flex flex-col px-6 py-8 sm:px-12">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5"><Logo className="size-8" /><span className="text-lg font-semibold tracking-tight">CenterOS</span></div>
+          <div className="flex items-center gap-2.5"><Logo className="size-8" /><span className="text-lg font-semibold tracking-tight">Markazly</span></div>
           <Button variant="ghost" onClick={() => setLang(lang === "en" ? "ar" : "en")} className="gap-1.5 text-sm text-muted-foreground hover:text-foreground">
             <Languages className="size-4" />{lang === "en" ? "العربية" : "English"}
           </Button>
