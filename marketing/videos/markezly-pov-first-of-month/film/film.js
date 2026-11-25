@@ -17,7 +17,9 @@
   const SNAP = 2 / 60;
   // the snap: everything collapses into the exact point where the logo's teal dot will sit
   const TM = { ms: pick(150, 120, 150), my: pick(170, 150, 560) };
-  const DOT = { x: PAD + TM.ms / 2, y: TM.my + TM.ms * 0.75, d: TM.ms * 5.2 / 32 };   // UI window; 9:16 ends at 1520 (< 80 %)
+  const DOT = { x: PAD + TM.ms / 2, y: TM.my + TM.ms * 0.75, d: TM.ms * 5.2 / 32 };
+  const EM = { ms: pick(130, 120, 150), y0: pick(220, 330, 600) };
+  const END_DOT = { x: PAD + EM.ms / 2, y: EM.y0 + EM.ms * 0.75, d: EM.ms * 5.2 / 32 };   // UI window; 9:16 ends at 1520 (< 80 %)
 
   // ---------------------------------------------------------------- shared: a real capture inside a camera window
   const BOXES = {
@@ -38,8 +40,9 @@
     'students-owing': [{ file: 'students-owing', clip: { x: 369, y: 170, w: 620, h: 64 } }, { file: 'students-owing-bal', clip: { x: 1340, y: 340, w: 440, h: 560 } }],
     'teachers': [{ file: 'teachers', clip: { x: 369, y: 365, w: 465, h: 302 } }],
   };
-  function shot(root, S, caps) {
-    S.box = el('div', { class: 'shot', style: `left:${BOX.x}px;top:${BOX.y}px;width:${BOX.w}px;height:${BOX.h}px` }, root);
+  function shot(root, S, caps, B = BOX, radius = 28) {
+    S.B = B;
+    S.box = el('div', { class: 'shot', style: `left:${B.x}px;top:${B.y}px;width:${B.w}px;height:${B.h}px;border-radius:${radius}px;transform-origin:0 0` }, root);
     reg(S.box, { o: 0 });
     // the camera moves ONE layer; captures, crops and rings are children, so rings can never drift off their target
     S.layer = reg(el('div', { class: 'abs', style: 'width:1920px;height:1080px' }, S.box));
@@ -56,8 +59,9 @@
   }
   // camera: focal point (capture px) + scale (stage px per capture px), clamped so the image always covers the window
   function cam(S, c, active) {
-    const s = Math.max(c.s, BOX.w / 1920, BOX.h / 1080);
-    const x = clamp(BOX.w / 2 - c.x * s, BOX.w - 1920 * s, 0), y = clamp(BOX.h / 2 - c.y * s, BOX.h - 1080 * s, 0);
+    const B = S.B;
+    const s = Math.max(c.s, B.w / 1920, B.h / 1080);
+    const x = clamp(B.w / 2 - c.x * s, B.w - 1920 * s, 0), y = clamp(B.h / 2 - c.y * s, B.h - 1080 * s, 0);
     put(S.layer, { x, y, s });
     S.imgs.forEach((g, i) => put(g, { o: i === active ? 1 : 0 }));
     return { x, y, s };
@@ -76,10 +80,11 @@
     put(S.cur, { o, x: v.x + pt.x * v.s - 6, y: v.y + pt.y * v.s - 4, s: press });
   }
   // window enters on its cut beat (card rise, opacity snaps in within ~3 frames), micro push while held
-  function boxIn(S, t, from, to) {
-    const p = spHit(t, from, 'default', SNAP);
-    const push = 1 + 0.03 * ease.inOut(seg(t, from, to));
-    put(S.box, { o: p > 0.001 ? 1 : 0, y: 70 * (1 - p), s: (0.94 + 0.06 * p) * push });
+  // window enters on its cut beat (rise, opacity snaps within ~3 frames); micro push about its centre; optional tilt r (deg)
+  function boxIn(S, t, from, to, r = 0) {
+    const B = S.B, p = spHit(t, from, 'default', SNAP);
+    const k = (0.94 + 0.06 * p) * (1 + 0.03 * ease.inOut(seg(t, from, to)));
+    put(S.box, { o: p > 0.001 ? 1 : 0, x: (B.w / 2) * (1 - k), y: 70 * (1 - p) + (B.h / 2) * (1 - k), s: k, r });
   }
   function caption(root, q, a) {
     const lines = [];
@@ -87,19 +92,19 @@
     a.forEach((txt, i) => lines.push(line(root, txt, { x: PAD, y: CAP_Y + (q.length + i) * CAP_LH, size: CAP_SIZE, color: 'var(--accent)' })));
     return { lines, nq: q.length };
   }
-  function captionRun(t, Cp, qAt, aAt) {
-    Cp.lines.forEach((L, i) => rise(t, L, (i < Cp.nq ? beatOf(qAt) : beatOf(aAt)) + (i < Cp.nq ? i : i - Cp.nq) * 0.18, null, { stagger: 0.05 }));
+  function captionRun(t, Cp, qAt, aAt, outAt = null) {
+    Cp.lines.forEach((L, i) => rise(t, L, (i < Cp.nq ? beatOf(qAt) : beatOf(aAt)) + (i < Cp.nq ? i : i - Cp.nq) * 0.18, outAt, { stagger: 0.05 }));
   }
 
   // ================================================================ 1 · HOOK (b0 → 4)
   scene({
     name: 'hook', from: 'hook', to: 'n1',
     build(root, S) {
-      const sz = pick(120, 70, 112), lh = sz * 1.1, y0 = pick(160, 330, 300);
+      const sz = pick(120, 62, 112), lh = sz * 1.1, y0 = pick(160, 330, 300);
       S.l = ['POV: you run a', 'tutoring center', 'and it’s the', '1st of the month.'].map((txt, i) =>
         line(root, txt, { x: PAD, y: y0 + i * lh + (i > 1 ? sz * 0.35 : 0), size: sz, color: i > 1 ? 'var(--ink)' : 'var(--ink)' }));
       // calendar tile (illustration): month strip + a big "1"
-      const ty = pick(700, 760, 940), ts = pick(260, 200, 520), tx = pick(PAD, W - 96 - 200, PAD);
+      const ty = pick(700, 700, 940), ts = pick(260, 290, 520), tx = pick(PAD, W - 96 - 290, PAD);
       S.tile = reg(el('div', { class: 'abs', style: `left:${tx}px;top:${ty}px;width:${ts}px;height:${ts * 1.08}px;border-radius:34px;background:var(--paper);overflow:hidden;box-shadow:0 40px 90px -30px rgba(0,0,0,.8);transform-origin:50% 50%` }, root,
         `<div style="height:${ts * 0.27}px;background:#1E3555;color:#C9D4E3;font:700 ${ts * 0.12}px UI, sans-serif;letter-spacing:.18em;display:flex;align-items:center;justify-content:center">DEC</div>
          <div style="font:800 ${ts * 0.62}px Display, sans-serif;color:#0B1A2E;text-align:center;line-height:1.25;letter-spacing:-.04em">1</div>`), { o: 0 });
@@ -138,13 +143,13 @@
       // everything that collapses into the dot lives in one wrapper; the dot itself stays outside it
       S.content = reg(el('div', { class: 'abs', style: `width:${W}px;height:${H}px` }, root));
       S.stack = reg(el('div', { class: 'abs', style: `width:${W}px;height:${H}px` }, S.content));
-      const nw = Math.round(W * 0.92), nh = pick(170, 196, 236);
+      const nw = Math.round(W * 0.92), nh = pick(170, 186, 196);
       S.nh = nh;
       S.notes = NOTES.map(([who, msg], i) => {
         const n = el('div', { class: 'note', style: `left:${Math.round(W * 0.04)}px;top:0;width:${nw}px;height:${nh}px;transform-origin:50% 0` }, S.stack,
           `<div class="nt"><div style="position:absolute;left:30px;top:30px;width:64px;height:64px;border-radius:32px;background:#21395C;color:#C9D4E3;font:700 26px UI,sans-serif;display:flex;align-items:center;justify-content:center">${who.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('')}</div>
            <div style="position:absolute;left:118px;top:26px;font:600 ${pick(28, 30, 34)}px UI,sans-serif;color:#A9B6CA">${who}<span style="color:#62728C;font-weight:500"> · now</span></div>
-           <div style="position:absolute;left:118px;top:70px;right:${Math.round(W * 0.08) + 24}px;font:500 ${pick(40, 42, 46)}px/1.2 UI,sans-serif;color:#F2F5FA">${msg}</div></div>`);
+           <div style="position:absolute;left:118px;top:70px;right:${Math.round(W * 0.08) + 24}px;font:500 ${pick(40, 40, 44)}px/1.2 UI,sans-serif;color:#F2F5FA">${msg}</div></div>`);
         reg(n.querySelector('.nt'));
         return reg(n, { o: 0 });
       });
@@ -159,9 +164,8 @@
       // newest sits on top and pushes older cards down; the stack stays centred on the frame as it grows,
       // then compresses into a fanned pile through the avalanche
       const compress = sp(t, 12, 'default');
-      const spacing = lerp(gapBase, pick(56, 52, 62), compress);
-      let n = 0; for (let j = 0; j < NOTE_AT.length; j++) n += spHit(t, NOTE_AT[j], 'default', j >= 5 ? 0 : SNAP);
-      const top = pick(H * 0.52, H * 0.55, H * 0.53) - (Math.max(1, n) - 1) * spacing / 2 - S.nh / 2;
+      const spacing = lerp(gapBase, pick(56, 48, 62), compress);
+      const top = pick(H * 0.18, H * 0.2, H * 0.24);         // first card at ~24 %; the stack grows downward (≤ 78 %)
       S.notes.forEach((n, i) => {
         const p = spHit(t, NOTE_AT[i], 'default', i >= 5 ? 0 : SNAP);
         if (p <= 0.001) { put(n, { o: 0 }); return; }
@@ -169,7 +173,7 @@
         let depth = 0;
         for (let j = i + 1; j < NOTE_AT.length; j++) depth += spHit(t, NOTE_AT[j], 'default', j >= 5 ? 0 : SNAP);
         // a card that is overlapped by the one above hides its text (no orphan line-ends in the pile)
-        put(n.querySelector('.nt'), { o: 1 - clamp((depth - 0.35) * 3) * clamp((gapBase - spacing) / 24) });
+        put(n.querySelector('.nt'), { o: 1 - clamp((depth - 0.2) * 3) * clamp((gapBase - spacing) / 16) });
         const y = top + depth * spacing + 110 * (1 - p);
         const s = (0.92 + 0.08 * p) * (1 - Math.min(0.16, depth * 0.035 * compress));
         const dim = Math.min(0.55, depth * 0.08 * (0.4 + compress));
@@ -179,11 +183,10 @@
       const arrived = NOTE_AT.filter((a) => t >= bt(a) - C.leadFor('default')).length;
       const pc = spHit(t, 'pile', 'snappy');
       const unread = Math.min(27, 5 + Math.max(0, arrived - 5) * 3 - (arrived >= 13 ? 0 : 0));
-      put(S.counter, { o: Math.min(1, pc * 8), s: 0.9 + 0.1 * pc, text: `${arrived >= 13 ? 27 : unread} unread` });
+      put(S.counter, { o: pc > 0.001 ? 1 : 0, s: 0.9 + 0.1 * pc, y: H * 1.15 * sp(t, 15.55, 'heavy'), text: `${arrived >= 13 ? 27 : unread} unread` });
       // Every. Single. Month.
-      const sc = sp(t, 15.7, 'snappy');
-      put(S.scrim, { o: sc });
-      rise(t, S.every[0], beatOf('every_1') - 0.2, null, { stagger: 0 });
+      put(S.stack, { y: H * 1.15 * sp(t, 15.55, 'heavy') });
+      rise(t, S.every[0], beatOf('every_1') - 0.1, null, { stagger: 0 });
       rise(t, S.every[1], beatOf('every_2') - 0.2, null, { stagger: 0 });
       rise(t, S.every[2], beatOf('every_3') - 0.2, null, { stagger: 0 });
       // camera: slow push through the chaos, then the whole frame collapses into one teal dot (peaks on the snap)
@@ -192,7 +195,7 @@
       const cx = DOT.x, cy = DOT.y;
       const k = push * (1 - 0.995 * col);                    // scale about the logo-dot point
       put(S.content, { s: k, x: cx * (1 - k), y: cy * (1 - k), hide: k < 0.02 });
-      const dp = sp(t, 19, 'snappy');                        // the dot is there before the collapse starts
+      const dp = sp(t, 19.72, 'snappy');                     // arrives as the words shrink into its point
       put(S.dot, { o: dp > 0.01 ? 1 : 0, x: cx - 20, y: cy - 20, s: (DOT.d / 40) * dp });
     },
   });
@@ -228,16 +231,17 @@
   // 6 · attendance: three Present taps, then "Mark all unmarked present"; the real billing preview updates.
   scene({
     name: 'f1', from: 'f1', to: 'f2',
-    build(root, S) { shot(root, S, ['att-0', 'att-1', 'att-2', 'att-3', 'att-all']); S.cap = caption(root, ['Tap present.'], ['Billing does', 'itself.']); },
+    build(root, S) { shot(root, S, ['att-0', 'att-1', 'att-2', 'att-3', 'att-4', 'att-all']); S.cap = caption(root, ['Tap present.'], ['Billing does', 'itself.']); },
     run(t, b, S) {
       boxIn(S, t, 'f1', 'f2');
       captionRun(t, S.cap, 'f1', 'f1_b');
-      const state = [['f1_c1', 1], ['f1_c2', 2], ['f1_c3', 3], ['f1_c4', 4]].reduce((a, [m, i]) => (t >= bt(m) ? i : a), 0);
-      const c = trkObj(t, [[22, { x: 1215, y: 640, s: pick(1.3, 1.7, 1.9) }], [25.1, { x: 1552, y: 650, s: pick(3.0, 3.8, 4.3) }]], 'default');
+      const state = [['f1_c1', 1], ['f1_c2', 2], ['f1_c3', 3], ['f1_cabs', 4], ['f1_c4', 5]].reduce((a, [m, i]) => (t >= bt(m) ? i : a), 0);
+      const c = trkObj(t, [[22, { x: 880, y: 640, s: pick(1.0, 1.12, 1.12) }], [25.35, { x: 1552, y: 650, s: pick(3.0, 3.8, 4.3) }]], 'default');
       const v = cam(S, c, state);
       const T = BOXES.att, mid = (q) => ({ x: q.x + q.w * 0.42, y: q.y + q.h * 0.6 });
-      const pt = trkObj(t, [[22.6, { x: 1380, y: 820 }], [22.95, mid(T.c1)], ['f1_c1', mid(T.c1)], [23.75, mid(T.c2)], [24.25, mid(T.c3)], [24.75, mid(T.all)]], 'snappy');
-      cursor(S, v, pt, C.win(t, 22.6, 'f1_ring'), ['f1_c1', 'f1_c2', 'f1_c3', 'f1_c4'], t);
+      const ab = { x: 1216, y: 740, w: 95, h: 40 };   // Mariam's "Absent" (launch-film manifest, att-4 target)
+      const pt = trkObj(t, [[22.5, { x: 1300, y: 900 }], [22.95, mid(T.c1)], [23.5, mid(T.c2)], [24.0, mid(T.c3)], [24.5, mid(ab)], [25.0, mid(T.all)]], 'snappy');
+      cursor(S, v, pt, C.win(t, 22.5, 25.4), ['f1_c1', 'f1_c2', 'f1_c3', 'f1_cabs', 'f1_c4'], t);
       ring(S, v, { x: 1477, y: 619, w: 151, h: 63 }, sp(t, 'f1_ring', 'snappy'), 6);   // "17 · Charges on finalize" (measured)
     },
   });
@@ -245,9 +249,9 @@
   // 7 · payments: the real form with InstaPay + reference, then a push into the ledger row it created.
   scene({
     name: 'f2', from: 'f2', to: 'f3',
-    build(root, S) { shot(root, S, ['pay-dialog', 'fin-row']); S.cap = caption(root, ['InstaPay', 'screenshot?'], ['Logged. With', 'the reference.']); },
+    build(root, S) { shot(root, S, ['pay-dialog', 'fin-row'], { x: 76, y: BOX.y + 30, w: W - 152, h: BOX.h - 50 }); S.cap = caption(root, ['InstaPay', 'screenshot?'], ['Logged. With', 'the reference.']); },
     run(t, b, S) {
-      boxIn(S, t, 'f2', 'f3');
+      boxIn(S, t, 'f2', 'f3', -3 * (1 - sp(t, 'f2_row', 'default')));
       captionRun(t, S.cap, 'f2', 'f2_b');
       const onRow = t >= bt('f2_row') ? 1 : 0;
       const c = onRow
@@ -264,11 +268,11 @@
   // 8 · who owes: one tap on the real "Owing" filter, then the balance column.
   scene({
     name: 'f3', from: 'f3', to: 'f4',
-    build(root, S) { shot(root, S, ['students-all', 'students-owing']); S.cap = caption(root, ['Who still owes?'], ['One tap.']); },
+    build(root, S) { shot(root, S, ['students-all', 'students-owing'], { x: 0, y: BOX.y - 20, w: W, h: BOX.h + 20 }, 0); S.cap = caption(root, ['Who still owes?'], ['One tap.']); },
     run(t, b, S) {
       boxIn(S, t, 'f3', 'f4');
       captionRun(t, S.cap, 'f3', 'f3_b');
-      const c = trkObj(t, [[32, { x: 640, y: 230, s: pick(2.2, 2.6, 2.8) }], [33.2, { x: 600, y: 202, s: pick(2.6, 3.1, 3.3) }], [35.0, { x: 600, y: 202, s: pick(2.6, 3.1, 3.3) }], [35.9, { x: 1550, y: 470, s: pick(2.3, 2.6, 2.8) }]], 'default');
+      const c = trkObj(t, [[32, { x: 640, y: 220, s: pick(2.6, 3.0, 3.2) }], [33.2, { x: 600, y: 202, s: pick(4.0, 4.8, 5.0) }], [35.0, { x: 600, y: 202, s: pick(4.0, 4.8, 5.0) }], [35.9, { x: 1550, y: 470, s: pick(2.6, 2.9, 3.0) }]], 'default');
       const v = cam(S, c, t >= bt('f3_click') ? 1 : 0);
       const chip = BOXES.chip, cp = { x: chip.x + 40, y: chip.y + 24 };
       const pt = trkObj(t, [[32.4, { x: 980, y: 640 }], [32.85, cp]], 'snappy');
@@ -280,13 +284,23 @@
 
   // 9 · teacher pay: the real Teachers card, "Revenue share · 40% of collected tuition".
   scene({
-    name: 'f4', from: 'f4', to: 'end',
-    build(root, S) { shot(root, S, ['teachers']); S.cap = caption(root, ['Mr. Hesham’s', '40%?'], ['Already', 'worked out.']); },
+    name: 'f4', from: 'f4', to: 'end', post: 0, 
+    build(root, S) {
+      shot(root, S, ['teachers']); S.cap = caption(root, ['Mr. Hesham’s', '40%?'], ['Already', 'worked out.']);
+      S.dot = reg(el('div', { class: 'abs', style: 'width:40px;height:40px;border-radius:20px;background:var(--accent);transform-origin:50% 50%' }, root), { o: 0 });
+    },
     run(t, b, S) {
       boxIn(S, t, 'f4', 'end');
-      captionRun(t, S.cap, 'f4', 'f4_b');
+      captionRun(t, S.cap, 'f4', 'f4_b', 40.3);
+      // hand-off: the card collapses into the end card's teal dot (the lockup then grows out of it)
+      const col = sp(t, 40.45, 'heavy'), B = S.B;
+      if (col > 0.001) {
+        const k = (1 - 0.995 * col);
+        put(S.box, { o: 1, s: k, x: (END_DOT.x - B.x) * (1 - k), y: (END_DOT.y - B.y) * (1 - k) });
+      }
+      put(S.dot, { o: col > 0.6 ? 1 : 0, x: END_DOT.x - 20, y: END_DOT.y - 20, s: END_DOT.d / 40 });
       const k = BOXES.card0;
-      const c = trkObj(t, [[37, { x: 600, y: 445, s: pick(1.9, 2.3, 2.5) }], [38.3, { x: 530, y: 481, s: pick(2.8, 3.4, 3.6) }], [41.5, { x: 535, y: 481, s: pick(2.9, 3.5, 3.75) }]], 'default');
+      const c = trkObj(t, [[37, { x: 600, y: 445, s: pick(1.9, 2.3, 2.5) }], [38.3, { x: 540, y: 481, s: pick(2.9, 3.3, 3.3) }]], 'default');
       const v = cam(S, c, 0);
       ring(S, v, { x: 398, y: 470, w: 262, h: 24 }, sp(t, 'f4_ring', 'snappy'), 6);   // "Revenue share · 40% of collected tuition"
       put(S.cur, { o: 0 });
@@ -298,11 +312,11 @@
     name: 'end', from: 'end', to: 'done',
     build(root, S) {
       S.push = reg(el('div', { class: 'abs', style: `width:${W}px;height:${H}px;transform-origin:${PAD}px ${H / 2}px` }, root));
-      const ms = pick(130, 120, 150), y0 = pick(220, 330, 600);
+      const ms = EM.ms, y0 = EM.y0;
       S.ms = ms; S.y0 = y0;
       S.mark = reg(el('div', { class: 'abs', style: `left:${PAD}px;top:${y0}px;width:${ms}px;height:${ms}px;transform-origin:50% 75%` }, S.push,
         `<svg width="${ms}" height="${ms}" viewBox="0 0 32 32"><defs><linearGradient id="t2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B78C2"/><stop offset="1" stop-color="#1D4F8C"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#t2)"/><path d="M8.5 23V10L16 17.5L23.5 10V23" fill="none" stroke="white" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="24" r="2.6" fill="#19A7A0"/></svg>`), { o: 0 });
-      S.pulse = reg(el('div', { class: 'abs', style: `width:30px;height:30px;border-radius:15px;border:3px solid var(--accent);transform-origin:50% 50%` }, S.push), { o: 0 });
+      S.pulse = reg(el('div', { class: 'abs', style: `width:40px;height:40px;border-radius:20px;background:var(--accent);transform-origin:50% 50%` }, S.push), { o: 0 });
       S.word = line(S.push, 'Markezly', { x: PAD + ms + 34, y: y0 + ms * 0.16, size: ms * 0.62 });
       const sz = pick(130, 108, 112), ly = y0 + ms + pick(80, 80, 110);
       S.l1 = line(S.push, 'Your center.', { x: PAD, y: ly, size: sz });
@@ -312,18 +326,18 @@
     },
     run(t, b, S) {
       put(S.push, { s: 1 + 0.05 * ease.inOut(seg(t, 'end', 'done')) });
-      const m = spHit(t, 'end', 'heavy', 3 * SNAP);
-      put(S.mark, { o: m > 0.001 ? 1 : 0, s: 0.32 + 0.68 * m });   // grows out of its own teal dot, already present on the cut frame
+      const m = sp(t, beatOf('end') - 0.1, 'heavy');
+      const m0 = (END_DOT.d * 1.15) / S.ms;
+      put(S.mark, { o: m > 0.001 ? 1 : 0, s: m0 + (1 - m0) * m });   // grows continuously out of the dot the card collapsed into
       rise(t, S.word, beatOf('end') - 0.1, null, { stagger: 0.04 });
       rise(t, S.l1, beatOf('end') + 0.5, null, { stagger: 0.06 });
       rise(t, S.l2, beatOf('end_l2') - 0.2, null, { stagger: 0.06 });
       rise(t, S.url, beatOf('cta') - 0.1, null, { stagger: 0.04, preset: 'snappy' });
       rise(t, S.note, beatOf('cta') + 0.5, null, { stagger: 0.02, preset: 'snappy' });
       // the hold stays alive: the logo dot sends a ring out on beats 44 and 46
-      const ring = (beat) => { const k = clamp((t - bt(beat)) / 0.7); return k > 0 && k < 1 ? k : null; };
-      const k = ring(46) ?? ring(44);
-      const dx = PAD + S.ms / 2 - 15, dy = S.y0 + S.ms * 0.75 - 15;
-      put(S.pulse, k == null ? { o: 0 } : { o: 1 - k, x: dx, y: dy, s: 1 + 5 * ease.out(k) });
+      // the hold stays alive: the logo's own dot pulses on beats 44 and 46 (no halo)
+      const pz = (sp(t, 44, 'snappy') - sp(t, 44.35, 'default')) + (sp(t, 46, 'snappy') - sp(t, 46.35, 'default'));
+      put(S.pulse, { o: 1, x: END_DOT.x - 20, y: END_DOT.y - 20, s: (END_DOT.d / 40) * (1 + 0.45 * pz) });
     },
   });
 
