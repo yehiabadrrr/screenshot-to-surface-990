@@ -16,6 +16,18 @@
    "what": "POV line on frame 0"
   },
   {
+   "t": 0.5,
+   "type": "thump",
+   "gain": 0.7,
+   "pitch": 0.958,
+   "pan": -0.139,
+   "beat": 1,
+   "mark": "hook_date",
+   "snapped_to_hit": true,
+   "snap_ms": 0,
+   "what": "date tile '1' lands"
+  },
+  {
    "t": 0.74642,
    "type": "pop",
    "gain": 0.6,
@@ -26,18 +38,6 @@
    "snapped_to_hit": true,
    "snap_ms": -3.66,
    "what": "line 2"
-  },
-  {
-   "t": 1.24523,
-   "type": "thump",
-   "gain": 0.7,
-   "pitch": 0.958,
-   "pan": -0.139,
-   "beat": 2.5,
-   "mark": "hook_date",
-   "snapped_to_hit": true,
-   "snap_ms": -4.84,
-   "what": "date tile '1' lands"
   },
   {
    "t": 2.00015,
