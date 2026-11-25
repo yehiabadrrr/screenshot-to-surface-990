@@ -29,12 +29,22 @@ use the editor.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
 
+## Database, migrations and secrets (repository-managed)
+This section **supersedes the Lovable "Database" and "Secrets" rules above** (decision of 2026-11-25). The schema is owned by this repository, not by the Lovable editor. Full runbook: `supabase/README.md`.
+- **Create** a migration as a new file `supabase/migrations/<UTC yyyymmddHHMMSS>_<snake_case_purpose>.sql`. Never edit a migration that has been applied anywhere; fix forward with a new one. Every table gets `center_id`, RLS enabled and policies `TO authenticated` only, in the same migration that creates it.
+- **Apply** with the Supabase CLI against a linked project (`supabase link --project-ref <ref>`, then `supabase db push`). Apply to the test project first, production second. Do not use the dashboard SQL editor or table editor for schema or data changes: the database must never contain changes that are not in a migration.
+- **History** is the `supabase_migrations.schema_migrations` table on each project plus git history of `supabase/migrations/`. `supabase migration list` must show local and remote in sync before and after every push.
+- **Verify** every schema change with `npm test` (PGlite policy tests in `src/test/rls.test.ts` run every migration on a real PostgreSQL engine) and, before production, with the live RLS suite against the test project (`npm run test:rls-live`, see the runbook). PGlite results are not proof of Supabase security on their own.
+- **Secrets**: only the project URL and the publishable (anon) key may reach the browser, as `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env.local` (gitignored) or the host's environment settings. The service-role key, database password and access tokens never enter the repo, `.env.example`, logs or client code. App code uses only the publishable key plus the signed-in user's JWT, so RLS applies to every query.
+- **Tenancy**: users reach data only through `memberships`. Security-definer helpers (`is_center_member`, `has_center_role`, `create_center`) pin `search_path = public`. Customer centers are never seeded; sample data lives only in the dedicated Demo Center (`centers.is_demo`).
+
 ## Finance
 - Overview display selectors stay in `overview-display.ts` and never calculate money; attendance deep links select an existing class/date without changing posting rules.
-- Center metadata and sample actor identity come from `center-config.ts`; compatibility exports must reference it so displayed and recorded identities agree.
+- Center name, branches and the signed-in user come from the center context (`src/lib/center-context.tsx`), loaded from Supabase; `center-config.ts` remains only for helpers and sample identity used by the demo seed.
+- Students are persistent (Supabase) since Phase 1; classes, ledger and attendance are still in-memory demo data. The Demo Center reproduces the original sample students with their original `S-` codes so the demo ledger still matches them.
 - Presentation formatting lives in `format.ts`; `Money` and localization helpers delegate to it, without changing ledger calculations.
 - The shell command search uses the ledger store's live students and read-only class catalog; sidebar preference is hydrated after mount to avoid SSR mismatches.
 - Every money figure (KPIs, finance cards, method breakdowns, student balances, teacher % payouts) is computed from the ledger in `src/lib/ledger.ts` via `useFinance`/`useLedger`; never hardcode totals. Why: hardcoded KPIs drifted from the transaction list.
 - The ledger is append-only: corrections add a Reversal (with reason) and optionally a replacement payment; completed entries are never edited and IDs are never reused. Why: audit trail.
 - Overview and Finance share one period + branch filter from `LedgerProvider`. Why: both screens must show the same numbers.
-- Until a backend exists, the ledger is in-memory demo data and the UI must say so. Why: never imply a payment reached a real ledger.
+- Until the ledger is migrated, it is in-memory demo data and the UI must say so. Balances and attendance shown beside persistent students are demo-derived and must be labelled as such; sorting students by balance stays disabled until the ledger persists. Why: never imply a payment reached a real ledger.

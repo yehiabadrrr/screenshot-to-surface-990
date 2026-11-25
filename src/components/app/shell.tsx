@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, Users, BookOpen, CalendarCheck, Wallet, GraduationCap, BarChart3, MessageSquare, Settings,
@@ -9,7 +9,10 @@ import { useI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 import { useLedger, monthLabel } from "@/lib/ledger-store";
 import { useAttention } from "@/lib/attention";
-import { centerProfile, initials } from "@/lib/center-config";
+import { initials } from "@/lib/center-config";
+import { useCenter, roleLabel } from "@/lib/center-context";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth";
 import { formatMoney } from "@/lib/format";
 import { fmtNum } from "@/lib/l10n";
 import { Logo } from "./logo";
@@ -56,14 +59,15 @@ const isActive = (path: string, to: string) => path === to || path.startsWith(to
 function BranchMenu({ variant }: { variant: "sidebar" | "header" }) {
   const { t, lang } = useI18n();
   const { branch, setBranch } = useLedger();
+  const { center, branchNames, centers, setActiveCenter } = useCenter();
   const label = t(branch === "all" ? "All branches" : branch);
   return (
     <DropdownMenu dir={lang === "ar" ? "rtl" : "ltr"}>
       <DropdownMenuTrigger asChild>
         {variant === "sidebar" ? (
           <button type="button" className="flex w-full items-center gap-2.5 rounded-lg border border-sidebar-border bg-sidebar-accent px-2.5 py-2 text-start text-sidebar-accent-foreground outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-sidebar-ring">
-            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-teal-bright/20 text-xs font-bold text-teal-bright">{initials(centerProfile.name)}</span>
-            <span className="min-w-0 flex-1"><bdi className="block truncate text-[13px] font-semibold">{centerProfile.name}</bdi><span className="flex items-center gap-1 truncate text-[11px] text-sidebar-muted"><MapPin className="size-3 shrink-0" />{label}</span></span>
+            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-teal-bright/20 text-xs font-bold text-teal-bright">{initials(center.name)}</span>
+            <span className="min-w-0 flex-1"><bdi className="block truncate text-[13px] font-semibold">{center.name}</bdi><span className="flex items-center gap-1 truncate text-[11px] text-sidebar-muted"><MapPin className="size-3 shrink-0" />{label}</span></span>
             <ChevronsUpDown className="size-4 shrink-0 text-sidebar-muted" />
           </button>
         ) : (
@@ -74,11 +78,20 @@ function BranchMenu({ variant }: { variant: "sidebar" | "header" }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuLabel className="text-xs text-muted-foreground">{t("Branch")}</DropdownMenuLabel>
-        {(["all", ...centerProfile.branches] as const).map((item) => (
+        {["all", ...branchNames].map((item) => (
           <DropdownMenuItem key={item} onClick={() => setBranch(item)} className="justify-between">
-            {t(item === "all" ? "All branches" : item)}{branch === item && <Check className="size-4 text-brand" />}
+            <bdi>{t(item === "all" ? "All branches" : item)}</bdi>{branch === item && <Check className="size-4 text-brand" />}
           </DropdownMenuItem>
         ))}
+        {centers.length > 1 && <>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-xs text-muted-foreground">{t("Switch center")}</DropdownMenuLabel>
+          {centers.map((c) => (
+            <DropdownMenuItem key={c.center.id} onClick={() => { setBranch("all"); setActiveCenter(c.center.id); }} className="justify-between">
+              <bdi className="truncate">{c.center.name}</bdi>{c.center.id === center.id && <Check className="size-4 text-brand" />}
+            </DropdownMenuItem>
+          ))}
+        </>}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -86,6 +99,7 @@ function BranchMenu({ variant }: { variant: "sidebar" | "header" }) {
 
 function SidebarBody({ collapsed, onNav }: { collapsed: boolean; onNav?: () => void }) {
   const { t } = useI18n();
+  const { user, role } = useCenter();
   const path = useRouterState({ select: (r) => r.location.pathname });
   return (
     <div className="bg-sidebar-gradient flex h-full flex-col text-sidebar-foreground">
@@ -121,8 +135,8 @@ function SidebarBody({ collapsed, onNav }: { collapsed: boolean; onNav?: () => v
         ))}
       </nav>
       <div className={cn("flex shrink-0 items-center gap-2.5 border-t border-sidebar-border p-4", collapsed && "justify-center px-0")}>
-        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white/12 text-xs font-semibold text-white ring-2 ring-white/10">{initials(centerProfile.currentUser.name)}</span>
-        {!collapsed && <div className="min-w-0"><bdi className="block truncate text-[13px] font-semibold text-white">{centerProfile.currentUser.name}</bdi><div className="flex items-center gap-1.5 truncate text-[11px] text-sidebar-muted">{t(centerProfile.currentUser.role)}<span className="size-1 rounded-full bg-sidebar-muted" />{t("Demo data")}</div></div>}
+        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white/12 text-xs font-semibold text-white ring-2 ring-white/10">{initials(user.name)}</span>
+        {!collapsed && <div className="min-w-0"><bdi className="block truncate text-[13px] font-semibold text-white">{user.name}</bdi><div className="truncate text-[11px] text-sidebar-muted">{t(roleLabel[role])}</div></div>}
       </div>
     </div>
   );
@@ -179,25 +193,32 @@ function Notifications() {
 function UserMenu() {
   const { t, lang, setLang } = useI18n();
   const { theme, toggle } = useTheme();
-  const user = centerProfile.currentUser;
+  const { user, role, center } = useCenter();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const leave = async () => {
+    await signOut();
+    queryClient.clear(); // no data from this session survives sign-out
+    void navigate({ to: "/", replace: true });
+  };
   return (
     <DropdownMenu dir={lang === "ar" ? "rtl" : "ltr"}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-10 gap-2 px-1.5 lg:pe-2.5" aria-label={t("Account menu")}>
           <Avatar name={user.name} size="sm" />
-          <span className="hidden min-w-0 text-start lg:block"><bdi className="block max-w-32 truncate text-[13px] font-semibold leading-tight">{user.name}</bdi><span className="block text-[11px] leading-tight text-muted-foreground">{t(user.role)}</span></span>
+          <span className="hidden min-w-0 text-start lg:block"><bdi className="block max-w-32 truncate text-[13px] font-semibold leading-tight">{user.name}</bdi><span className="block text-[11px] leading-tight text-muted-foreground">{t(roleLabel[role])}</span></span>
           <ChevronDown className="hidden size-3.5 text-muted-foreground lg:block" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
-        <DropdownMenuLabel className="font-normal"><bdi className="block text-sm font-semibold">{user.name}</bdi><span className="text-xs text-muted-foreground">{t(user.role)} · <bdi>{centerProfile.name}</bdi></span></DropdownMenuLabel>
-        <p className="mx-2 mb-1.5 rounded-md bg-warning-soft px-2 py-1.5 text-[11px] text-foreground">{t("Sample identity. There is no real sign-in yet.")}</p>
+        <DropdownMenuLabel className="font-normal"><bdi className="block text-sm font-semibold">{user.name}</bdi><bdi className="block truncate text-xs text-muted-foreground" dir="ltr">{user.email}</bdi><span className="text-xs text-muted-foreground">{t(roleLabel[role])} · <bdi>{center.name}</bdi></span></DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild><Link to="/settings"><Settings />{t("Settings")}</Link></DropdownMenuItem>
         <DropdownMenuItem onClick={() => setLang(lang === "en" ? "ar" : "en")}><Languages />{lang === "en" ? "العربية" : "English"}</DropdownMenuItem>
         <DropdownMenuItem onClick={toggle}>{theme === "dark" ? <Sun /> : <Moon />}{t(theme === "dark" ? "Light mode" : "Dark mode")}</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild><Link to="/"><LogOut className="rtl:-scale-x-100" />{t("Back to sign-in screen")}</Link></DropdownMenuItem>
+        <DropdownMenuItem onClick={() => void leave()}><LogOut className="rtl:-scale-x-100" />{t("Sign out")}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -217,6 +238,7 @@ function useWideLayout() {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { demo } = useLedger();
   const [userCollapsed, setCollapsed] = useState(false);
   const wide = useWideLayout();
   const collapsed = userCollapsed || !wide;
@@ -258,11 +280,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               <UserMenu />
             </div>
           </div>
-          {centerProfile.isDemo && (
-            <div className="flex items-center justify-center gap-1.5 border-t border-warning/25 bg-warning-soft px-4 py-1 text-[11px] text-foreground" title={t("Sample data resets on refresh. Nothing is saved.")}>
-              <span className="size-1.5 shrink-0 rounded-full bg-warning" /><span className="font-semibold">{t("Demo data")}</span><span className="hidden text-muted-foreground sm:inline">· {t("Sample data resets on refresh. Nothing is saved.")}</span>
-            </div>
-          )}
+          {/* Students persist; classes, ledger and attendance are still demo data in Phase 1. */}
+          <div className="flex items-center justify-center gap-1.5 border-t border-warning/25 bg-warning-soft px-4 py-1 text-[11px] text-foreground" title={t("Classes, payments and attendance are demo data and reset on refresh. Student records are saved.")}>
+            <span className="size-1.5 shrink-0 rounded-full bg-warning" /><span className="font-semibold">{t(demo ? "Demo Center" : "Demo data")}</span><span className="hidden text-muted-foreground sm:inline">· {t("Classes, payments and attendance are demo data and reset on refresh. Student records are saved.")}</span>
+          </div>
         </header>
         <main className="min-w-0 flex-1 px-page-mobile pt-5 pb-28 md:px-6 md:pt-7 md:pb-10 lg:px-8">{children}</main>
         <nav aria-label={t("Mobile navigation")} className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t bg-card/95 backdrop-blur md:hidden">

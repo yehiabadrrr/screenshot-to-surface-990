@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useTheme, type Theme } from "@/lib/theme";
 import { pageHead } from "@/lib/head";
-import { centerProfile, initials } from "@/lib/center-config";
+import { initials } from "@/lib/center-config";
+import { useCenter, roleLabel } from "@/lib/center-context";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_console/settings")({
@@ -18,27 +19,28 @@ export const Route = createFileRoute("/_console/settings")({
 function Page() {
   const { t, lang, setLang } = useI18n();
   const { theme, setTheme } = useTheme();
+  const { center, branchNames, user, role } = useCenter();
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader subtitle={t("Read-only · demo data")} />
       <div className="space-y-5">
         <Section icon={Building2} title={t("Center profile")} hint={t("Shown across Markazly. Editing needs saved data, which isn't set up yet.")} locked>
           <div className="mb-5 flex items-center gap-4">
-            <span className="grid size-14 place-items-center rounded-xl bg-tint-teal font-display text-lg font-bold text-tint-teal-ink">{initials(centerProfile.name)}</span>
-            <div><bdi className="block font-display text-lg font-bold">{centerProfile.name}</bdi><div className="text-xs text-muted-foreground">{t("{n} branches", { n: centerProfile.branches.length })}</div></div>
+            <span className="grid size-14 place-items-center rounded-xl bg-tint-teal font-display text-lg font-bold text-tint-teal-ink">{initials(center.name)}</span>
+            <div><bdi className="block font-display text-lg font-bold">{center.name}</bdi><div className="text-xs text-muted-foreground">{t("{n} branches", { n: branchNames.length })}</div></div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <ReadOnly id="center-name" label={t("Center name")} value={centerProfile.name} />
+            <ReadOnly id="center-name" label={t("Center name")} value={center.name} />
             <div className="space-y-1.5">
               <Label htmlFor="current-user">{t("Current user")}</Label>
-              <div className="flex items-center gap-2.5 rounded-md border bg-muted/40 px-3 py-1.5"><Avatar name={centerProfile.currentUser.name} size="sm" /><div className="min-w-0"><bdi id="current-user" className="block truncate text-sm font-medium">{centerProfile.currentUser.name}</bdi><div className="text-[11px] text-muted-foreground">{t(centerProfile.currentUser.role)}</div></div></div>
+              <div className="flex items-center gap-2.5 rounded-md border bg-muted/40 px-3 py-1.5"><Avatar name={user.name} size="sm" /><div className="min-w-0"><bdi id="current-user" className="block truncate text-sm font-medium">{user.name}</bdi><div className="text-[11px] text-muted-foreground">{t(roleLabel[role])}</div></div></div>
             </div>
           </div>
         </Section>
 
         <Section icon={MapPin} title={t("Branches")} hint={t("Every financial figure can be filtered by branch.")} locked>
           <ul className="grid gap-3 sm:grid-cols-3">
-            {centerProfile.branches.map((b) => <li key={b} className="flex items-center gap-2.5 rounded-lg border px-3 py-2.5"><span className="grid size-8 place-items-center rounded-md bg-tint-blue text-tint-blue-ink"><MapPin className="size-4" /></span><bdi className="text-sm font-medium">{t(b)}</bdi></li>)}
+            {branchNames.map((b) => <li key={b} className="flex items-center gap-2.5 rounded-lg border px-3 py-2.5"><span className="grid size-8 place-items-center rounded-md bg-tint-blue text-tint-blue-ink"><MapPin className="size-4" /></span><bdi className="text-sm font-medium">{t(b)}</bdi></li>)}
           </ul>
         </Section>
 

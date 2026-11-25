@@ -2,11 +2,10 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState, type
 import { seedLedger, seedSessions, LEDGER_MONTHS, type SessionRecord, type AuditItem } from "./ledger-seed";
 import { appendPayment, correctEntry, nextId, periodFilter, comparisonFilter, type Filter, type LedgerEntry, type NewPayment } from "./ledger";
 import { amendAttendance, finalizeSession, sessionIdFor, type BillingRule, type Mark } from "./billing";
-import { students as seedStudents, classes, classById, teachers, seedEnrollmentRules, enrollmentKey, type Student } from "./data";
-import { centerProfile } from "./center-config";
+import { students as sampleStudents, classes, classById, teachers, seedEnrollmentRules, enrollmentKey, type Student } from "./data";
 
-/** Demo identity. There is no real sign-in or access control yet. */
-export const CURRENT_USER = centerProfile.currentUser;
+/** The signed-in user, as recorded on ledger entries and attendance (Phase 1: real Supabase identity). */
+export type CurrentUser = { name: string; role: string };
 export type Actor = { kind: "admin"; name: string } | { kind: "teacher"; teacherId: string; name: string };
 
 export const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -21,10 +20,12 @@ interface Store {
   filter: Filter; compare: Filter; today: string;
   recordPayment: (p: Omit<NewPayment, "enteredBy">) => LedgerEntry;
   correct: (id: string, opts: { reason: string; correctedAmount?: number }) => { reversal: LedgerEntry; replacement?: LedgerEntry };
-  // students & enrollments
+  /** True only for the Demo Center: the sample ledger and attendance are loaded. */
+  demo: boolean;
+  currentUser: CurrentUser;
+  // students (persistent, loaded from Supabase) & enrollment rules (still in-memory demo data)
   students: Student[];
   findStudent: (id: string) => Student | undefined;
-  addStudent: (s: Omit<Student, "id" | "status" | "joined" | "attendance">, rules: Record<string, BillingRule>) => Student;
   ruleFor: (studentId: string, classId: string) => { rule: BillingRule; source: "class" | "enrollment" };
   classRule: (classId: string) => BillingRule;
   setClassRule: (classId: string, rule: BillingRule) => void;
@@ -41,14 +42,35 @@ interface Store {
 
 const Ctx = createContext<Store | null>(null);
 
-/** In-memory demo state shared by every console page. Nothing is persisted: a refresh restores the sample data. */
-export function LedgerProvider({ children }: { children: ReactNode }) {
-  const [entries, setEntries] = useState<LedgerEntry[]>(seedLedger);
-  const [students, setStudents] = useState<Student[]>(seedStudents);
+/**
+ * Shared console state. Students come from Supabase (props); the ledger, sessions, billing rules and class
+ * catalog are still in-memory demo data: a refresh restores them. The sample ledger and attendance are
+ * loaded only for the Demo Center, whose students carry the original sample codes; other centers start
+ * with an empty demo ledger.
+ */
+export function LedgerProvider({ children, students: loaded, demo, currentUser }: { children: ReactNode; students: Student[]; demo: boolean; currentUser: CurrentUser }) {
+  const CURRENT_USER = currentUser;
+  const [entries, setEntries] = useState<LedgerEntry[]>(() => (demo ? seedLedger : []));
   const [classRules, setClassRules] = useState<Record<string, BillingRule>>(() => Object.fromEntries(classes.map((c) => [c.id, c.rule])));
   const [enrollmentRules, setEnrollmentRules] = useState<Record<string, BillingRule>>(seedEnrollmentRules);
-  const [sessions, setSessions] = useState<Record<string, SessionRecord>>(seedSessions);
+  const [sessions, setSessions] = useState<Record<string, SessionRecord>>(() => (demo ? seedSessions : {}));
   const [actor, setActor] = useState<Actor>({ kind: "admin", name: CURRENT_USER.name });
+  // Attendance shown beside each student is derived from recorded (demo) sessions, never stored. The Demo
+  // Center falls back to the original sample rate for students without recorded sessions.
+  const students = useMemo(() => {
+    const marks = new Map<string, { present: number; marked: number }>();
+    for (const s of Object.values(sessions)) for (const [sid, m] of Object.entries(s.marks)) {
+      if (!m) continue;
+      const x = marks.get(sid) ?? { present: 0, marked: 0 };
+      x.marked++; if (m === "Present") x.present++;
+      marks.set(sid, x);
+    }
+    const sample = demo ? new Map(sampleStudents.map((s) => [s.id, s.attendance])) : null;
+    return loaded.map((s) => {
+      const x = marks.get(s.id);
+      return { ...s, attendance: x ? Math.round((x.present / x.marked) * 100) : sample?.get(s.id) ?? null };
+    });
+  }, [loaded, sessions, demo]);
   const [period, setPeriod] = useState(LEDGER_MONTHS[LEDGER_MONTHS.length - 1]!);
   const [branch, setBranch] = useState("all");
   const today = todayIso();
@@ -138,17 +160,6 @@ export function LedgerProvider({ children }: { children: ReactNode }) {
     return entry;
   }, []);
 
-  const addStudent = useCallback<Store["addStudent"]>((s, rules) => {
-    const max = ref.current.students.reduce((m, x) => Math.max(m, Number(x.id.slice(2))), 1000);
-    const st: Student = { ...s, id: `S-${max + 1}`, status: "Active", joined: todayIso(), attendance: 0 };
-    const nextStudents = [...ref.current.students, st];
-    ref.current.students = nextStudents; setStudents(nextStudents);
-    const nextRules = { ...ref.current.enrollmentRules };
-    for (const [cid, r] of Object.entries(rules)) nextRules[enrollmentKey(st.id, cid)] = r;
-    ref.current.enrollmentRules = nextRules; setEnrollmentRules(nextRules);
-    return st;
-  }, []);
-
   const setEnrollmentRule = useCallback<Store["setEnrollmentRule"]>((studentId, classId, rule) => {
     const next = { ...ref.current.enrollmentRules };
     if (rule) next[enrollmentKey(studentId, classId)] = rule; else delete next[enrollmentKey(studentId, classId)];
@@ -163,7 +174,8 @@ export function LedgerProvider({ children }: { children: ReactNode }) {
   const value: Store = {
     classes, teachers,
     entries, period, setPeriod, branch, setBranch, months: LEDGER_MONTHS, filter, compare, today, recordPayment, correct,
-    students, findStudent: (id) => studentMap.get(id), addStudent, ruleFor, classRule: (id) => classRules[id] ?? classById(id).rule,
+    demo, currentUser,
+    students, findStudent: (id) => studentMap.get(id), ruleFor, classRule: (id) => classRules[id] ?? classById(id).rule,
     setClassRule, setEnrollmentRule, sellPackage,
     actor, setActor, sessions, setMark, setMarks, finalize, amend,
   };

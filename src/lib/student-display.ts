@@ -12,7 +12,7 @@ export function selectStudents(rows: StudentRow[], filters: { query: string; gra
     (filters.status === "all" || s.status === filters.status) &&
     (filters.balance === "all" || balanceLabel(s.balance) === filters.balance));
   return selected.sort((a, b) => {
-    const comparison = sort === "name" ? a.name.localeCompare(b.name, "en") : a[sort] - b[sort];
+    const comparison = sort === "name" ? a.name.localeCompare(b.name, "en") : (a[sort] ?? -1) - (b[sort] ?? -1); // students without a recorded rate sort lowest
     return (descending ? -comparison : comparison) || a.id.localeCompare(b.id);
   });
 }

@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider, themeBootScript } from "@/lib/theme";
+import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -135,8 +136,10 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <ThemeProvider>
         <I18nProvider>
-          <Outlet />
-          <Toaster richColors position="top-center" />
+          <AuthProvider>
+            <Outlet />
+            <Toaster richColors position="top-center" />
+          </AuthProvider>
         </I18nProvider>
       </ThemeProvider>
     </QueryClientProvider>

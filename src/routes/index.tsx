@@ -1,63 +1,66 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { Logo } from "@/components/app/logo";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState, type FormEvent } from "react";
+import { LogIn } from "lucide-react";
+import { AuthLayout, Field, FormError, authErrorText } from "@/components/app/auth-layout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useI18n } from "@/lib/i18n";
-import { Languages } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { getBrowserSupabase } from "@/lib/supabase/client";
+
+/** Only same-origin paths are accepted as a post-sign-in destination. */
+const safeRedirect = (value: unknown) => (typeof value === "string" && value.startsWith("/") && !value.startsWith("//") ? value : "/overview");
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => (typeof search["redirect"] === "string" ? { redirect: search["redirect"] } : {}),
   head: () => ({
     meta: [
-      { title: "Sign in — CenterOS" },
-      { name: "description", content: "Sign in to CenterOS to manage students, attendance, payments and teacher payouts." },
-      { property: "og:title", content: "Sign in — CenterOS" },
+      { title: "Sign in — Markazly" },
+      { name: "description", content: "Sign in to Markazly to manage students, attendance, payments and teacher payouts." },
+      { property: "og:title", content: "Sign in — Markazly" },
       { property: "og:description", content: "Education center management and financial operations for Egypt." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Login,
+  component: SignIn,
 });
 
-function Login() {
-  const nav = useNavigate();
-  const { t, lang, setLang } = useI18n();
-  const [loading, setLoading] = useState(false);
+function SignIn() {
+  const { t } = useI18n();
+  const { status } = useAuth();
+  const search = Route.useSearch();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const target = safeRedirect(search.redirect);
+
+  useEffect(() => { if (status === "signedIn") void navigate({ href: target, replace: true }); }, [status, navigate, target]);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (!email.trim() || !password) { setError(t("Enter your email and password.")); return; }
+    setBusy(true);
+    const { error: err } = await getBrowserSupabase().auth.signInWithPassword({ email: email.trim(), password });
+    setBusy(false);
+    if (err) { setError(t(authErrorText(err))); return; }
+    void navigate({ href: target, replace: true });
+  };
+
   return (
-    <div className="grid min-h-screen bg-background lg:grid-cols-[1fr_1.05fr]">
-      <div className="flex flex-col px-6 py-8 sm:px-12">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5"><Logo className="size-8" /><span className="text-lg font-semibold tracking-tight">CenterOS</span></div>
-          <Button variant="ghost" onClick={() => setLang(lang === "en" ? "ar" : "en")} className="gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-            <Languages className="size-4" />{lang === "en" ? "العربية" : "English"}
-          </Button>
+    <AuthLayout title={t("Welcome back")} subtitle={t("Sign in to manage your center.")}
+      footer={<>{t("New to Markazly?")} <Link to="/signup" className="font-medium text-brand hover:underline">{t("Create an account")}</Link></>}>
+      <form className="space-y-4" onSubmit={submit} noValidate>
+        <Field id="email" label={t("Email")} type="email" autoComplete="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <div className="space-y-1.5">
+          <Field id="password" label={t("Password")} type="password" autoComplete="current-password" dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <div className="text-end"><Link to="/forgot-password" className="text-xs font-medium text-brand hover:underline">{t("Forgot password?")}</Link></div>
         </div>
-        <form
-          className="mx-auto my-auto w-full max-w-sm py-12"
-          onSubmit={(e) => { e.preventDefault(); setLoading(true); setTimeout(() => nav({ to: "/overview" }), 500); }}
-        >
-          <h1 className="text-2xl font-semibold tracking-tight">{lang === "ar" ? "مرحباً بعودتك" : "Welcome back"}</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">{lang === "ar" ? "سجّل الدخول لإدارة مركزك" : "Sign in to manage your center."}</p>
-          <div className="mt-8 space-y-4">
-            <div className="space-y-1.5"><Label htmlFor="email">{t("Email")}</Label><Input id="email" type="email" required defaultValue="yehia@nileacademy.eg" /></div>
-            <div className="space-y-1.5">
-              <Label htmlFor="pw">{t("Password")}</Label>
-              <Input id="pw" type="password" required defaultValue="demo-password" />
-            </div>
-            <Button type="submit" className="h-10 w-full" disabled={loading}>{loading ? "…" : t("Sign in")}</Button>
-          </div>
-          <p className="mt-6 text-center text-xs text-muted-foreground">{t("Demo data")} · {t("No real sign-in. Credentials are not checked.")}</p>
-        </form>
-      </div>
-      <div className="relative hidden overflow-hidden bg-primary p-12 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
-        <div className="absolute -end-32 -top-32 size-[28rem] rounded-full border border-primary-foreground/10" />
-        <div className="absolute -end-12 -top-12 size-[18rem] rounded-full border border-primary-foreground/10" />
-        <div className="relative max-w-md text-3xl font-semibold leading-tight tracking-tight">
-          {lang === "ar" ? "كل جنيه، كل حصة، كل طالب — في مكان واحد." : "Every pound, every session, every student — in one place."}
-        </div>
-      </div>
-    </div>
+        <FormError message={error} />
+        <Button type="submit" className="h-10 w-full" disabled={busy}><LogIn />{busy ? t("Signing in…") : t("Sign in")}</Button>
+      </form>
+    </AuthLayout>
   );
 }

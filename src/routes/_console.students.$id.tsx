@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
   ArrowLeft, Phone, Plus, MessageCircle, Pencil, PackagePlus, CalendarDays, MapPin, GraduationCap, IdCard, Wallet, CalendarCheck,
   BookOpen, Banknote, Receipt, Undo2, BadgePercent, RotateCcw, PackageCheck, UserRound, Lock, Users,
@@ -21,6 +21,16 @@ import { RecordPaymentDialog } from "@/components/app/record-payment";
 import { useI18n } from "@/lib/i18n";
 import { fmtNum, localDays, localTime, ruleKindLabel, ruleSummary, shortDateL, noteText } from "@/lib/l10n";
 import { formatPercent } from "@/lib/format";
+import { useCenter } from "@/lib/center-context";
+import { useStudent, useUpdateStudent, errorMessage } from "@/lib/students/queries";
+import { toStudent } from "@/lib/students/model";
+import { studentFields, STUDENT_STATUSES } from "@/lib/students/schema";
+import type { StudentRow } from "@/lib/supabase/types";
+import { GRADES } from "@/components/app/add-student";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_console/students/$id")({
@@ -45,7 +55,15 @@ function Profile() {
   useEffect(() => setTab(search.tab ?? "overview"), [search.tab, id]);
   const { t, lang } = useI18n();
   const L = useLedger();
-  const s = L.findStudent(id);
+  const { center, branches, canEditStudents } = useCenter();
+  // Persistent fields come from the server (RLS-scoped); demo attendance is joined from the store.
+  const remote = useStudent(center.id, id);
+  const stored = L.findStudent(id);
+  const s = useMemo(() => {
+    if (!remote.data) return stored;
+    const names = new Map(branches.map((b) => [b.id, b.name]));
+    return { ...toStudent(remote.data, (b) => names.get(b) ?? "—"), attendance: stored?.attendance ?? null };
+  }, [remote.data, stored, branches]);
   const [ruleFor, setRuleFor] = useState<string | null>(null);
   const [draft, setDraft] = useState<BillingRule | null>(null);
   const [useOwn, setUseOwn] = useState(false);
@@ -58,7 +76,8 @@ function Profile() {
     .sort((a, z) => z.date.localeCompare(a.date)).slice(0, 40), [L.sessions, id, s]);
 
   if (!s) {
-    return <div className="mx-auto max-w-3xl"><div className="surface"><EmptyState icon={UserRound} title={t("Student not found")} hint={t("Sample students added in this tab disappear on refresh.")} action={<Button asChild variant="outline"><Link to="/students"><ArrowLeft className="rtl:rotate-180" />{t("Back to students")}</Link></Button>} /></div></div>;
+    if (remote.isPending) return <div className="mx-auto max-w-[90rem] space-y-4" aria-busy="true"><Skeleton className="h-52 w-full rounded-xl" /><Skeleton className="h-72 w-full rounded-xl" /></div>;
+    return <div className="mx-auto max-w-3xl"><div className="surface"><EmptyState icon={UserRound} title={t("Student not found")} hint={remote.isError ? t(errorMessage(remote.error, "Could not load the student.")) : t("This student does not exist in your center.")} action={<Button asChild variant="outline"><Link to="/students"><ArrowLeft className="rtl:rotate-180" />{t("Back to students")}</Link></Button>} /></div></div>;
   }
 
   const paid = mine.filter((x) => x.type === "Payment" && displayStatus(x, rev) === "Completed").reduce((a, x) => a + x.amount, 0);
@@ -107,10 +126,10 @@ function Profile() {
 
           {/* Summary */}
           <div className="mt-5 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
-            <SummaryTile icon={Wallet} tone={owes ? "negative" : credit ? "positive" : "neutral"} label={t("Balance today")}
+            <SummaryTile icon={Wallet} tone={owes ? "negative" : credit ? "positive" : "neutral"} label={t("Balance today")} demo
               value={<Money value={Math.abs(balance)} />} hint={t(owes ? "Owing" : credit ? "Credit" : "Settled")} />
-            <SummaryTile icon={Banknote} tone="positive" label={t("Total paid")} value={<Money value={paid} />} hint={t("Completed payments")} />
-            <SummaryTile icon={CalendarCheck} tone="lavender" label={t("Attendance")} value={<bdi>{formatPercent(presentPct, lang)}</bdi>}
+            <SummaryTile icon={Banknote} tone="positive" label={t("Total paid")} demo value={<Money value={paid} />} hint={t("Completed payments")} />
+            <SummaryTile icon={CalendarCheck} tone="lavender" label={t("Attendance")} demo value={presentPct === null ? "—" : <bdi>{formatPercent(presentPct, lang)}</bdi>}
               hint={marked.length ? t("{n} recorded sessions", { n: fmtNum(marked.length, lang) }) : t("Sample average")} />
             <SummaryTile icon={BookOpen} tone="brand" label={t("Enrolled classes")} value={fmtNum(s.classIds.length, lang)}
               hint={packages.length ? t("{n} package sessions left", { n: fmtNum(packages.reduce((n, p) => n + Math.max(0, p.left), 0), lang) }) : t("No packages")} />
@@ -186,13 +205,17 @@ function Profile() {
           </TabsContent>
 
           <TabsContent value="edit" className="mt-0">
-            <Panel title={t("Personal details")} icon={IdCard}>
-              <p className="mb-4 flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2.5 text-[13px] text-muted-foreground"><Lock className="mt-0.5 size-4 shrink-0" />{t("Student details are read-only. Editing is not implemented; no changes are saved.")}</p>
-              <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
-                {[[t("Full name"), s.name], [t("Student ID"), s.id], [t("Phone"), s.phone], [t("Grade"), t(s.grade)], [t("Branch"), t(s.branch)], [t("Joined"), shortDateL(s.joined, lang)], [t("Guardian name"), s.guardian], [t("Guardian phone"), s.guardianPhone || "—"]].map(([key, value]) => (
-                  <div key={key} className="min-w-0 rounded-lg border px-3 py-2.5"><dt className="text-[11px] font-medium text-muted-foreground">{key}</dt><dd className="mt-0.5 break-words text-sm font-medium"><bdi>{value}</bdi></dd></div>
-                ))}
-              </dl>
+            <Panel title={t("Personal details")} icon={IdCard} subtitle={t("Saved to your center's database")}>
+              {canEditStudents && remote.data ? <EditStudentForm row={remote.data} /> : (
+                <>
+                  <p className="mb-4 flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2.5 text-[13px] text-muted-foreground"><Lock className="mt-0.5 size-4 shrink-0" />{t(canEditStudents ? "Loading the saved record…" : "Your role can view students but not edit them.")}</p>
+                  <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+                    {[[t("Full name"), s.name], [t("Student ID"), s.id], [t("Phone"), s.phone], [t("Grade"), t(s.grade)], [t("Branch"), t(s.branch)], [t("Joined"), shortDateL(s.joined, lang)], [t("Guardian name"), s.guardian || "—"], [t("Guardian phone"), s.guardianPhone || "—"]].map(([key, value]) => (
+                      <div key={key} className="min-w-0 rounded-lg border px-3 py-2.5"><dt className="text-[11px] font-medium text-muted-foreground">{key}</dt><dd className="mt-0.5 break-words text-sm font-medium"><bdi>{value}</bdi></dd></div>
+                    ))}
+                  </dl>
+                </>
+              )}
             </Panel>
           </TabsContent>
         </Tabs>
@@ -289,11 +312,12 @@ function EnrollmentRow({ e, actions }: { e: Enrollment; actions?: ReactNode }) {
   );
 }
 
-function SummaryTile({ icon, tone, label, value, hint }: { icon: typeof Wallet; tone: Tone; label: string; value: ReactNode; hint: ReactNode }) {
+function SummaryTile({ icon, tone, label, value, hint, demo = false }: { icon: typeof Wallet; tone: Tone; label: string; value: ReactNode; hint: ReactNode; demo?: boolean }) {
+  const { t } = useI18n();
   return (
     <div className="flex min-w-0 items-center gap-3 rounded-xl border bg-card px-3.5 py-3">
       <IconTile icon={icon} tone={tone} />
-      <div className="min-w-0"><div className="truncate text-[11px] font-medium text-muted-foreground">{label}</div><div className="truncate font-display text-lg font-bold tracking-tight num">{value}</div><div className="truncate text-[11px] text-muted-foreground">{hint}</div></div>
+      <div className="min-w-0"><div className="flex items-center gap-1.5 truncate text-[11px] font-medium text-muted-foreground">{label}{demo && <span className="rounded bg-warning-soft px-1 py-px text-[9px] font-bold uppercase text-warning">{t("Demo")}</span>}</div><div className="truncate font-display text-lg font-bold tracking-tight num">{value}</div><div className="truncate text-[11px] text-muted-foreground">{hint}</div></div>
     </div>
   );
 }
@@ -358,5 +382,76 @@ function TxnList({ rows, label, rev, studentId, compact = false }: { rows: Ledge
         );
       })}
     </ol>
+  );
+}
+
+/** Edits the persistent student record. Validation mirrors the server schema and the database constraints. */
+function EditStudentForm({ row }: { row: StudentRow }) {
+  const { t, lang } = useI18n();
+  const { center, branches } = useCenter();
+  const update = useUpdateStudent();
+  const initial = { name: row.name, phone: row.phone, guardianName: row.guardian_name ?? "", guardianPhone: row.guardian_phone ?? "", grade: row.grade, branchId: row.branch_id, status: row.status };
+  const [form, setForm] = useState(initial);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  useEffect(() => { setForm(initial); setErrors({}); }, [row.updated_at]); // eslint-disable-line react-hooks/exhaustive-deps
+  const dirty = (Object.keys(initial) as (keyof typeof initial)[]).some((k) => form[k] !== initial[k]);
+  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const dir = lang === "ar" ? "rtl" : "ltr";
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    const parsed = studentFields.omit({ classCodes: true }).safeParse(form);
+    if (!parsed.success) {
+      const next: Record<string, string> = {};
+      for (const issue of parsed.error.issues) next[String(issue.path[0])] ??= t(issue.message);
+      setErrors(next);
+      return;
+    }
+    setErrors({});
+    const patch = Object.fromEntries(Object.entries(parsed.data).filter(([k, v]) => v !== (initial as Record<string, unknown>)[k]));
+    try {
+      await update.mutateAsync({ centerId: center.id, code: row.student_code, patch });
+      toast.success(t("Changes saved"), { description: t("{name} was updated.", { name: parsed.data.name }) });
+    } catch (err) {
+      setErrors({ form: t(errorMessage(err, "Could not save the changes.")) });
+    }
+  };
+
+  const text = (k: "name" | "phone" | "guardianName" | "guardianPhone", label: string, tel = false) => (
+    <div className="space-y-1.5">
+      <Label htmlFor={`ed-${k}`}>{t(label)}</Label>
+      <Input id={`ed-${k}`} value={form[k]} dir={tel ? "ltr" : undefined} inputMode={tel ? "tel" : "text"} maxLength={tel ? 11 : 120}
+        onChange={(e) => set(k)(tel ? e.target.value.replace(/D/g, "").slice(0, 11) : e.target.value)}
+        aria-invalid={!!errors[k]} aria-describedby={errors[k] ? `ed-${k}-error` : undefined} />
+      {errors[k] && <p id={`ed-${k}-error`} role="alert" className="text-xs text-destructive">{errors[k]}</p>}
+    </div>
+  );
+  const choice = (k: "grade" | "branchId" | "status", label: string, options: [string, string][]) => (
+    <div className="space-y-1.5">
+      <Label>{t(label)}</Label>
+      <Select value={form[k]} onValueChange={set(k)} dir={dir}>
+        <SelectTrigger aria-label={t(label)}><SelectValue /></SelectTrigger>
+        <SelectContent>{options.map(([v, l]) => <SelectItem key={v} value={v}><bdi>{t(l)}</bdi></SelectItem>)}</SelectContent>
+      </Select>
+    </div>
+  );
+  const grades = GRADES.includes(form.grade) ? GRADES : [form.grade, ...GRADES];
+  return (
+    <form onSubmit={save} className="space-y-5" noValidate>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {text("name", "Full name")}{text("phone", "Phone", true)}
+        {choice("grade", "Grade", grades.map((g) => [g, g]))}
+        {choice("branchId", "Branch", branches.map((b) => [b.id, b.name]))}
+        {choice("status", "Status", STUDENT_STATUSES.map((s) => [s, s]))}
+        <div className="space-y-1.5"><Label>{t("Student ID")}</Label><Input value={row.student_code} readOnly disabled dir="ltr" className="bg-muted/40 disabled:opacity-100" /></div>
+      </div>
+      <fieldset className="grid gap-4 border-t pt-4 sm:grid-cols-2"><legend className="mb-1 text-sm font-semibold">{t("Guardian")}</legend>{text("guardianName", "Guardian name")}{text("guardianPhone", "Guardian phone", true)}</fieldset>
+      {errors["form"] && <p role="alert" className="rounded-md bg-negative-soft px-3 py-2 text-sm text-destructive">{errors["form"]}</p>}
+      <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-4">
+        <span className="me-auto text-xs text-muted-foreground">{t("Joined {date}", { date: shortDateL(row.joined_on, lang) })} · {t("Last updated {date}", { date: shortDateL(row.updated_at, lang) })}</span>
+        <Button type="button" variant="outline" disabled={!dirty || update.isPending} onClick={() => { setForm(initial); setErrors({}); }}>{t("Discard")}</Button>
+        <Button type="submit" disabled={!dirty || update.isPending}>{update.isPending ? t("Saving…") : t("Save changes")}</Button>
+      </div>
+    </form>
   );
 }

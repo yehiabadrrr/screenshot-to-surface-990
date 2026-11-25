@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { LedgerEntry } from "@/lib/ledger";
-import { useLedger, CURRENT_USER } from "@/lib/ledger-store";
+import { useLedger } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
 import { egp } from "@/lib/format";
 import { shortDateL } from "@/lib/l10n";
@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 /** Corrections never edit the original: they append a reversal (and optionally a corrected replacement). */
 export function CorrectEntryDialog({ entry, onClose }: { entry: LedgerEntry | null; onClose: () => void }) {
-  const { correct, students } = useLedger();
+  const { correct, students, currentUser: CURRENT_USER } = useLedger();
   const { t, lang } = useI18n();
   const [mode, setMode] = useState<"reverse" | "adjust">("reverse");
   const [reason, setReason] = useState("");

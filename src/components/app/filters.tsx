@@ -1,6 +1,6 @@
 import { Clock3, MapPin } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { branches } from "@/lib/data";
+import { useCenter } from "@/lib/center-context";
 import { useLedger, monthLabel } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
 import { shortDateL } from "@/lib/l10n";
@@ -15,6 +15,7 @@ export function usePartialPeriod() {
 export function PeriodBranchFilter() {
   const { period, setPeriod, branch, setBranch, months, filter } = useLedger();
   const { t, lang } = useI18n();
+  const { branchNames: branches } = useCenter();
   const partial = usePartialPeriod();
   const dir = lang === "ar" ? "rtl" : "ltr";
   return (

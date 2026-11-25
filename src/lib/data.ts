@@ -63,7 +63,7 @@ export const classes: ClassItem[] = classSeed.map(([name, ti, kind, fee], i) => 
   return { id: `C-${201 + i}`, name, kind, rule: defaultRule(`C-${201 + i}`, fee), teacherId: teachers[ti]!.id, branch: teachers[ti]!.branch, days: dayOpts[i % 5]!, time: timeOpts[(i * 2) % 5]!, capacity, enrolled, fee, revenue: enrolled * fee, attendance: 84 + Math.floor(rnd() * 15) };
 });
 
-export interface Student { id: string; name: string; phone: string; guardian: string; guardianPhone: string; classIds: string[]; attendance: number; status: "Active" | "Paused" | "Inactive"; branch: Branch; grade: string; joined: string; }
+export interface Student { id: string; name: string; phone: string; guardian: string; guardianPhone: string; classIds: string[]; /** Recorded attendance rate (%), or null when none is recorded. */ attendance: number | null; status: "Active" | "Paused" | "Inactive"; branch: string; grade: string; joined: string; }
 export const students: Student[] = Array.from({ length: 300 }, (_, i) => {
   const ln = pick(last);
   const cls = [pick(classes)]; if (rnd() > 0.55) cls.push(pick(classes));

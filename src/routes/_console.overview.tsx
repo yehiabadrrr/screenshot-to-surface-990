@@ -19,7 +19,7 @@ import { attendanceRate, pctChange } from "@/lib/finance";
 import { formatMoney, formatNumber, formatPercent } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { fmtNum, kAxis, localTime, monthShort, shortDateL, timeOfDay } from "@/lib/l10n";
-import { centerProfile } from "@/lib/center-config";
+import { useCenter } from "@/lib/center-context";
 import { classWeekdays, weekdayOf, sessionIdFor } from "@/lib/billing";
 import { useAttention, useNow } from "@/lib/attention";
 import { greetingKey, hasPriorData, attendanceLabel, attendanceStats, weeklyAttendance, enrollmentTrend, cairoNow, classStartMinutes, weekStart, addDays } from "@/lib/overview-display";
@@ -63,6 +63,7 @@ function useScope() {
 function Overview() {
   const now = useNow();
   const scope = useScopeValue();
+  const { center, user } = useCenter();
   const { t, lang, rtl, entries, students, sessions, filter, compare, period, branch, f, a, c, branchOf } = scope;
   const p = f.previous;
   const att = useMemo(() => attendanceStats(sessions, branchOf, filter), [sessions, branchOf, filter]);
@@ -83,7 +84,7 @@ function Overview() {
   const collectedShare = c.netBilled > 0 ? (c.grossCollections / c.netBilled) * 100 : null;
   const showDelta = (cur: number, prev: number) => hasPriorData(entries, compare, prev) ? pctChange(cur, prev) : null;
   const pctSuffix = rtl ? "٪" : "%";
-  const firstName = centerProfile.currentUser.name.split(" ")[0] ?? "";
+  const firstName = user.name.split(" ")[0] ?? "";
   const branchLabel = branch === "all" ? t("All branches") : t(branch);
 
   const revDelta = showDelta(c.billed, p.billed);
@@ -102,7 +103,7 @@ function Overview() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 text-xs text-welcome-muted">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 font-medium text-white"><CalendarDays className="size-3.5" />{longDate(now, lang)}</span>
-              <span className="inline-flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-teal-bright" /><bdi>{centerProfile.name}</bdi> · {branchLabel}</span>
+              <span className="inline-flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-teal-bright" /><bdi>{center.name}</bdi> · {branchLabel}</span>
             </div>
             <h2 className="mt-3 font-display text-2xl font-bold tracking-tight sm:text-[1.75rem]">{t(greetingKey(clock.hour))}{rtl ? "،" : ","} <bdi>{firstName}</bdi></h2>
             <p className="mt-1 text-sm text-welcome-muted">{t("Here is what is happening at your center today.")}</p>
