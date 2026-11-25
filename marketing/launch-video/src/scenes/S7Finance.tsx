@@ -34,7 +34,7 @@ export const S7Finance: React.FC = () => {
       <div style={{ position: "absolute", left: w.L.text.x, top: w.L.vertical ? w.L.text.y : 0, width: w.L.text.w, height: w.L.vertical ? 420 : height, display: "flex", alignItems: "center" }}>
         <Headline eyebrow="Finance" lines={["Know where", "every pound goes."]} at={10} exitAt={74} size={w.L.vertical ? 84 : 72} dimEarlier />
       </div>
-      <Screen layers={[{ name: C }]} cam={cam} rect={w.rect} rotateX={w.rotateX} scale={w.scale} opacity={w.opacity} blur={w.blur}
+      <Screen layers={[{ name: C }]} cam={cam} rect={w.rect} zoom={w.zoom} rotateX={w.rotateX} scale={w.scale} opacity={w.opacity} blur={w.blur}
         overlay={(s) => (<>
           <Ring b={ringBox} s={s} p={pulse(t, 96, 186)} />
           <Ring b={box(C, "methods")} s={s} p={pulse(t, 194, 222)} />

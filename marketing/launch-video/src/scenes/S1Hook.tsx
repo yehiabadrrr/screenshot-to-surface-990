@@ -31,7 +31,7 @@ export const S1Hook: React.FC = () => {
         const inP = spring({ frame: f - 4 - i * 4, fps, config: theme.spring.soft });
         const pull = interpolate(f, [92 + i * 1.5, 128 + i * 1.5], [0, 1], { ...clamp, easing: theme.ease.inOut });
         const drift = Math.sin((f + i * 40) / 38) * 10 * fr.d;
-        const x0 = fr.x * width, y0 = fr.y * height + drift - f * 0.25 * fr.d;
+        const x0 = (vertical ? 0.24 + fr.x * 0.52 : fr.x) * width, y0 = fr.y * height + drift - f * 0.25 * fr.d;
         const x = x0 + (cx - x0) * pull, y = y0 + (cy - y0) * pull;
         return (
           <div key={fr.t} style={{ position: "absolute", left: x, top: y, transform: `translate(-50%, -50%) scale(${(0.7 + 0.3 * fr.d) * (0.9 + 0.1 * inP) * (1 - 0.85 * pull)})`,

@@ -7,7 +7,7 @@ export function layout(width: number, height: number, side: "left" | "right") {
     return {
       vertical,
       compact: { x: 60, y: 760, w: 960, h: 540 } as Rect,
-      full: { x: 40, y: 400, w: 1000, h: 1180 } as Rect,
+      full: { x: 40, y: 250, w: 1000, h: 1420 } as Rect,
       text: { x: 90, y: 300, w: 900, align: "left" as const },
     };
   }

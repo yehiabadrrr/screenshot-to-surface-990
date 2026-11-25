@@ -25,9 +25,10 @@ export const Screen: React.FC<{
   radius?: number;
   dim?: number;
   overlay?: (s: number) => React.ReactNode;
-}> = ({ layers, cam, rect, rotateX = 0, rotateY = 0, scale = 1, opacity = 1, blur = 0, radius = 18, dim = 0, overlay }) => {
+  zoom?: number;
+}> = ({ layers, cam, rect, rotateX = 0, rotateY = 0, scale = 1, opacity = 1, blur = 0, radius = 18, dim = 0, overlay, zoom = 1 }) => {
   const base = cap(layers[0]!.name);
-  const s = (cam.z * rect.w) / base.width;
+  const s = (cam.z * zoom * rect.w) / base.width;
   const vw = rect.w / s, vh = rect.h / s;
   const cx = vw >= base.width ? base.width / 2 : Math.min(base.width - vw / 2, Math.max(vw / 2, cam.x));
   const cy = vh >= base.height ? base.height / 2 : Math.min(base.height - vh / 2, Math.max(vh / 2, cam.y));

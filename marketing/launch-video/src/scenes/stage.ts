@@ -21,6 +21,8 @@ export function windowState(t: number, o: { width: number; height: number; side:
     scale: (0.94 + 0.06 * enter) * (1 + 0.05 * exit),
     opacity: enter * (1 - exit),
     blur: exit * 10,
+    // phones: extra magnification once the window is expanded, so UI text stays legible
+    zoom: L.vertical ? 1 + 0.35 * interpolate(t, [o.expandAt, o.expandAt + 22], [0, 1], { ...clamp, easing: theme.ease.cam }) : 1,
   };
 }
 

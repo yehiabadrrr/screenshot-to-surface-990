@@ -36,7 +36,7 @@ export const S4Students: React.FC = () => {
   // match cut: zoom through the student's name into their profile
   const through = interpolate(t, [136, 150], [0, 1], { ...clamp, easing: theme.ease.inOut });
   const camB = track<Cam>(t, [
-    { f: 136, x: 560, y: 262, z: 2.1 }, { f: 176, x: 1050, y: 470, z: 1.22 }, { f: 240, x: 1050, y: 500, z: 1.18 },
+    { f: 136, x: 560, y: 262, z: 2.1 }, { f: 176, x: w.L.vertical ? 880 : 1050, y: 470, z: 1.22 }, { f: 240, x: w.L.vertical ? 880 : 1050, y: 500, z: 1.18 },
   ]);
   return (
     <AbsoluteFill>
@@ -44,14 +44,14 @@ export const S4Students: React.FC = () => {
         <Headline eyebrow="Students" lines={["Every student.", "Every detail.", "Organized."]} at={10} exitAt={86} size={w.L.vertical ? 84 : 72} />
       </div>
       {through < 1 && (
-        <Screen layers={layers} cam={camA} rect={w.rect} rotateX={w.rotateX} scale={w.scale} opacity={w.opacity * (1 - through)} blur={w.blur + through * 6}
+        <Screen layers={layers} cam={camA} rect={w.rect} zoom={w.zoom} rotateX={w.rotateX} scale={w.scale} opacity={w.opacity * (1 - through)} blur={w.blur + through * 6}
           overlay={(s) => (<>
             <Ring b={box("students", "search")} s={s} p={pulse(t, 44, 90)} spot={0.12} radius={12} pad={6} />
             <Cursor x={cursor.x} y={cursor.y} s={s} opacity={cursorO} clickAt={[CLICK_SEARCH + theme.timing.lead, CLICK_ROW + theme.timing.lead]} />
           </>)} />
       )}
       {through > 0 && (
-        <Screen layers={[{ name: "profile" }]} cam={camB} rect={w.rect} scale={w.scale} opacity={w.opacity * through}
+        <Screen layers={[{ name: "profile" }]} cam={camB} rect={w.rect} zoom={w.zoom} scale={w.scale} opacity={w.opacity * through}
           overlay={(s) => <Ring b={box("profile", "balance")} s={s} p={pulse(t, 172, 222)} radius={16} />} />
       )}
     </AbsoluteFill>
