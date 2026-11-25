@@ -172,7 +172,12 @@
       const top = pick(H * 0.18, H * 0.2, H * 0.24);         // first card at ~24 %; the stack grows downward (≤ 78 %)
       // the avalanche fans the pile across 25–75 % (9:16) / 20–80 % (4:5)
       const fanBottom = pick(H * 0.8, H * 0.8, H * 0.75);
-      const spacing = lerp(gapBase, (fanBottom - top - S.nh) / (NOTE_AT.length - 1), compress);
+      // older cards make room BEFORE the new one lands (push leads its drop), so no card ever cuts through another
+      const make = (j) => (j >= 5 ? C.sp(t, NOTE_AT[j] - 0.3, { response: 0.14, damping: 0.88 }) : sp(t, NOTE_AT[j] - 0.3, 'snappy'));
+      let n = 0; for (let j = 0; j < NOTE_AT.length; j++) n += make(j);
+      // the packed pile always spans to fanBottom: spacing adapts to how many cards have arrived
+      const dyn = Math.min(gapBase, (fanBottom - top - S.nh) / Math.max(1, n - 1));
+      const spacing = lerp(gapBase, dyn, compress);
       const jit = (i, a) => Math.sin(i * 12.9898) * a;      // fixed per-card offsets (deterministic)
       S.notes.forEach((n, i) => {
         const fast = { response: 0.14, damping: 0.88 };
@@ -180,19 +185,18 @@
         if (p <= 0.001) { put(n, { o: 0 }); return; }
         // depth = how many cards arrived after this one (springs, so the push-down is continuous)
         let depth = 0;
-        for (let j = i + 1; j < NOTE_AT.length; j++) depth += j >= 5 ? C.sp(t, NOTE_AT[j] - 0.08, { response: 0.14, damping: 0.88 }) : spHit(t, NOTE_AT[j], 'default', SNAP);
+        for (let j = i + 1; j < NOTE_AT.length; j++) depth += make(j);
         // once the avalanche starts, a covered card shows no text at all (binary, on the frame it is covered)
-        // hidden only once the incoming card actually covers it (its drop is ≥ 60 % done)
-        const nextP = i + 1 < NOTE_AT.length ? C.sp(t, NOTE_AT[i + 1] - 0.08, { response: 0.14, damping: 0.88 }) : 0;
-        const covered = i + 1 >= 5 && nextP >= 0.6 && spacing < S.nh * 0.6;   // only once the pile really overlaps it
+        // a card overlapped by a newer one shows no text from the first frame of overlap (binary: no sliced glyph strips)
+        const covered = depth > 0.5 && spacing < S.nh - 8;
         put(n.querySelector('.nt'), { o: covered ? 0 : 1 });
-        const y = top + depth * spacing - (i >= 5 ? 140 : 60) * (1 - p);
+        const y = top + depth * spacing - (i >= 5 ? 80 : 60) * (1 - p);
         const s = (i >= 5 ? 1.08 - 0.08 * p : 0.96 + 0.04 * p) * (1 - Math.min(0.1, depth * 0.02 * compress));
         const dim = Math.min(0.3, depth * 0.05 * compress);
         put(n, { o: 1, y, x: jit(i, 40) * compress, r: jit(i + 7, 3) * compress, s, filter: `brightness(${(1 - dim).toFixed(3)})` });
       });
       // unread counter during the avalanche
-      const arrived = NOTE_AT.filter((a) => t >= bt(a) - C.leadFor('default')).length;
+      const arrived = NOTE_AT.filter((a) => t >= bt(a)).length;
       const pc = spHit(t, 'pile', 'snappy');
       const unread = Math.min(27, 5 + Math.max(0, arrived - 5) * 3 - (arrived >= 13 ? 0 : 0));
       const gone = sp(t, 15.5, 'snappy');
@@ -201,7 +205,7 @@
       const away = sp(t, 15.55, 'heavy');                    // pushed off the bottom; hidden once gone so the collapse can't pull it back
       put(S.stack, { y: H * 1.15 * away, hide: away > 0.98 });
       // the tile leaves first (pushed down as the avalanche starts) so it never peeks between pile cards
-      const tileAway = sp(t, 11.6, 'heavy');
+      const tileAway = sp(t, 6.6, 'heavy');
       put(S.tileWrap, { y: H * 1.15 * tileAway, hide: tileAway > 0.98 });
       rise(t, S.every[0], beatOf('every_1') - 0.1, null, { stagger: 0 });
       rise(t, S.every[1], beatOf('every_2') - 0.2, null, { stagger: 0 });
@@ -348,9 +352,7 @@
       const m = sp(t, beatOf('end') - 0.25, 'heavy');          // starts at dot size, grows continuously across the cut
       const m0 = (END_DOT.d * 1.15) / S.ms;
       put(S.mark, { o: m > 0.001 ? 1 : 0, s: m0 + (1 - m0) * m });   // grows continuously out of the dot the card collapsed into
-      // the wordmark slides out from behind the mark (left→right reveal): the whole "y" is always intact
-      const wp = sp(t, beatOf('end') + 0.15, 'heavy');
-      put(S.word.el, { o: wp > 0.01 ? 1 : 0, x: -40 * (1 - wp), clip: `inset(0 ${(100 * (1 - wp)).toFixed(2)}% 0 0)` });
+      rise(t, S.word, beatOf('end') + 0.15, null, { stagger: 0.04 });   // mask padded 0.34 em below the baseline
       rise(t, S.l1, beatOf('end') + 0.5, null, { stagger: 0.06 });
       rise(t, S.l2, beatOf('end_l2') - 0.2, null, { stagger: 0.06 });
       rise(t, S.url, beatOf('cta') - 0.1, null, { stagger: 0.04, preset: 'snappy' });
