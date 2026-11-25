@@ -1,4 +1,4 @@
-# Markazly backend plan
+# Markezly backend plan
 
 Goal: real accounts and saved data, without changing how any number is calculated.
 The public demo (sample data, nothing saved) keeps working for visitors who are not signed in.

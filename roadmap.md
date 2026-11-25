@@ -1,4 +1,4 @@
-# Markazly roadmap
+# Markezly roadmap
 
 ## Reference-led UI redesign
 - [ ] Global design system and application shell

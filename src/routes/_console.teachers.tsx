@@ -12,7 +12,7 @@ import type { CompensationModel } from "@/lib/finance";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_console/teachers")({
-  head: pageHead("Teacher Management", "Teaching staff, subjects, assigned classes and pay models in Markazly."),
+  head: pageHead("Teacher Management", "Teaching staff, subjects, assigned classes and pay models in Markezly."),
   component: Page,
 });
 

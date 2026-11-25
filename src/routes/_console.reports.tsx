@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { pageHead } from "@/lib/head";
 
 export const Route = createFileRoute("/_console/reports")({
-  head: pageHead("Reports & Analytics", "Reports and exports in Markazly."),
+  head: pageHead("Reports & Analytics", "Reports and exports in Markezly."),
   component: Page,
 });
 

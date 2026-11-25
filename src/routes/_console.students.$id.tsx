@@ -28,10 +28,10 @@ export const Route = createFileRoute("/_console/students/$id")({
   validateSearch: (search: Record<string, unknown>): { tab?: string } => typeof search["tab"] === "string" && ["overview", "enroll", "att", "fin", "guardian", "edit"].includes(search["tab"]) ? { tab: search["tab"] } : {},
   head: () => ({
     meta: [
-      { title: "Student profile — Markazly" },
+      { title: "Student profile — Markezly" },
       { name: "description", content: "Student profile: enrollments, billing rules, attendance and financial history." },
-      { property: "og:title", content: "Student profile — Markazly" },
-      { property: "og:description", content: "Student profile on Markazly." },
+      { property: "og:title", content: "Student profile — Markezly" },
+      { property: "og:description", content: "Student profile on Markezly." },
       { property: "og:type", content: "profile" },
       { name: "twitter:card", content: "summary" },
     ],

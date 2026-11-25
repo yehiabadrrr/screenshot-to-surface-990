@@ -9,7 +9,7 @@ import { fmtNum } from "@/lib/l10n";
 import { pageHead } from "@/lib/head";
 
 export const Route = createFileRoute("/_console/communications")({
-  head: pageHead("Communications", "WhatsApp click-to-chat with guardians and students in Markazly."),
+  head: pageHead("Communications", "WhatsApp click-to-chat with guardians and students in Markezly."),
   component: Page,
 });
 
@@ -38,7 +38,7 @@ function Page() {
             </ul>
           ) : <EmptyState icon={CheckCircle2} title={t("No outstanding balances")} compact />}
           {a.owing.length > owing.length && <p className="border-t px-5 py-2.5 text-xs text-muted-foreground">{t("{n} more students with a balance", { n: fmtNum(a.owing.length - owing.length, lang) })} · <Link to="/students" className="font-medium text-brand hover:underline">{t("Open students")}</Link></p>}
-          <p className="border-t px-5 py-2.5 text-[11px] text-muted-foreground">{t("Opens WhatsApp with the guardian's number. Nothing is sent from Markazly and nothing is logged.")}</p>
+          <p className="border-t px-5 py-2.5 text-[11px] text-muted-foreground">{t("Opens WhatsApp with the guardian's number. Nothing is sent from Markezly and nothing is logged.")}</p>
         </Panel>
 
         <div className="space-y-5">

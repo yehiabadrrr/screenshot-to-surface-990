@@ -91,7 +91,7 @@ function SidebarBody({ collapsed, onNav }: { collapsed: boolean; onNav?: () => v
     <div className="bg-sidebar-gradient flex h-full flex-col text-sidebar-foreground">
       <div className={cn("flex h-16 shrink-0 items-center gap-3 px-5", collapsed && "justify-center px-0")}>
         <Logo className="size-9 shrink-0" />
-        {!collapsed && <div className="min-w-0"><div className="font-display text-lg font-extrabold leading-tight tracking-tight text-white">Markazly</div><div className="text-[10px] font-medium uppercase text-sidebar-muted">{t("Center management")}</div></div>}
+        {!collapsed && <div className="min-w-0"><div className="font-display text-lg font-extrabold leading-tight tracking-tight text-white">Markezly</div><div className="text-[10px] font-medium uppercase text-sidebar-muted">{t("Center management")}</div></div>}
       </div>
       {!collapsed && <div className="px-3 pb-4"><BranchMenu variant="sidebar" /></div>}
       <nav aria-label={t("Main navigation")} className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">

@@ -1,8 +1,8 @@
 export const pageHead = (title: string, description: string) => () => ({
   meta: [
-    { title: `${title} — Markazly` },
+    { title: `${title} — Markezly` },
     { name: "description", content: description },
-    { property: "og:title", content: `${title} — Markazly` },
+    { property: "og:title", content: `${title} — Markezly` },
     { property: "og:description", content: description },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },

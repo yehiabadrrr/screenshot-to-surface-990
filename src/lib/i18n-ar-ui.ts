@@ -354,7 +354,7 @@ export const arUi: Record<string, string> = {
   "Balance reminders": "تذكيرات الأرصدة",
   "Guardians of students with an outstanding balance at the end of the selected period": "أولياء أمور الطلاب الذين عليهم رصيد مستحق في نهاية الفترة المحددة",
   "No outstanding balances": "لا توجد أرصدة مستحقة",
-  "Opens WhatsApp with the guardian's number. Nothing is sent from Markazly and nothing is logged.": "يفتح واتساب برقم ولي الأمر. لا يُرسَل شيء من مركزلي ولا يُسجَّل شيء.",
+  "Opens WhatsApp with the guardian's number. Nothing is sent from Markezly and nothing is logged.": "يفتح واتساب برقم ولي الأمر. لا يُرسَل شيء من مركزلي ولا يُسجَّل شيء.",
   "Where click-to-chat lives": "أين تجد المحادثة بنقرة",
   "Student and guardian WhatsApp buttons": "أزرار واتساب للطالب وولي الأمر",
   "Students directory": "دليل الطلاب",
@@ -368,7 +368,7 @@ export const arUi: Record<string, string> = {
 
   // Settings
   "Read-only": "للعرض فقط",
-  "Shown across Markazly. Editing needs saved data, which isn't set up yet.": "يظهر في كل أنحاء مركزلي. التعديل يتطلب بيانات محفوظة لم تُجهَّز بعد.",
+  "Shown across Markezly. Editing needs saved data, which isn't set up yet.": "يظهر في كل أنحاء مركزلي. التعديل يتطلب بيانات محفوظة لم تُجهَّز بعد.",
   "{n} branches": "{n} فروع",
   "Every financial figure can be filtered by branch.": "يمكن تصفية كل رقم مالي حسب الفرع.",
   "Switches immediately. Arabic uses right-to-left layout; names stay as entered.": "يتغير فورًا. تستخدم العربية تخطيطًا من اليمين لليسار؛ وتبقى الأسماء كما أُدخلت.",

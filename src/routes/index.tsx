@@ -26,13 +26,13 @@ const CONTACT_WHATSAPP: string | null = null;
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Markazly — Attendance, fees and teacher pay for education centers in Egypt" },
+      { title: "Markezly — Attendance, fees and teacher pay for education centers in Egypt" },
       {
         name: "description",
         content:
-          "Markazly turns every session into a ledger line: monthly, per-session and package fees, cash, InstaPay and Fawry, and teacher pay, in Arabic and English.",
+          "Markezly turns every session into a ledger line: monthly, per-session and package fees, cash, InstaPay and Fawry, and teacher pay, in Arabic and English.",
       },
-      { property: "og:title", content: "Markazly — Mark attendance. The billing does itself." },
+      { property: "og:title", content: "Markezly — Mark attendance. The billing does itself." },
       {
         property: "og:description",
         content: "Back office for tutoring centers and language schools in Egypt.",
@@ -56,7 +56,7 @@ const COPY = {
     nav: { how: "How it works", features: "Features", faq: "FAQ", signIn: "Sign in" },
     eyebrow: "For tutoring centers and language schools in Egypt",
     title: ["Mark attendance.", "The billing does itself."],
-    lede: "Markazly turns every session into a ledger line: fees by month, by session or by package; cash, InstaPay and Fawry; and teacher pay. One set of numbers that always adds up.",
+    lede: "Markezly turns every session into a ledger line: fees by month, by session or by package; cash, InstaPay and Fawry; and teacher pay. One set of numbers that always adds up.",
     demo: "Try the live demo",
     book: "Book a demo on WhatsApp",
     demoNote: "The live demo uses sample data. No sign-up.",
@@ -94,7 +94,7 @@ const COPY = {
       },
     ],
     shotAlt:
-      "Markazly owner dashboard with revenue, collections, outstanding balances and today's classes",
+      "Markezly owner dashboard with revenue, collections, outstanding balances and today's classes",
     shotCaption:
       "The owner's dashboard: revenue, collections, balances and today's classes, per branch or for the whole center.",
     featuresTitle: "What's in it",
@@ -289,7 +289,7 @@ const COPY = {
 const waLink = (lang: Lang) =>
   CONTACT_WHATSAPP
     ? `https://wa.me/${CONTACT_WHATSAPP}?text=${encodeURIComponent(
-        lang === "ar" ? "أهلًا، عايز أحجز عرض لمركزلي." : "Hi, I'd like to book a Markazly demo.",
+        lang === "ar" ? "أهلًا، عايز أحجز عرض لمركزلي." : "Hi, I'd like to book a Markezly demo.",
       )}`
     : null;
 
@@ -343,7 +343,7 @@ function Landing() {
           >
             <Logo className="size-8" />
             <span className="font-display text-lg font-extrabold tracking-tight">
-              {lang === "ar" ? "مركزلي" : "Markazly"}
+              {lang === "ar" ? "مركزلي" : "Markezly"}
             </span>
           </Link>
           <nav
@@ -587,7 +587,7 @@ function Landing() {
           <span className="flex items-center gap-2">
             <Logo className="size-6" />
             <span className="font-semibold text-foreground">
-              {lang === "ar" ? "مركزلي" : "Markazly"}
+              {lang === "ar" ? "مركزلي" : "Markezly"}
             </span>
           </span>
           <span>{c.footer}</span>

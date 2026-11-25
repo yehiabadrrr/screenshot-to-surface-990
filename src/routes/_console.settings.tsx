@@ -11,7 +11,7 @@ import { centerProfile, initials } from "@/lib/center-config";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_console/settings")({
-  head: pageHead("Settings", "Read-only demo center profile, branches, language and appearance in Markazly."),
+  head: pageHead("Settings", "Read-only demo center profile, branches, language and appearance in Markezly."),
   component: Page,
 });
 
@@ -22,7 +22,7 @@ function Page() {
     <div className="mx-auto max-w-5xl">
       <PageHeader subtitle={t("Read-only · demo data")} />
       <div className="space-y-5">
-        <Section icon={Building2} title={t("Center profile")} hint={t("Shown across Markazly. Editing needs saved data, which isn't set up yet.")} locked>
+        <Section icon={Building2} title={t("Center profile")} hint={t("Shown across Markezly. Editing needs saved data, which isn't set up yet.")} locked>
           <div className="mb-5 flex items-center gap-4">
             <span className="grid size-14 place-items-center rounded-xl bg-tint-teal font-display text-lg font-bold text-tint-teal-ink">{initials(centerProfile.name)}</span>
             <div><bdi className="block font-display text-lg font-bold">{centerProfile.name}</bdi><div className="text-xs text-muted-foreground">{t("{n} branches", { n: centerProfile.branches.length })}</div></div>

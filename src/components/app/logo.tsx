@@ -1,4 +1,4 @@
-/** Markazly mark: an M whose center point (teal) sits at the vertex. */
+/** Markezly mark: an M whose center point (teal) sits at the vertex. */
 export function Logo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden>

@@ -1,5 +1,5 @@
 /**
- * Markazly ledger: the single source for every financial figure.
+ * Markezly ledger: the single source for every financial figure.
  *
  * Definitions (all amounts in EGP, filtered by period + branch of the entry):
  * - Billed revenue (gross): tuition charges issued in the period.
