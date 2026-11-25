@@ -1,6 +1,6 @@
 # Shotlist: Markezly "POV: 1st of the month" · 24 s · 120 BPM · 48 beats · formats 9x16 + 4x5
 
-STATUS: DRAFT — waiting for the user's OK. Nothing gets built until this says APPROVED.
+STATUS: APPROVED by the user (as drafted).
 
 | # | Beats | Time (s) | Shot | On-screen text (exact) | Motion / transition | SFX | 9:16 · 4:5 notes |
 |---|---|---|---|---|---|---|---|

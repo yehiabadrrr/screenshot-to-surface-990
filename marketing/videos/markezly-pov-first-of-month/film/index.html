@@ -2,14 +2,16 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>motion reel</title>
+<title>Markezly — POV: 1st of the month</title>
 <style>
   /* One display face, one UI face. Point these at the brand's real files in assets/fonts/ (capture.mjs lists them). */
-  @font-face { font-family: 'Display'; src: url(../assets/fonts/display.woff2) format('woff2'); font-weight: 100 900; }
-  @font-face { font-family: 'UI'; src: url(../assets/fonts/ui.woff2) format('woff2'); font-weight: 100 900; }
+  /* the app's own faces: Manrope (display) + Inter (UI) */
+  @font-face { font-family: 'Display'; src: url(../assets/fonts/Manrope-var.woff2) format('woff2'); font-weight: 200 800; }
+  @font-face { font-family: 'UI'; src: url(../assets/fonts/Inter-var.woff2) format('woff2'); font-weight: 100 900; }
   :root {
     /* style guide tokens: ONE accent unless the brief says otherwise */
-    --bg: #f6f5f1; --ink: #121212; --ink-2: #55534e; --accent: #e8552b; --card: #ffffff;
+    /* app tokens (src/styles.css); teal is THE one accent and only appears once Markezly fixes things */
+    --bg: #08111F; --bg-2: #0F233E; --ink: #F2F5FA; --ink-2: #A9B6CA; --paper: #F4F6FA; --accent: #19A7A0; --card: #0F233E;
   }
   html, body { margin: 0; background: #000; overflow: hidden; }
   #stage { position: relative; overflow: hidden; background: var(--bg); transform-origin: 0 0;
@@ -17,14 +19,21 @@
            -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
   .scene { position: absolute; inset: 0; overflow: hidden; }
   .abs { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
-  .display { font-family: 'Display', 'Helvetica Neue', Arial, sans-serif; font-weight: 600; letter-spacing: -0.04em;
-             line-height: 0.95; white-space: nowrap; }
+  .display { font-family: 'Display', 'Helvetica Neue', Arial, sans-serif; font-weight: 800; letter-spacing: -0.03em;
+             line-height: 0.98; white-space: nowrap; }
   /* a line is a mask: words rise through it. Padding keeps descenders; start words >= 140% below so no sliver shows. */
   .line { position: absolute; overflow: hidden; padding: 0.08em 0.04em 0.18em; margin: -0.08em -0.04em 0; white-space: nowrap; }
   .word { display: inline-block; }
   .card { position: absolute; background: var(--card); border-radius: 28px;
           box-shadow: 0 2px 6px rgba(0,0,0,.05), 0 30px 80px -20px rgba(0,0,0,.22); }
   body.play { display: block; }
+  .ui { font-family: 'UI', 'Helvetica Neue', Arial, sans-serif; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; }
+  .note { position: absolute; border-radius: 30px; background: #13284A; box-shadow: 0 0 0 1px rgba(255,255,255,.07), 0 24px 60px -24px rgba(0,0,0,.7);
+          font-family: 'UI', sans-serif; color: var(--ink); }
+  .shot { position: absolute; overflow: hidden; border-radius: 28px; background: var(--paper);
+          box-shadow: 0 0 0 1px rgba(255,255,255,.09), 0 50px 110px -34px rgba(0,0,0,.85); }
+  .shot img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; max-width: none; transform-origin: 0 0; }
+  .ring { position: absolute; border: 4px solid var(--accent); border-radius: 16px; }
 </style>
 </head>
 <body>
