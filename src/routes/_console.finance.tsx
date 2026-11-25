@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import {
   Plus, Download, MoreHorizontal, Receipt, Wallet, Coins, CircleAlert, BadgePercent, Undo2, Hourglass, RotateCcw, PiggyBank, GraduationCap,
-  CheckCircle2, Minus, Equal, PackageCheck, ChevronLeft, ChevronRight, Lock, BookOpenText, ArrowLeftRight, Filter as FilterIcon,
+  CheckCircle2, CheckCheck, Minus, Equal, PackageCheck, ChevronLeft, ChevronRight, Lock, BookOpenText, ArrowLeftRight, Filter as FilterIcon,
 } from "lucide-react";
 import { PageHeader, Panel, Pill, Money, EmptyState, StatCard, MiniStat, type Tone } from "@/components/app/ui";
 import { PeriodBranchFilter, usePartialPeriod } from "@/components/app/filters";
@@ -13,7 +13,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { RecordPaymentDialog } from "@/components/app/record-payment";
-import { METHODS, displayStatus, reversedIds, type LedgerEntry, type Method } from "@/lib/ledger";
+import { METHODS, displayStatus, ledgerIndex, type LedgerEntry, type Method } from "@/lib/ledger";
+import { toast } from "sonner";
 import { useLedger, monthLabel } from "@/lib/ledger-store";
 import { useFinance } from "@/lib/use-finance";
 import { egp, formatPercent } from "@/lib/format";
@@ -28,15 +29,15 @@ export const Route = createFileRoute("/_console/finance")({
 });
 
 const PAGE = 20;
-const TYPES = ["all", "Payment", "Refund", "Discount", "Reversal"] as const;
+const TYPES = ["all", "Payment", "Refund", "Discount", "Reversal", "Confirmation"] as const;
 const methodColor: Record<Method, string> = { Cash: "bg-chart-2", InstaPay: "bg-chart-1", Fawry: "bg-chart-4", "Bank transfer": "bg-chart-3", Other: "bg-muted-foreground" };
-const typeMeta: Record<string, [typeof Wallet, Tone]> = { Payment: [Wallet, "positive"], Refund: [Undo2, "coral"], Discount: [BadgePercent, "lavender"], Reversal: [RotateCcw, "neutral"], PackageUse: [PackageCheck, "teal"] };
+const typeMeta: Record<string, [typeof Wallet, Tone]> = { Payment: [Wallet, "positive"], Refund: [Undo2, "coral"], Discount: [BadgePercent, "lavender"], Reversal: [RotateCcw, "neutral"], PackageUse: [PackageCheck, "teal"], Confirmation: [CheckCheck, "positive"] };
 /** Display label only: PackageUse entries carry no money, so they read as a session used. */
-const typeLabel = (type: string) => (type === "PackageUse" ? "Package session used" : type);
+const typeLabel = (type: string) => (type === "PackageUse" ? "Package session used" : type === "Confirmation" ? "Payment confirmed" : type);
 
 function FinancePage() {
   const { t, lang } = useI18n();
-  const { entries, students, filter, period, branch } = useLedger();
+  const { entries, students, filter, period, branch, confirm } = useLedger();
   const studentMap = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
   const { current: c, payables } = useFinance();
   const partial = usePartialPeriod();
@@ -45,7 +46,13 @@ function FinancePage() {
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(0);
   const [correcting, setCorrecting] = useState<LedgerEntry | null>(null);
-  const rev = useMemo(() => reversedIds(entries), [entries]);
+  const rev = useMemo(() => ledgerIndex(entries), [entries]);
+  const confirmReceived = (x: LedgerEntry) => {
+    try {
+      const c = confirm(x.id);
+      toast.success(t("{id} confirmed by {conf}", { id: x.id, conf: c.id }), { description: t("Now counted in collections on its payment date. Demo only, not saved.") });
+    } catch (err) { toast.error(err instanceof Error ? t(err.message) : t("Could not confirm")); }
+  };
 
   const rows = useMemo(() => entries
     .filter((e) => e.type !== "Charge" && e.date >= filter.from && e.date <= filter.to && (filter.branch === "all" || e.branch === filter.branch))
@@ -166,7 +173,8 @@ function FinancePage() {
             </thead>
             <tbody className="divide-y">{view.map((x) => {
               const st = displayStatus(x, rev);
-              const canCorrect = st === "Completed" && x.type !== "Reversal";
+              const canCorrect = st === "Completed" && x.type !== "Reversal" && x.type !== "Confirmation";
+              const canConfirm = st === "Pending" && x.type === "Payment";
               const [TIcon, tone] = typeMeta[x.type] ?? [Receipt, "neutral" as Tone];
               return (
                 <tr key={x.id} className={cn("hover:bg-muted/40", st === "Reversed" && "text-muted-foreground")}>
@@ -175,6 +183,7 @@ function FinancePage() {
                   <td className="whitespace-nowrap px-3">
                     <span className="inline-flex items-center gap-1.5"><span className={cn("grid size-6 place-items-center rounded-md", tone === "positive" ? "bg-positive-soft text-positive" : tone === "coral" ? "bg-tint-coral text-tint-coral-ink" : tone === "lavender" ? "bg-tint-lavender text-tint-lavender-ink" : tone === "teal" ? "bg-tint-teal text-tint-teal-ink" : "bg-muted text-muted-foreground")}><TIcon className="size-3.5" /></span>{t(typeLabel(x.type))}</span>
                     {x.reversesId && <div className="mt-0.5 text-[11px] text-muted-foreground">{t("of {id}", { id: x.reversesId })}</div>}
+                    {x.confirmsId && <div className="mt-0.5 text-[11px] text-muted-foreground">{t("of {id}", { id: x.confirmsId })}</div>}
                     {x.replacesId && <div className="mt-0.5 text-[11px] text-muted-foreground">{t("replaces {id}", { id: x.replacesId })}</div>}
                     {(x.reference || x.reason || x.note) && <div className="mt-0.5 max-w-44 truncate text-[11px] text-muted-foreground 2xl:hidden">{x.reference ? <bdi dir="ltr">{x.reference}</bdi> : noteText(x.reason ?? x.note, t, lang)}</div>}
                   </td>
@@ -182,9 +191,16 @@ function FinancePage() {
                   <td className="hidden max-w-52 px-3 2xl:table-cell"><div className="truncate text-xs" title={[x.reference, noteText(x.reason, t, lang), noteText(x.note, t, lang)].filter(Boolean).join(" · ")}>{x.reference ? <bdi dir="ltr">{x.reference}</bdi> : noteText(x.reason ?? x.note, t, lang) ?? "—"}</div></td>
                   <td className="hidden whitespace-nowrap px-3 text-xs 2xl:table-cell"><bdi>{t(x.enteredBy)}</bdi></td>
                   <td className="px-3"><Pill tone={st === "Completed" ? "positive" : st === "Pending" ? "warning" : "neutral"} dot>{t(st)}</Pill></td>
-                  <td className={cn("whitespace-nowrap px-3 text-end font-semibold num", x.type === "Payment" && st === "Completed" ? "text-positive" : "", st === "Reversed" && "line-through", x.type === "PackageUse" && "font-medium text-muted-foreground")}>{x.type === "PackageUse" ? t("1 session") : <bdi>{x.type === "Payment" ? "+" : "−"}<Money value={x.amount} /></bdi>}</td>
+                  <td className={cn("whitespace-nowrap px-3 text-end font-semibold num", x.type === "Payment" && st === "Completed" ? "text-positive" : "", st === "Reversed" && "line-through", (x.type === "PackageUse" || x.type === "Confirmation") && "font-medium text-muted-foreground")}>{x.type === "PackageUse" ? t("1 session") : x.type === "Confirmation" ? <bdi><Money value={x.amount} /></bdi> : <bdi>{x.type === "Payment" ? "+" : "−"}<Money value={x.amount} /></bdi>}</td>
                   <td className="w-12 px-2">
-                    {canCorrect ? (
+                    {canConfirm ? (
+                      <DropdownMenu dir={dir}><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8" aria-label={t("Actions for {id}", { id: x.id })}><MoreHorizontal /></Button></DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-60">
+                          <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground">{t("Pending: not counted as collected yet")}</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => confirmReceived(x)}><CheckCheck />{t("Confirm payment received")}</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setCorrecting(x)}><RotateCcw />{t("Not received? Reverse…")}</DropdownMenuItem>
+                        </DropdownMenuContent></DropdownMenu>
+                    ) : canCorrect ? (
                       <DropdownMenu dir={dir}><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8" aria-label={t("Actions for {id}", { id: x.id })}><MoreHorizontal /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
                           <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground">{t("Completed entries are never edited")}</DropdownMenuLabel>
@@ -201,7 +217,8 @@ function FinancePage() {
         {/* Mobile list */}
         <ul className="divide-y md:hidden">{view.map((x) => {
           const st = displayStatus(x, rev);
-          const canCorrect = st === "Completed" && x.type !== "Reversal";
+          const canCorrect = st === "Completed" && x.type !== "Reversal" && x.type !== "Confirmation";
+          const canConfirm = st === "Pending" && x.type === "Payment";
           return (
             <li key={x.id} className={cn("flex items-start gap-3 px-4 py-3", st === "Reversed" && "text-muted-foreground")}>
               <div className="min-w-0 flex-1">
@@ -209,8 +226,9 @@ function FinancePage() {
                 <div className="mt-0.5 text-xs text-muted-foreground"><bdi dir="ltr">{x.id}</bdi> · {t(typeLabel(x.type))}{x.method ? ` · ${t(x.method)}` : ""} · {shortDateL(x.date, lang)}</div>
                 <div className="mt-1.5"><Pill tone={st === "Completed" ? "positive" : st === "Pending" ? "warning" : "neutral"} dot>{t(st)}</Pill></div>
               </div>
-              <div className={cn("shrink-0 text-sm font-semibold num", x.type === "Payment" && st === "Completed" && "text-positive", st === "Reversed" && "line-through")}>{x.type === "PackageUse" ? t("1 session") : <bdi>{x.type === "Payment" ? "+" : "−"}<Money value={x.amount} /></bdi>}</div>
-              {canCorrect && <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={t("Actions for {id}", { id: x.id })} onClick={() => setCorrecting(x)}><MoreHorizontal /></Button>}
+              <div className={cn("shrink-0 text-sm font-semibold num", x.type === "Payment" && st === "Completed" && "text-positive", st === "Reversed" && "line-through", x.type === "Confirmation" && "font-medium text-muted-foreground")}>{x.type === "PackageUse" ? t("1 session") : x.type === "Confirmation" ? <bdi><Money value={x.amount} /></bdi> : <bdi>{x.type === "Payment" ? "+" : "−"}<Money value={x.amount} /></bdi>}</div>
+              {canConfirm && <Button variant="outline" size="sm" className="h-8 shrink-0 gap-1" onClick={() => confirmReceived(x)}><CheckCheck className="size-3.5" />{t("Confirm")}</Button>}
+              {(canCorrect || canConfirm) && <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={t("Actions for {id}", { id: x.id })} onClick={() => setCorrecting(x)}><MoreHorizontal /></Button>}
             </li>
           );
         })}</ul>

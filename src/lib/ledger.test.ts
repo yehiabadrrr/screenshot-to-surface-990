@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appendPayment, comparisonFilter, computeMetrics, correctEntry, periodFilter, type LedgerEntry } from "./ledger";
+import { appendPayment, comparisonFilter, computeMetrics, confirmPayment, correctEntry, displayStatus, ledgerIndex, periodFilter, type LedgerEntry } from "./ledger";
 import { formatMoney } from "./format";
 
 const base = { branch: "Maadi", enteredBy: "Test", enteredAt: "2026-11-01T00:00:00Z", status: "Completed" as const };
@@ -75,6 +75,48 @@ describe("corrections", () => {
   });
   it("cannot reverse the same entry twice", () => {
     expect(() => correctEntry(fixture, "TX-5", { reason: "Again", by: "Owner", date: "2026-11-10" })).toThrow();
+  });
+});
+
+describe("confirming pending payments", () => {
+  const confirm = (entries: LedgerEntry[], id: string, date = "2026-12-02") => confirmPayment(entries, id, { by: "Karim", date });
+
+  it("counts the payment on its original date without editing it", () => {
+    const before = computeMetrics(fixture, nov);
+    expect(before.grossCollections).toBe(1400);
+    expect(before.pendingCount).toBe(1);
+
+    // Confirmed in December, but the transfer was dated 5 Nov, so November's collections include it.
+    const { entries, confirmation } = confirm(fixture, "TX-4");
+    const after = computeMetrics(entries, nov);
+    expect(after.grossCollections).toBe(1700);
+    expect(after.pending).toBe(0);
+    expect(after.pendingCount).toBe(0);
+    expect(after.byMethod.find((b) => b.method === "Fawry")!.amount).toBe(300);
+    expect(after.outstanding).toBe(0);
+
+    expect(entries.find((e) => e.id === "TX-4")!.status).toBe("Pending");
+    expect(displayStatus(entries.find((e) => e.id === "TX-4")!, ledgerIndex(entries))).toBe("Completed");
+    expect(confirmation).toMatchObject({ id: "TX-9", type: "Confirmation", confirmsId: "TX-4", enteredBy: "Karim", date: "2026-12-02" });
+  });
+  it("only confirms pending payments, once", () => {
+    expect(() => confirm(fixture, "TX-2")).toThrow("Only pending payments");
+    expect(() => confirm(fixture, "TX-6")).toThrow("Only pending payments");
+    expect(() => confirm(fixture, "TX-404")).toThrow("not found");
+    const { entries } = confirm(fixture, "TX-4");
+    expect(() => confirm(entries, "TX-4")).toThrow("Already confirmed");
+  });
+  it("cannot confirm a payment that was reversed as not received", () => {
+    const { entries } = correctEntry(fixture, "TX-4", { reason: "Transfer never arrived", by: "Owner", date: "2026-11-10" });
+    expect(() => confirm(entries, "TX-4")).toThrow("reversed");
+    expect(computeMetrics(entries, nov).pendingCount).toBe(0);
+  });
+  it("a confirmed payment can still be reversed later, and the confirmation itself cannot", () => {
+    const confirmed = confirm(fixture, "TX-4").entries;
+    expect(() => correctEntry(confirmed, "TX-9", { reason: "x", by: "Owner", date: "2026-12-03" })).toThrow();
+    const { entries } = correctEntry(confirmed, "TX-4", { reason: "Bank recalled it", by: "Owner", date: "2026-12-03" });
+    expect(computeMetrics(entries, nov).grossCollections).toBe(1400);
+    expect(computeMetrics(entries, nov).pendingCount).toBe(0);
   });
 });
 

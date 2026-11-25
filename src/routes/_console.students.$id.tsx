@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ArrowLeft, Phone, Plus, MessageCircle, Pencil, PackagePlus, CalendarDays, MapPin, GraduationCap, IdCard, Wallet, CalendarCheck,
   BookOpen, Banknote, Receipt, Undo2, BadgePercent, RotateCcw, PackageCheck, UserRound, Lock, Users,
+  CheckCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Panel, Pill, Money, EmptyState, Avatar, Meter, IconTile, type Tone } from "@/components/app/ui";
@@ -14,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { classById, teacherById, type ClassItem } from "@/lib/data";
-import { balancesAsOf, reversedIds, displayStatus, type LedgerEntry } from "@/lib/ledger";
+import { balancesAsOf, ledgerIndex, displayStatus, type LedgerEntry, type LedgerIndex } from "@/lib/ledger";
 import { packageRemaining, type BillingRule } from "@/lib/billing";
 import { useLedger, todayIso } from "@/lib/ledger-store";
 import { RecordPaymentDialog } from "@/components/app/record-payment";
@@ -52,7 +53,7 @@ function Profile() {
   const [ruleError, setRuleError] = useState("");
   const [selling, setSelling] = useState<string | null>(null);
 
-  const rev = useMemo(() => reversedIds(L.entries), [L.entries]);
+  const rev = useMemo(() => ledgerIndex(L.entries), [L.entries]);
   const mine = useMemo(() => L.entries.filter((x) => x.studentId === id).sort((a, z) => z.date.localeCompare(a.date) || z.id.localeCompare(a.id)), [L.entries, id]);
   const attendance = useMemo(() => Object.values(L.sessions).filter((r) => r.marks[id] !== undefined || (s?.classIds.includes(r.classId) && r.finalized))
     .sort((a, z) => z.date.localeCompare(a.date)).slice(0, 40), [L.sessions, id, s]);
@@ -63,7 +64,7 @@ function Profile() {
 
   const paid = mine.filter((x) => x.type === "Payment" && displayStatus(x, rev) === "Completed").reduce((a, x) => a + x.amount, 0);
   const balance = balancesAsOf(L.entries, todayIso()).get(id) ?? 0;
-  const typeLabel = (x: LedgerEntry) => x.type === "Charge" ? (x.packageSessions ? t("Package purchase") : x.sessionId ? t("Session charge") : t("Tuition charge")) : x.type === "Reversal" ? t("Reversal of {id}", { id: x.reversesId ?? "" }) : x.type === "PackageUse" ? t("Package session used") : t(x.type);
+  const typeLabel = (x: LedgerEntry) => x.type === "Charge" ? (x.packageSessions ? t("Package purchase") : x.sessionId ? t("Session charge") : t("Tuition charge")) : x.type === "Reversal" ? t("Reversal of {id}", { id: x.reversesId ?? "" }) : x.type === "PackageUse" ? t("Package session used") : x.type === "Confirmation" ? t("Confirms {id}", { id: x.confirmsId ?? "" }) : t(x.type);
   const marked = attendance.filter((r) => r.marks[id]);
   const presentPct = marked.length ? Math.round((marked.filter((r) => r.marks[id] === "Present").length / marked.length) * 100) : s.attendance;
   const enrollments = s.classIds.map((cid) => {
@@ -317,10 +318,10 @@ function GuardianCard({ name, phone, compact = false }: { name: string; phone: s
 }
 
 const entryMeta: Record<LedgerEntry["type"], [typeof Wallet, Tone]> = {
-  Charge: [Receipt, "brand"], Payment: [Banknote, "positive"], Refund: [Undo2, "coral"], Discount: [BadgePercent, "lavender"], Reversal: [RotateCcw, "neutral"], PackageUse: [PackageCheck, "teal"],
+  Charge: [Receipt, "brand"], Payment: [Banknote, "positive"], Refund: [Undo2, "coral"], Discount: [BadgePercent, "lavender"], Reversal: [RotateCcw, "neutral"], PackageUse: [PackageCheck, "teal"], Confirmation: [CheckCheck, "positive"],
 };
 
-function TxnList({ rows, label, rev, studentId, compact = false }: { rows: LedgerEntry[]; label: (x: LedgerEntry) => string; rev: Set<string>; studentId: string; compact?: boolean }) {
+function TxnList({ rows, label, rev, studentId, compact = false }: { rows: LedgerEntry[]; label: (x: LedgerEntry) => string; rev: LedgerIndex; studentId: string; compact?: boolean }) {
   const { t, lang } = useI18n();
   const { entries } = useLedger();
   if (rows.length === 0) return <EmptyState icon={Receipt} title={t("No transactions yet")} compact />;
@@ -346,7 +347,7 @@ function TxnList({ rows, label, rev, studentId, compact = false }: { rows: Ledge
                   <div className="mt-0.5 break-words text-xs text-muted-foreground"><bdi dir="ltr">{entry.id}</bdi> · {shortDateL(entry.date, lang)} · <bdi>{detail}</bdi></div>
                 </div>
                 <div className="shrink-0 text-end">
-                  <div className={cn("whitespace-nowrap text-sm font-semibold num", entry.type === "Payment" && status === "Completed" ? "text-positive" : status === "Reversed" ? "text-muted-foreground line-through" : "text-foreground")}>
+                  <div className={cn("whitespace-nowrap text-sm font-semibold num", entry.type === "Payment" && status === "Completed" ? "text-positive" : status === "Reversed" ? "text-muted-foreground line-through" : entry.type === "Confirmation" ? "font-medium text-muted-foreground" : "text-foreground")}>
                     {entry.type === "PackageUse" ? t("1 session") : <bdi>{sign}<Money value={entry.amount} /></bdi>}
                   </div>
                 </div>

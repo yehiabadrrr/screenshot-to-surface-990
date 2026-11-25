@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { seedLedger, seedSessions, LEDGER_MONTHS, type SessionRecord, type AuditItem } from "./ledger-seed";
-import { appendPayment, correctEntry, nextId, periodFilter, comparisonFilter, type Filter, type LedgerEntry, type NewPayment } from "./ledger";
+import { appendPayment, confirmPayment, correctEntry, nextId, periodFilter, comparisonFilter, type Filter, type LedgerEntry, type NewPayment } from "./ledger";
 import { amendAttendance, finalizeSession, sessionIdFor, type BillingRule, type Mark } from "./billing";
 import { students as seedStudents, classes, classById, teachers, seedEnrollmentRules, enrollmentKey, type Student } from "./data";
 import { centerProfile } from "./center-config";
@@ -21,6 +21,8 @@ interface Store {
   filter: Filter; compare: Filter; today: string;
   recordPayment: (p: Omit<NewPayment, "enteredBy">) => LedgerEntry;
   correct: (id: string, opts: { reason: string; correctedAmount?: number }) => { reversal: LedgerEntry; replacement?: LedgerEntry };
+  /** Mark a pending payment as received by appending a Confirmation; the payment itself is not edited. */
+  confirm: (id: string) => LedgerEntry;
   // students & enrollments
   students: Student[];
   findStudent: (id: string) => Student | undefined;
@@ -138,6 +140,12 @@ export function LedgerProvider({ children }: { children: ReactNode }) {
     return entry;
   }, []);
 
+  const confirm = useCallback<Store["confirm"]>((id) => {
+    const r = confirmPayment(ref.current.entries, id, { by: CURRENT_USER.name, date: todayIso() });
+    commit(r.entries);
+    return r.confirmation;
+  }, []);
+
   const addStudent = useCallback<Store["addStudent"]>((s, rules) => {
     const max = ref.current.students.reduce((m, x) => Math.max(m, Number(x.id.slice(2))), 1000);
     const st: Student = { ...s, id: `S-${max + 1}`, status: "Active", joined: todayIso(), attendance: 0 };
@@ -162,7 +170,7 @@ export function LedgerProvider({ children }: { children: ReactNode }) {
   const studentMap = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
   const value: Store = {
     classes, teachers,
-    entries, period, setPeriod, branch, setBranch, months: LEDGER_MONTHS, filter, compare, today, recordPayment, correct,
+    entries, period, setPeriod, branch, setBranch, months: LEDGER_MONTHS, filter, compare, today, recordPayment, correct, confirm,
     students, findStudent: (id) => studentMap.get(id), addStudent, ruleFor, classRule: (id) => classRules[id] ?? classById(id).rule,
     setClassRule, setEnrollmentRule, sellPackage,
     actor, setActor, sessions, setMark, setMarks, finalize, amend,

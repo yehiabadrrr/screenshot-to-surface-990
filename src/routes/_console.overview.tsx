@@ -4,6 +4,7 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, ComposedChart, Line, Res
 import {
   Plus, CalendarCheck, MessageCircle, Users, Wallet, Receipt, CalendarDays, Clock3, Hourglass, PackageOpen, CircleAlert,
   ArrowUpRight, Banknote, RotateCcw, Undo2, BadgePercent, CheckCircle2, GraduationCap, BookOpen, Coins, TrendingUp, Activity,
+  CheckCheck,
 } from "lucide-react";
 import { Panel, Pill, Money, Delta, EmptyState, StatCard, MiniStat, IconTile, Avatar, chartAxis, tooltipStyle, type Tone } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RecordPaymentDialog } from "@/components/app/record-payment";
 import { PeriodBranchFilter } from "@/components/app/filters";
 import { AddStudent } from "@/components/app/add-student";
-import { computeMetrics, displayStatus, reversedIds, type LedgerEntry } from "@/lib/ledger";
+import { computeMetrics, displayStatus, ledgerIndex, type LedgerEntry } from "@/lib/ledger";
 import { useLedger, monthLabel } from "@/lib/ledger-store";
 import { useFinance } from "@/lib/use-finance";
 import { attendanceRate, pctChange } from "@/lib/finance";
@@ -223,7 +224,7 @@ function RevenuePanel({ className }: { className?: string }) {
 
 function ActivityFeed() {
   const { t, lang, rtl, entries, students, classes, teachers, sessions, filter, period, branch, f, a, c, studentMap, branchOf, inBranch } = useScope();
-  const rev = reversedIds(entries);
+  const rev = ledgerIndex(entries);
   type Item = { key: string; at: string; icon: typeof Plus; tone: Tone; title: ReactNode; detail: ReactNode; amount?: ReactNode; to?: string };
   const items: Item[] = [];
   const show = (e: LedgerEntry) => e.type !== "Charge" && e.type !== "PackageUse" && e.date >= filter.from && e.date <= filter.to && inBranch(e.branch);
@@ -236,11 +237,12 @@ function ActivityFeed() {
       Refund: [Undo2, "coral", "Refund issued"],
       Discount: [BadgePercent, "lavender", "Discount granted"],
       Reversal: [RotateCcw, "neutral", "Entry reversed"],
+      Confirmation: [CheckCheck, "positive", "Payment confirmed"],
     };
     const [icon, tone, title] = meta[e.type] ?? [Receipt, "neutral", e.type];
     items.push({ key: e.id, at: e.enteredAt, icon, tone, to: e.studentId, title: <bdi>{name}</bdi>,
-      detail: <><span className="font-medium text-foreground/80">{t(title)}</span>{e.method ? ` · ${t(e.method)}` : ""}{e.reversesId ? ` · ${t("of {id}", { id: e.reversesId })}` : ""}</>,
-      amount: <span className={cn("font-semibold num", e.type === "Payment" && st === "Completed" ? "text-positive" : st === "Reversed" || st === "Pending" ? "text-muted-foreground" : "text-foreground", st === "Reversed" && "line-through")}><bdi>{e.type === "Payment" ? "+" : "−"}<Money value={e.amount} /></bdi></span> });
+      detail: <><span className="font-medium text-foreground/80">{t(title)}</span>{e.method ? ` · ${t(e.method)}` : ""}{e.reversesId ? ` · ${t("of {id}", { id: e.reversesId })}` : ""}{e.confirmsId ? ` · ${t("of {id}", { id: e.confirmsId })}` : ""}</>,
+      amount: <span className={cn("font-semibold num", e.type === "Payment" && st === "Completed" ? "text-positive" : st === "Reversed" || st === "Pending" || e.type === "Confirmation" ? "text-muted-foreground" : "text-foreground", st === "Reversed" && "line-through")}><bdi>{e.type === "Payment" ? "+" : e.type === "Confirmation" ? "" : "−"}<Money value={e.amount} /></bdi></span> });
   }
   for (const s of Object.values(sessions)) {
     if (!s.finalized || s.date < filter.from || s.date > filter.to || !inBranch(branchOf(s.classId))) continue;

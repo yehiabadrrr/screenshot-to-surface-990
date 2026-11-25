@@ -9,6 +9,8 @@
  * - Refunds: completed, non-reversed money returned to students in the period.
  * - Net collections: gross collections − refunds.
  * - Pending: payments awaiting confirmation. Excluded from collections and balances.
+ *   Confirming one appends a Confirmation record; the payment itself is never edited,
+ *   and from then on it counts as completed on its original payment date.
  * - Reversed: entries cancelled by a Reversal record. Excluded from every total;
  *   the original and the reversal both stay in the ledger as the audit trail.
  * - Student balance (as of a date): charges − discounts − payments + refunds.
@@ -18,8 +20,11 @@
  */
 export const METHODS = ["Cash", "InstaPay", "Fawry", "Bank transfer", "Other"] as const;
 export type Method = (typeof METHODS)[number];
-/** PackageUse consumes one prepaid session; it has no money effect (amount 0). */
-export type EntryType = "Charge" | "Payment" | "Refund" | "Discount" | "Reversal" | "PackageUse";
+/**
+ * PackageUse consumes one prepaid session; it has no money effect (amount 0).
+ * Confirmation marks a pending payment as received; it never counts itself (like a Reversal).
+ */
+export type EntryType = "Charge" | "Payment" | "Refund" | "Discount" | "Reversal" | "PackageUse" | "Confirmation";
 
 export interface LedgerEntry {
   id: string;
@@ -40,6 +45,8 @@ export interface LedgerEntry {
   enteredAt: string;
   /** Reversal → the entry it cancels. */
   reversesId?: string | undefined;
+  /** Confirmation → the pending payment it confirms. */
+  confirmsId?: string | undefined;
   /** Replacement payment → the entry it corrects. */
   replacesId?: string | undefined;
   reason?: string | undefined;
@@ -55,24 +62,36 @@ export type DisplayStatus = "Completed" | "Pending" | "Reversed";
 export const reversedIds = (entries: LedgerEntry[]) =>
   new Set(entries.filter((e) => e.type === "Reversal" && e.reversesId).map((e) => e.reversesId!));
 
-export function displayStatus(e: LedgerEntry, reversed: Set<string>): DisplayStatus {
-  if (reversed.has(e.id)) return "Reversed";
-  return e.status;
+export const confirmedIds = (entries: LedgerEntry[]) =>
+  new Set(entries.filter((e) => e.type === "Confirmation" && e.confirmsId).map((e) => e.confirmsId!));
+
+/** Derived state from the append-only records: which entries are reversed and which pending payments are confirmed. */
+export interface LedgerIndex { reversed: Set<string>; confirmed: Set<string> }
+export const ledgerIndex = (entries: LedgerEntry[]): LedgerIndex => ({ reversed: reversedIds(entries), confirmed: confirmedIds(entries) });
+
+/** Status after applying later records: a confirmed pending payment is Completed. The stored entry is unchanged. */
+export const effectiveStatus = (e: LedgerEntry, confirmed: Set<string>): LedgerEntry["status"] =>
+  e.status === "Pending" && confirmed.has(e.id) ? "Completed" : e.status;
+
+export function displayStatus(e: LedgerEntry, idx: LedgerIndex): DisplayStatus {
+  if (idx.reversed.has(e.id)) return "Reversed";
+  return effectiveStatus(e, idx.confirmed);
 }
 
-/** Counts toward totals: completed and not reversed. Reversal rows themselves never count. */
-const counts = (e: LedgerEntry, reversed: Set<string>) =>
-  e.type !== "Reversal" && e.type !== "PackageUse" && e.status === "Completed" && !reversed.has(e.id);
+/** Counts toward totals: completed (or confirmed) and not reversed. Reversal and Confirmation rows never count. */
+const counts = (e: LedgerEntry, idx: LedgerIndex) =>
+  e.type !== "Reversal" && e.type !== "PackageUse" && e.type !== "Confirmation" &&
+  effectiveStatus(e, idx.confirmed) === "Completed" && !idx.reversed.has(e.id);
 
 const inBranch = (e: LedgerEntry, branch: Filter["branch"]) => branch === "all" || e.branch === branch;
 const inRange = (e: LedgerEntry, f: Filter) => e.date >= f.from && e.date <= f.to && inBranch(e, f.branch);
 const sum = (xs: LedgerEntry[]) => xs.reduce((s, e) => s + e.amount, 0);
 
 export function balancesAsOf(entries: LedgerEntry[], asOf: string, branch: Filter["branch"] = "all") {
-  const reversed = reversedIds(entries);
+  const idx = ledgerIndex(entries);
   const map = new Map<string, number>();
   for (const e of entries) {
-    if (e.date > asOf || !inBranch(e, branch) || !counts(e, reversed)) continue;
+    if (e.date > asOf || !inBranch(e, branch) || !counts(e, idx)) continue;
     const sign = e.type === "Charge" || e.type === "Refund" ? 1 : -1; // Payment, Discount reduce
     map.set(e.studentId, (map.get(e.studentId) ?? 0) + sign * e.amount);
   }
@@ -89,9 +108,10 @@ export interface Metrics {
 }
 
 export function computeMetrics(entries: LedgerEntry[], f: Filter): Metrics {
-  const reversed = reversedIds(entries);
+  const idx = ledgerIndex(entries);
+  const { reversed } = idx;
   const period = entries.filter((e) => inRange(e, f));
-  const live = period.filter((e) => counts(e, reversed));
+  const live = period.filter((e) => counts(e, idx));
   const of = (t: EntryType) => live.filter((e) => e.type === t);
   const payments = of("Payment");
   const refundsL = of("Refund");
@@ -99,7 +119,7 @@ export function computeMetrics(entries: LedgerEntry[], f: Filter): Metrics {
   const discounts = sum(of("Discount"));
   const grossCollections = sum(payments);
   const refunds = sum(refundsL);
-  const pendingL = period.filter((e) => e.type === "Payment" && e.status === "Pending" && !reversed.has(e.id));
+  const pendingL = period.filter((e) => e.type === "Payment" && effectiveStatus(e, idx.confirmed) === "Pending" && !reversed.has(e.id));
   const reversedL = period.filter((e) => reversed.has(e.id));
   const balances = balancesAsOf(entries, f.to, f.branch);
   let outstanding = 0, prepaid = 0, studentsOwing = 0;
@@ -122,15 +142,15 @@ export function computeMetrics(entries: LedgerEntry[], f: Filter): Metrics {
 
 /** Gross collections attributed to a set of classes (used for % teacher payouts). */
 export function collectionsForClasses(entries: LedgerEntry[], f: Filter, classIds: Set<string>) {
-  const reversed = reversedIds(entries);
-  return sum(entries.filter((e) => e.type === "Payment" && e.classId && classIds.has(e.classId) && inRange(e, f) && counts(e, reversed)));
+  const idx = ledgerIndex(entries);
+  return sum(entries.filter((e) => e.type === "Payment" && e.classId && classIds.has(e.classId) && inRange(e, f) && counts(e, idx)));
 }
 
 export function billedByClass(entries: LedgerEntry[], f: Filter) {
-  const reversed = reversedIds(entries);
+  const idx = ledgerIndex(entries);
   const map = new Map<string, number>();
   for (const e of entries) {
-    if (e.type !== "Charge" || !e.classId || !inRange(e, f) || !counts(e, reversed)) continue;
+    if (e.type !== "Charge" || !e.classId || !inRange(e, f) || !counts(e, idx)) continue;
     map.set(e.classId, (map.get(e.classId) ?? 0) + e.amount);
   }
   return map;
@@ -189,7 +209,7 @@ export function correctEntry(
 ) {
   const original = entries.find((e) => e.id === id);
   if (!original) throw new Error("Transaction not found");
-  if (original.type === "Charge" || original.type === "Reversal" || original.type === "PackageUse") throw new Error("This entry cannot be corrected here");
+  if (original.type === "Charge" || original.type === "Reversal" || original.type === "PackageUse" || original.type === "Confirmation") throw new Error("This entry cannot be corrected here");
   if (reversedIds(entries).has(id)) throw new Error("Already reversed");
   if (!opts.reason.trim()) throw new Error("A reason is required");
   let next = [...entries];
@@ -209,4 +229,28 @@ export function correctEntry(
     next = [...next, replacement];
   }
   return { entries: next, reversal, replacement };
+}
+
+/**
+ * Confirm a pending payment was received, without editing it: append a Confirmation.
+ * The payment then counts on its original date. A bounced payment is reversed instead.
+ */
+export function confirmPayment(
+  entries: LedgerEntry[],
+  id: string,
+  opts: { by: string; date: string; reference?: string | undefined },
+  now = new Date().toISOString(),
+) {
+  const original = entries.find((e) => e.id === id);
+  if (!original) throw new Error("Transaction not found");
+  if (original.type !== "Payment" || original.status !== "Pending") throw new Error("Only pending payments can be confirmed");
+  const idx = ledgerIndex(entries);
+  if (idx.reversed.has(id)) throw new Error("This payment was reversed");
+  if (idx.confirmed.has(id)) throw new Error("Already confirmed");
+  const confirmation: LedgerEntry = {
+    id: nextTxnId(entries), type: "Confirmation", studentId: original.studentId, classId: original.classId, branch: original.branch,
+    date: opts.date, amount: original.amount, method: original.method, status: "Completed",
+    reference: opts.reference?.trim() || original.reference, enteredBy: opts.by, enteredAt: now, confirmsId: id,
+  };
+  return { entries: [...entries, confirmation], confirmation };
 }

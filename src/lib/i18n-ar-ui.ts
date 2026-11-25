@@ -375,4 +375,18 @@ export const arUi: Record<string, string> = {
   "Appearance": "المظهر",
   "Saved in this browser.": "يُحفظ في هذا المتصفح.",
   "Data": "البيانات",
+  // Confirming pending payments
+  "Confirmation": "تأكيد",
+  "Payment confirmed": "تم تأكيد الدفعة",
+  "Confirms {id}": "تأكيد {id}",
+  "Confirm": "تأكيد",
+  "Confirm payment received": "تأكيد استلام الدفعة",
+  "Not received? Reverse…": "لم تصل؟ إلغاء بقيد عكسي…",
+  "Pending: not counted as collected yet": "معلّقة: غير محسوبة في التحصيل بعد",
+  "{id} confirmed by {conf}": "تم تأكيد {id} بالقيد {conf}",
+  "Now counted in collections on its payment date. Demo only, not saved.": "أصبحت محسوبة في التحصيل بتاريخ الدفع. بيانات تجريبية، لا تُحفظ.",
+  "Could not confirm": "تعذّر التأكيد",
+  "Only pending payments can be confirmed": "يمكن تأكيد الدفعات المعلّقة فقط",
+  "This payment was reversed": "تم إلغاء هذه الدفعة بقيد عكسي",
+  "Already confirmed": "تم تأكيدها بالفعل",
 };
