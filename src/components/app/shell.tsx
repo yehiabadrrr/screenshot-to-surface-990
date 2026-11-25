@@ -197,7 +197,7 @@ function UserMenu() {
         <DropdownMenuItem onClick={() => setLang(lang === "en" ? "ar" : "en")}><Languages />{lang === "en" ? "العربية" : "English"}</DropdownMenuItem>
         <DropdownMenuItem onClick={toggle}>{theme === "dark" ? <Sun /> : <Moon />}{t(theme === "dark" ? "Light mode" : "Dark mode")}</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild><Link to="/"><LogOut className="rtl:-scale-x-100" />{t("Back to sign-in screen")}</Link></DropdownMenuItem>
+        <DropdownMenuItem asChild><Link to="/login"><LogOut className="rtl:-scale-x-100" />{t("Back to sign-in screen")}</Link></DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
