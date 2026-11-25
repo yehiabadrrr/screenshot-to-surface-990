@@ -37,7 +37,7 @@ export const S8Finale: React.FC = () => {
   return (
     <AbsoluteFill>
       {panels.map((p) => {
-        const e = spring({ frame: t - p.delay, fps, config: theme.spring.soft });
+        const e = spring({ frame: t + 8 - p.delay, fps, config: theme.spring.soft }); // already moving on the impact
         return (
           <Screen key={p.name} layers={[{ name: p.name }]} cam={{ x: 960, y: 540, z: 1 }}
             rect={{ ...p.rect, x: p.rect.x + p.dx * drift, y: p.rect.y + (1 - e) * 90 + recede * 70 }}
