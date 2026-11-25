@@ -1,0 +1,308 @@
+{
+  "url": "http://127.0.0.1:5173/",
+  "title": "Markazly — Attendance, fees and teacher pay for education centers in Egypt",
+  "description": "Markazly turns every session into a ledger line: monthly, per-session and package fees, cash, InstaPay and Fawry, and teacher pay, in Arabic and English.",
+  "font_families_by_use": [
+    [
+      "Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, system-ui, sans-serif",
+      82
+    ],
+    [
+      "\"IBM Plex Mono\", ui-monospace, monospace",
+      14
+    ],
+    [
+      "Manrope, Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, system-ui, sans-serif",
+      9
+    ]
+  ],
+  "font_faces": [],
+  "text_colors": [
+    [
+      "oklch(0.52 0.032 262)",
+      41
+    ],
+    [
+      "oklch(0.249 0.03 257)",
+      35
+    ],
+    [
+      "oklch(0.53 0.089 190)",
+      4
+    ],
+    [
+      "oklch(0.99 0.003 258)",
+      3
+    ],
+    [
+      "rgb(255, 255, 255)",
+      3
+    ],
+    [
+      "oklab(0.999994 0.0000455677 0.0000200868 / 0.6)",
+      3
+    ],
+    [
+      "oklab(0.999994 0.0000455678 0.0000200868 / 0.85)",
+      3
+    ],
+    [
+      "oklab(0.999994 0.0000455678 0.0000200868 / 0.5)",
+      3
+    ],
+    [
+      "oklch(0.54 0.12 163)",
+      2
+    ],
+    [
+      "oklab(0.52 -0.00445354 -0.0316886 / 0.6)",
+      2
+    ],
+    [
+      "oklch(0.288 0.064 256.5)",
+      1
+    ],
+    [
+      "oklch(0.498 0.122 253)",
+      1
+    ],
+    [
+      "oklab(0.52 -0.00445354 -0.0316886 / 0.8)",
+      1
+    ],
+    [
+      "oklch(0.659 0.11 189)",
+      1
+    ],
+    [
+      "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)",
+      1
+    ],
+    [
+      "oklch(0.58 0.13 62)",
+      1
+    ]
+  ],
+  "bg_colors": [
+    [
+      "oklch(1 0 0)",
+      12
+    ],
+    [
+      "oklch(0.962 0.007 258)",
+      4
+    ],
+    [
+      "oklch(0.975 0.005 258)",
+      3
+    ],
+    [
+      "oklch(0.498 0.122 253)",
+      3
+    ],
+    [
+      "oklch(0.965 0.045 82)",
+      3
+    ],
+    [
+      "oklch(0.659 0.11 189)",
+      3
+    ],
+    [
+      "oklab(0.288 -0.0149405 -0.0622317 / 0.15)",
+      3
+    ],
+    [
+      "oklch(0.54 0.12 163)",
+      2
+    ],
+    [
+      "oklab(0.999994 0.0000455678 0.0000200868 / 0.05)",
+      2
+    ],
+    [
+      "oklab(0.975 -0.00103956 -0.00489074 / 0.85)",
+      1
+    ],
+    [
+      "oklab(0.962 -0.00145538 -0.00684703 / 0.5)",
+      1
+    ],
+    [
+      "oklab(0.962 -0.00145538 -0.00684703 / 0.6)",
+      1
+    ],
+    [
+      "oklab(0.288 -0.0149405 -0.0622317 / 0.1)",
+      1
+    ],
+    [
+      "oklch(0.255 0.058 257)",
+      1
+    ],
+    [
+      "oklab(0.58 0.0610313 0.114783 / 0.1)",
+      1
+    ]
+  ],
+  "css_vars": {
+    "--overlay": "oklch(21.6% .045 256 / .55)",
+    "--radius": ".75rem",
+    "--background": "oklch(97.5% .005 258)",
+    "--foreground": "oklch(24.9% .03 257)",
+    "--card": "oklch(100% 0 0)",
+    "--card-foreground": "oklch(24.9% .03 257)",
+    "--popover": "oklch(100% 0 0)",
+    "--popover-foreground": "oklch(24.9% .03 257)",
+    "--muted": "oklch(96.2% .007 258)",
+    "--muted-foreground": "oklch(52% .032 262)",
+    "--border": "oklch(92.4% .009 258)",
+    "--input": "oklch(90% .012 258)",
+    "--primary": "oklch(49.8% .122 253)",
+    "--primary-foreground": "oklch(99% .003 258)",
+    "--brand": "oklch(49.8% .122 253)",
+    "--brand-foreground": "oklch(99% .003 258)",
+    "--navy": "oklch(28.8% .064 256.5)",
+    "--navy-deep": "oklch(21.6% .045 256)",
+    "--teal": "oklch(53% .089 190)",
+    "--teal-bright": "oklch(65.9% .11 189)",
+    "--teal-soft": "oklch(95.5% .03 189)",
+    "--secondary": "oklch(95.5% .014 255)",
+    "--secondary-foreground": "oklch(28.8% .064 256.5)",
+    "--accent": "oklch(95.2% .022 253)",
+    "--accent-foreground": "oklch(28.8% .064 256.5)",
+    "--ring": "oklch(56% .12 253)",
+    "--welcome": "oklch(28.8% .064 256.5)",
+    "--welcome-foreground": "oklch(99% .003 258)",
+    "--welcome-muted": "oklch(82% .03 255)",
+    "--positive": "oklch(54% .12 163)",
+    "--positive-foreground": "oklch(99% 0 0)",
+    "--positive-soft": "oklch(96.2% .035 163)",
+    "--destructive": "oklch(56.5% .2 17)",
+    "--destructive-foreground": "oklch(99% 0 0)",
+    "--negative-soft": "oklch(96.2% .025 17)",
+    "--warning": "oklch(58% .13 62)",
+    "--warning-foreground": "oklch(99% 0 0)",
+    "--warning-soft": "oklch(96.5% .045 82)",
+    "--info": "oklch(52% .17 260)",
+    "--info-soft": "oklch(95.5% .025 255)",
+    "--tint-blue": "oklch(94.8% .03 253)",
+    "--tint-blue-ink": "oklch(47% .13 253)",
+    "--tint-teal": "oklch(95.2% .035 189)",
+    "--tint-teal-ink": "oklch(50% .089 190)",
+    "--tint-lavender": "oklch(95.2% .032 293)",
+    "--tint-lavender-ink": "oklch(50% .16 293)",
+    "--tint-amber": "oklch(96.3% .05 82)",
+    "--tint-amber-ink": "oklch(55% .125 62)",
+    "--tint-coral": "oklch(95.8% .03 32)",
+    "--tint-coral-ink": "oklch(56% .16 32)",
+    "--tint-rose": "oklch(95.8% .026 10)",
+    "--tint-rose-ink": "oklch(55% .19 12)",
+    "--chart-1": "oklch(49.8% .122 253)",
+    "--chart-2": "oklch(65.9% .11 189)",
+    "--chart-3": "oklch(60% .15 293)",
+    "--chart-4": "oklch(75% .14 75)",
+    "--chart-5": "oklch(68% .16 32)",
+    "--sidebar": "oklch(25.5% .058 257)",
+    "--sidebar-foreground": "oklch(86% .02 256)",
+    "--sidebar-muted": "oklch(66% .035 256)",
+    "--sidebar-primary": "oklch(52% .125 253)",
+    "--sidebar-primary-foreground": "oklch(99% 0 0)",
+    "--sidebar-accent": "oklch(100% 0 0 / .07)",
+    "--sidebar-accent-foreground": "oklch(99% 0 0)",
+    "--sidebar-border": "oklch(100% 0 0 / .09)",
+    "--sidebar-ring": "oklch(65.9% .11 189)",
+    "--shadow-card": "0 1px 2px oklch(28.8% .064 256.5 / .05), 0 1px 3px oklch(28.8% .064 256.5 / .035)",
+    "--shadow-raised": "0 2px 4px oklch(28.8% .064 256.5 / .04), 0 8px 20px -8px oklch(28.8% .064 256.5 / .14)",
+    "--shadow-pop": "0 16px 36px -14px oklch(28.8% .064 256.5 / .3)"
+  },
+  "headings": [
+    "A: Markazly  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "A: How it works  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "A: Features  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "A: FAQ  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "BUTTON: العربية  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 12px 500 ls normal oklch(0.52 0.032 262)]",
+    "A: Sign in  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 12px 500 ls normal oklch(0.249 0.03 257)]",
+    "A: Try the live demo  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 12px 500 ls normal oklch(0.99 0.003 258)]",
+    "P: For tutoring centers and language schools in Egypt  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 600 ls normal oklch(0.53 0.089 190)]",
+    "H1: Mark attendance. | The billing does itself.  [Manrope, Inter, \"IBM Plex Sans Arabic\", ui-sans-se 60px 800 ls -1.5px oklch(0.288 0.064 256.5)]",
+    "A: Try the live demo  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 500 ls normal oklch(0.99 0.003 258)]",
+    "P: The live demo uses sample data. No sign-up.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 12px 400 ls normal oklch(0.52 0.032 262)]",
+    "LI: Omar Fathy | Present  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "BUTTON: Omar Fathy | Present  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "LI: Malak Farouk | —  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "BUTTON: Malak Farouk | —  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "LI: Seif Hassan | Present  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "BUTTON: Seif Hassan | Present  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "LI: Jana Mansour | —  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "BUTTON: Jana Mansour | —  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "P: Tap a student. Tap again to undo.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 12px 400 ls normal oklch(0.52 0.032 262)]",
+    "LI: INV-2042 | +80 | Seif Hassan · Session charge  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "LI: INV-2041 | +80 | Omar Fathy · Session charge  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "H2: Where the money slips today  [Manrope, Inter, \"IBM Plex Sans Arabic\", ui-sans-se 30px 700 ls -0.75px oklch(0.249 0.03 257)]",
+    "H3: The attendance notebook  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: Sessions get marked on paper, and nobody bills from the paper.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "H3: Payment screenshots  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: InstaPay transfers live in WhatsApp chats, not in a ledger.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "H3: Month-end with teachers  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: Percentage pay gets argued from memory instead of read from collections.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "H2: How a session becomes money  [Manrope, Inter, \"IBM Plex Sans Arabic\", ui-sans-se 30px 700 ls -0.75px oklch(0.249 0.03 257)]",
+    "LI: 1 | Mark the register |  | Present, absent or excused, from a phone at the classroom door.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "H3: Mark the register  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 18px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: Present, absent or excused, from a phone at the classroom door.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "LI: 2 | Billing posts by the class rule |  | Monthly fee, per attended session or a prepaid package. A student can have their own rule.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "H3: Billing posts by the class rule  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 18px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: Monthly fee, per attended session or a prepaid package. A student can have their own rule.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "LI: 3 | See who owes and what teachers earn |  | Balances, collections by method and teacher pay, all from the same entries.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.249 0.03 257)]",
+    "H3: See who owes and what teachers earn  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 18px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: Balances, collections by method and teacher pay, all from the same entries.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "H2: What's in it  [Manrope, Inter, \"IBM Plex Sans Arabic\", ui-sans-se 30px 700 ls -0.75px oklch(0.249 0.03 257)]",
+    "H3: Monthly, per session or packages  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: Set a billing rule per class and override it per student.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "H3: Every way students pay  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: Record the method and reference, so each transfer can be traced.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "H3: Teacher pay  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: Fixed salary, per session, or a percentage of what their classes collect.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "H3: WhatsApp to guardians  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: Open a chat with a guardian's number in one tap.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "H3: Every branch, one view  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: Filter any screen by branch, or see the whole center.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "H3: Arabic and English  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 600 ls normal oklch(0.249 0.03 257)]",
+    "P: Switch any screen, right to left included.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]",
+    "P: Audit trail  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 600 ls normal oklch(0.659 0.11 189)]",
+    "H2: Nothing is erased.  [Manrope, Inter, \"IBM Plex Sans Arabic\", ui-sans-se 36px 800 ls -0.9px rgb(255, 255, 255)]",
+    "LI: TX-43771 | +1,050 | Payment · InstaPay · Logy Soliman | Reem, front desk  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal rgb(255, 255, 255)]",
+    "LI: REV-43772 | −1,050 | Reversal of TX-43771 · typed 1,050 instead of 1,500 | Karim, accountant  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal rgb(255, 255, 255)]",
+    "LI: TX-43773 | +1,500 | Replaces TX-43771 · same reference | Karim, accountant  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal rgb(255, 255, 255)]",
+    "H2: Free pilot for the first centers  [Manrope, Inter, \"IBM Plex Sans Arabic\", ui-sans-se 30px 700 ls -0.75px oklch(0.249 0.03 257)]",
+    "P: We're onboarding a small group of centers now. Try the demo, then tell us how your center runs.  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 16px 400 ls normal oklch(0.52 0.032 262)]",
+    "A: Try the live demo  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 500 ls normal oklch(0.99 0.003 258)]",
+    "H2: Questions owners ask  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 600 ls normal oklch(0.52 0.032 262)]",
+    "A: Sign in  [Inter, \"IBM Plex Sans Arabic\", ui-sans-serif, syst 14px 400 ls normal oklch(0.52 0.032 262)]"
+  ],
+  "images": [
+    {
+      "src": "http://127.0.0.1:5173/landing/overview-en.jpg",
+      "alt": "Markazly owner dashboard with revenue, collections, outstanding balances and today's classes",
+      "w": 2880,
+      "h": 1800
+    }
+  ],
+  "videos": [],
+  "og_image": "/landing/overview-en.jpg",
+  "favicons": [
+    "http://127.0.0.1:5173/favicon.ico"
+  ],
+  "header_svgs": [
+    "<svg viewBox=\"0 0 32 32\" class=\"size-8\" aria-hidden=\"true\" data-tsd-source=\"/src/components/app/logo.tsx:4:5\"><defs data-tsd-source=\"/src/components/app/logo.tsx:5:7\"><linearGradient id=\"markazly-logo-bg\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\" data-tsd-source=\"/src/components/app/logo.tsx:6:9\"><stop offset=\"0\" stop-color=\"oklch(0.56 0.13 253)\" data-tsd-source=\"/src/components/app/logo.tsx:7:11\"></stop><stop offset=\"1\" stop-color=\"oklch(0.42 0.11 255)\" data-tsd-source=\"/src/components/app/logo.tsx:8:11\"></stop></linearGradient></defs><rect width=\"32\" height=\"32\" rx=\"9\" fill=\"url(#markazly-logo-bg)\" data-tsd-source=\"/src/components/app/logo.tsx:11:7\"></rect><path d=\"M8.5 23V10L16 17.5L23.5 10V23\" fill=\"none\" stroke=\"white\" stroke-width=\"2.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" data-tsd-source=\"/src/components/app/logo.tsx:12:7\"></path><circle cx=\"16\" cy=\"24\" r=\"2.6\" fill=\"oklch(0.72 0.12 189)\" data-tsd-source=\"/src/components/app/logo.tsx:13:7\"></circle></svg>",
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-languages size-4\" aria-hidden=\"true\" data-tsd-source=\"/src/routes/index.tsx:370:15\"><path d=\"m5 8 6 6\"></path><path d=\"m4 14 6-6 2-3\"></path><path d=\"M2 5h12\"></path><path d=\"M7 2h1\"></path><path d=\"m22 22-5-10-5 10\"></path><path d=\"M14 18h6\"></path></svg>"
+  ],
+  "network_media": [
+    "http://127.0.0.1:5173/landing/overview-en.jpg",
+    "https://fonts.gstatic.com/s/manrope/v23/xn7gYHE41ni1AdIRggexSg.woff2",
+    "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+    "https://fonts.gstatic.com/s/ibmplexmono/v23/-F63fjptAgt5VM-kVkqdyU8n1i8q1w.woff2",
+    "https://fonts.gstatic.com/s/ibmplexmono/v23/-F6qfjptAgt5VM-kVkqdyU8n3vAOwlBFgg.woff2",
+    "https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CRXMR5Kw.woff2"
+  ]
+}
