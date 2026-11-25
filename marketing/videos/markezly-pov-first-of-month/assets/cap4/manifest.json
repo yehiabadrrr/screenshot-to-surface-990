@@ -1,0 +1,78 @@
+{
+  "pay-dialog": {
+    "file": "pay-dialog.jpg",
+    "base": "pay-dialog",
+    "clip": {
+      "x": 704,
+      "y": 170,
+      "w": 512,
+      "h": 740
+    }
+  },
+  "fin-row": {
+    "file": "fin-row.jpg",
+    "base": "fin-row",
+    "clip": {
+      "x": 369,
+      "y": 349,
+      "w": 1438,
+      "h": 142
+    }
+  },
+  "students-all": {
+    "file": "students-all.jpg",
+    "base": "students-all",
+    "clip": {
+      "x": 369,
+      "y": 170,
+      "w": 620,
+      "h": 64
+    }
+  },
+  "students-owing": {
+    "file": "students-owing.jpg",
+    "base": "students-owing",
+    "clip": {
+      "x": 369,
+      "y": 170,
+      "w": 620,
+      "h": 64
+    }
+  },
+  "students-owing-bal": {
+    "file": "students-owing-bal.jpg",
+    "base": "students-owing",
+    "clip": {
+      "x": 1340,
+      "y": 340,
+      "w": 440,
+      "h": 560
+    }
+  },
+  "teachers": {
+    "file": "teachers.jpg",
+    "base": "teachers",
+    "clip": {
+      "x": 369,
+      "y": 365,
+      "w": 465,
+      "h": 302
+    }
+  },
+  "att-all": {
+    "file": "att-all.jpg",
+    "base": "att-all",
+    "clip": {
+      "x": 1456,
+      "y": 338,
+      "w": 352,
+      "h": 380
+    }
+  },
+  "_tile17": {
+    "x": 1477,
+    "y": 619,
+    "w": 151,
+    "h": 63
+  }
+}
