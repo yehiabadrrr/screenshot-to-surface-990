@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 export type Lang = "en" | "ar";
 
 import { arExtra } from "./i18n-ar";
+import { arUi } from "./i18n-ar-ui";
 
 const arBase: Record<string, string> = {
   Overview: "نظرة عامة", Students: "الطلاب", "Classes & Courses": "الفصول والكورسات", Attendance: "الحضور",
@@ -23,7 +24,7 @@ const arBase: Record<string, string> = {
   Revenue: "الإيرادات", Collections: "التحصيل", "Branch comparison": "مقارنة الفروع", Templates: "القوالب", "Send on WhatsApp": "إرسال عبر واتساب",
 };
 
-const ar: Record<string, string> = { ...arBase, ...arExtra };
+const ar: Record<string, string> = { ...arBase, ...arExtra, ...arUi };
 
 const Ctx = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: (k: string, v?: Record<string, string | number>) => string }>({
   lang: "en", setLang: () => {}, t: (k) => k,

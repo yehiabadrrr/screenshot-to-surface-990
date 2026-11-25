@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { ArrowLeft, Phone, Plus, MessageCircle, Pencil, PackagePlus } from "lucide-react";
+import {
+  ArrowLeft, Phone, Plus, MessageCircle, Pencil, PackagePlus, CalendarDays, MapPin, GraduationCap, IdCard, Wallet, CalendarCheck,
+  BookOpen, Banknote, Receipt, Undo2, BadgePercent, RotateCcw, PackageCheck, UserRound, Lock, Users,
+} from "lucide-react";
 import { toast } from "sonner";
-import { Panel, Pill, Money, EmptyState } from "@/components/app/ui";
+import { Panel, Pill, Money, EmptyState, Avatar, Meter, IconTile, type Tone } from "@/components/app/ui";
 import { RuleEditor, ruleIsValid } from "@/components/app/rule-editor";
 import { RuleEffects } from "@/components/app/rule-effects";
 import { Button } from "@/components/ui/button";
@@ -10,15 +13,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { classById, teacherById } from "@/lib/data";
+import { classById, teacherById, type ClassItem } from "@/lib/data";
 import { balancesAsOf, reversedIds, displayStatus, type LedgerEntry } from "@/lib/ledger";
 import { packageRemaining, type BillingRule } from "@/lib/billing";
 import { useLedger, todayIso } from "@/lib/ledger-store";
 import { RecordPaymentDialog } from "@/components/app/record-payment";
 import { useI18n } from "@/lib/i18n";
-import { fmtNum, localDays, localTime, ruleKindLabel, ruleSummary, shortDateL } from "@/lib/l10n";
+import { fmtNum, localDays, localTime, ruleKindLabel, ruleSummary, shortDateL, noteText } from "@/lib/l10n";
+import { formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { StudentBalance } from "@/components/app/student-balance";
 
 export const Route = createFileRoute("/_console/students/$id")({
   validateSearch: (search: Record<string, unknown>): { tab?: string } => typeof search["tab"] === "string" && ["overview", "enroll", "att", "fin", "guardian", "edit"].includes(search["tab"]) ? { tab: search["tab"] } : {},
@@ -55,78 +58,173 @@ function Profile() {
     .sort((a, z) => z.date.localeCompare(a.date)).slice(0, 40), [L.sessions, id, s]);
 
   if (!s) {
-    return <div className="mx-auto max-w-3xl"><EmptyState title={t("Student not found")} hint={t("Sample students added in this tab disappear on refresh.")} /><div className="text-center"><Link to="/students" className="text-sm font-medium text-brand">{t("Back to students")}</Link></div></div>;
+    return <div className="mx-auto max-w-3xl"><div className="surface"><EmptyState icon={UserRound} title={t("Student not found")} hint={t("Sample students added in this tab disappear on refresh.")} action={<Button asChild variant="outline"><Link to="/students"><ArrowLeft className="rtl:rotate-180" />{t("Back to students")}</Link></Button>} /></div></div>;
   }
 
   const paid = mine.filter((x) => x.type === "Payment" && displayStatus(x, rev) === "Completed").reduce((a, x) => a + x.amount, 0);
   const balance = balancesAsOf(L.entries, todayIso()).get(id) ?? 0;
-  const initials = s.name.split(" ").map((p) => p[0]).join("").slice(0, 2);
-  const typeLabel = (x: LedgerEntry) => x.type === "Charge" ? (x.packageSessions ? t("Package purchase") : x.sessionId ? t("Session charge") : t("Tuition charge")) : x.type === "Reversal" ? t("Reversal of {id}", { id: x.reversesId ?? "" }) : t(x.type);
+  const typeLabel = (x: LedgerEntry) => x.type === "Charge" ? (x.packageSessions ? t("Package purchase") : x.sessionId ? t("Session charge") : t("Tuition charge")) : x.type === "Reversal" ? t("Reversal of {id}", { id: x.reversesId ?? "" }) : x.type === "PackageUse" ? t("Package session used") : t(x.type);
   const marked = attendance.filter((r) => r.marks[id]);
   const presentPct = marked.length ? Math.round((marked.filter((r) => r.marks[id] === "Present").length / marked.length) * 100) : s.attendance;
+  const enrollments = s.classIds.map((cid) => {
+    const c = classById(cid);
+    const { rule, source } = L.ruleFor(s.id, cid);
+    const left = rule.kind === "package" ? packageRemaining(L.entries, s.id, cid) : 0;
+    return { cid, c, rule, source, left };
+  });
+  const packages = enrollments.filter((e) => e.rule.kind === "package");
+  const statusTone: Tone = s.status === "Active" ? "positive" : s.status === "Paused" ? "warning" : "neutral";
+  const owes = balance > 0, credit = balance < 0;
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <Link to="/students" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4 rtl:rotate-180" /> {t("Students")}</Link>
-      <header className="surface mb-5 p-5 sm:p-6">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-          <div className="flex min-w-0 items-start gap-3"><div className="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-lg font-semibold text-brand">{initials}</div><div className="min-w-0"><h1 className="break-words text-xl font-semibold"><bdi>{s.name}</bdi></h1><div className="mt-1 text-xs text-muted-foreground"><bdi>{s.id}</bdi> · {t(s.grade)} · {t(s.branch)}</div><div className="mt-2"><Pill tone={s.status === "Active" ? "positive" : s.status === "Paused" ? "warning" : "neutral"}>{t(s.status)}</Pill></div></div></div>
-          <div className="shrink-0"><StudentBalance value={balance} /></div>
-        </div>
-        <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
-          <div className="flex min-w-0 flex-wrap items-center gap-1"><Button variant="ghost" size="icon" asChild><a href={`tel:${s.phone}`} aria-label={t("Call")} title={t("Call")}><Phone /></a></Button>{s.phone && <Button variant="ghost" size="icon" asChild><a href={`https://wa.me/2${s.phone}`} target="_blank" rel="noreferrer" aria-label={t("WhatsApp")} title={t("WhatsApp")}><MessageCircle /></a></Button>}{s.guardianPhone && <Button variant="ghost" asChild><a href={`https://wa.me/2${s.guardianPhone}`} target="_blank" rel="noreferrer">{t("WhatsApp guardian")}</a></Button>}</div>
-          <div className="col-span-2 flex flex-wrap justify-end gap-2 sm:col-auto"><Button variant="outline" onClick={() => setTab("edit")}><Pencil />{t("Edit")}</Button><RecordPaymentDialog studentId={s.id} trigger={<Button><Plus />{t("Record payment")}</Button>} /></div>
+    <div className="mx-auto max-w-[90rem]">
+      <Link to="/students" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4 rtl:rotate-180" />{t("All students")}</Link>
+
+      {/* Profile header */}
+      <header className="surface mb-5 overflow-hidden">
+        <div className="h-20 bg-[linear-gradient(120deg,var(--tint-blue),var(--tint-teal)_55%,var(--tint-lavender))] sm:h-24" aria-hidden />
+        <div className="px-5 pb-5 sm:px-6">
+          <div className="-mt-10 flex flex-wrap items-end justify-between gap-4 sm:-mt-12">
+            <div className="flex min-w-0 items-end gap-4">
+              <Avatar name={s.name} seed={s.id} size="xl" className="size-20 text-xl ring-4 ring-card sm:size-24 sm:text-2xl" />
+              <div className="min-w-0 pb-1">
+                <div className="flex flex-wrap items-center gap-2"><h2 className="break-words font-display text-xl font-bold tracking-tight sm:text-2xl"><bdi>{s.name}</bdi></h2><Pill tone={statusTone} dot>{t(s.status)}</Pill></div>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1"><IdCard className="size-3.5" /><bdi dir="ltr">{s.id}</bdi></span>
+                  <span className="inline-flex items-center gap-1"><GraduationCap className="size-3.5" />{t(s.grade)}</span>
+                  <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" />{t(s.branch)}</span>
+                  <span className="inline-flex items-center gap-1"><CalendarDays className="size-3.5" />{t("Joined {date}", { date: shortDateL(s.joined, lang) })}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="outline" size="icon" asChild><a href={`tel:${s.phone}`} aria-label={t("Call")} title={t("Call")}><Phone /></a></Button>
+              {s.phone && <Button variant="outline" size="icon" asChild className="text-positive"><a href={`https://wa.me/2${s.phone}`} target="_blank" rel="noreferrer" aria-label={t("WhatsApp")} title={t("WhatsApp")}><MessageCircle /></a></Button>}
+              {s.guardianPhone && <Button variant="outline" asChild><a href={`https://wa.me/2${s.guardianPhone}`} target="_blank" rel="noreferrer"><MessageCircle className="text-positive" />{t("WhatsApp guardian")}</a></Button>}
+              <RecordPaymentDialog studentId={s.id} trigger={<Button><Plus />{t("Record payment")}</Button>} />
+            </div>
+          </div>
+
+          {/* Summary */}
+          <div className="mt-5 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
+            <SummaryTile icon={Wallet} tone={owes ? "negative" : credit ? "positive" : "neutral"} label={t("Balance today")}
+              value={<Money value={Math.abs(balance)} />} hint={t(owes ? "Owing" : credit ? "Credit" : "Settled")} />
+            <SummaryTile icon={Banknote} tone="positive" label={t("Total paid")} value={<Money value={paid} />} hint={t("Completed payments")} />
+            <SummaryTile icon={CalendarCheck} tone="lavender" label={t("Attendance")} value={<bdi>{formatPercent(presentPct, lang)}</bdi>}
+              hint={marked.length ? t("{n} recorded sessions", { n: fmtNum(marked.length, lang) }) : t("Sample average")} />
+            <SummaryTile icon={BookOpen} tone="brand" label={t("Enrolled classes")} value={fmtNum(s.classIds.length, lang)}
+              hint={packages.length ? t("{n} package sessions left", { n: fmtNum(packages.reduce((n, p) => n + Math.max(0, p.left), 0), lang) }) : t("No packages")} />
+          </div>
         </div>
       </header>
-      <div className="mb-6 grid grid-cols-3 gap-4 border-b pb-5">
-        <Stat label={t("Total paid")} value={<Money value={paid} />} /><Stat label={t("Attendance")} value={`${fmtNum(presentPct, lang)}%`} /><Stat label={t("Enrolled classes")} value={fmtNum(s.classIds.length, lang)} />
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <Tabs value={tab} onValueChange={setTab} dir={lang === "ar" ? "rtl" : "ltr"} className="min-w-0">
+          <div className="surface mb-4 overflow-x-auto px-4">
+            <TabsList className="workspace-tabs min-w-max justify-start">
+              <TabsTrigger value="overview">{t("Overview")}</TabsTrigger>
+              <TabsTrigger value="enroll">{t("Enrollments & billing")}</TabsTrigger>
+              <TabsTrigger value="att">{t("Attendance")}</TabsTrigger>
+              <TabsTrigger value="fin">{t("Statement")}</TabsTrigger>
+              <TabsTrigger value="guardian">{t("Guardian")}</TabsTrigger>
+              <TabsTrigger value="edit">{t("Personal details")}</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="overview" className="mt-0 space-y-5">
+            <Panel title={t("Enrolled classes")} subtitle={t("Billing rule and package balance per class")} icon={BookOpen} bodyClass="px-0 pb-1"
+              action={<Button size="sm" variant="ghost" className="text-brand" onClick={() => setTab("enroll")}>{t("Manage")}</Button>}>
+              <ul className="divide-y border-t">{enrollments.map((e) => <EnrollmentRow key={e.cid} e={e} />)}</ul>
+            </Panel>
+            <Panel title={t("Recent statement")} subtitle={t("Latest ledger entries for this student")} icon={Receipt}
+              action={<Button size="sm" variant="ghost" className="text-brand" onClick={() => setTab("fin")}>{t("Full statement")}</Button>}>
+              <TxnList rows={mine.slice(0, 5)} label={typeLabel} rev={rev} studentId={s.id} compact />
+            </Panel>
+          </TabsContent>
+
+          <TabsContent value="enroll" className="mt-0">
+            <Panel title={t("Enrollments & billing rules")} subtitle={t("Class rules apply unless the student has their own")} bodyClass="px-0 pb-1">
+              <ul className="divide-y border-t">
+                {enrollments.map((e) => (
+                  <EnrollmentRow key={e.cid} e={e} actions={<>
+                    {e.rule.kind === "package" && <Button size="sm" variant="outline" onClick={() => setSelling(e.cid)}><PackagePlus className="size-4" />{t("Add package")}</Button>}
+                    <Button size="sm" variant="outline" onClick={() => { setRuleFor(e.cid); setUseOwn(e.source === "enrollment"); setDraft(e.rule); setRuleError(""); }}><Pencil className="size-4" />{t("Billing rule")}</Button>
+                  </>} />
+                ))}
+              </ul>
+            </Panel>
+          </TabsContent>
+
+          <TabsContent value="att" className="mt-0">
+            <Panel title={t("Attendance history")} subtitle={marked.length ? t("Present {p} · Absent {a} · Excused {e}", { p: fmtNum(marked.filter((r) => r.marks[id] === "Present").length, lang), a: fmtNum(marked.filter((r) => r.marks[id] === "Absent").length, lang), e: fmtNum(marked.filter((r) => r.marks[id] === "Excused").length, lang) }) : undefined} icon={CalendarCheck} bodyClass="px-0 pb-1">
+              {attendance.length === 0 ? <EmptyState icon={CalendarCheck} title={t("No attendance recorded yet")} hint={t("Attendance appears here once a teacher marks a session.")} compact /> : (
+                <ul className="divide-y border-t">{attendance.map((r) => {
+                  const m = r.marks[id];
+                  const tone: Tone = m === "Present" ? "positive" : m === "Absent" ? "negative" : m === "Excused" ? "warning" : "neutral";
+                  return (
+                    <li key={r.sessionId}>
+                      <Link to="/attendance" search={{ classId: r.classId, date: r.date }} className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-muted/40">
+                        <div className="w-14 shrink-0 text-center"><div className="font-display text-base font-bold leading-none num">{Number(r.date.slice(8))}</div><div className="mt-1 text-[10px] uppercase text-muted-foreground">{shortDateL(r.date, lang).replace(/^\d+\s*/, "")}</div></div>
+                        <div className="min-w-0 flex-1"><bdi className="block truncate font-medium">{classById(r.classId).name}</bdi><div className="text-xs text-muted-foreground">{r.finalized ? t("Finalized") : t("Not finalized")}</div></div>
+                        <Pill tone={tone} dot>{t(m ?? "Unmarked")}</Pill>
+                      </Link>
+                    </li>
+                  );
+                })}</ul>)}
+            </Panel>
+          </TabsContent>
+
+          <TabsContent value="fin" className="mt-0">
+            <Panel title={t("Financial statement")} subtitle={t("Balance context is the end-of-day balance; pending and reversed entries are excluded.")} icon={Receipt}
+              action={<div className="text-end"><div className="text-[11px] text-muted-foreground">{t("Balance today")}</div><div className={cn("font-display text-lg font-bold num", owes ? "text-destructive" : credit ? "text-positive" : "text-foreground")}><Money value={Math.abs(balance)} /></div></div>}>
+              <TxnList rows={mine} label={typeLabel} rev={rev} studentId={s.id} />
+            </Panel>
+          </TabsContent>
+
+          <TabsContent value="guardian" className="mt-0">
+            <Panel title={t("Parent / Guardian")} icon={Users}><GuardianCard name={s.guardian} phone={s.guardianPhone} /></Panel>
+          </TabsContent>
+
+          <TabsContent value="edit" className="mt-0">
+            <Panel title={t("Personal details")} icon={IdCard}>
+              <p className="mb-4 flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2.5 text-[13px] text-muted-foreground"><Lock className="mt-0.5 size-4 shrink-0" />{t("Student details are read-only. Editing is not implemented; no changes are saved.")}</p>
+              <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+                {[[t("Full name"), s.name], [t("Student ID"), s.id], [t("Phone"), s.phone], [t("Grade"), t(s.grade)], [t("Branch"), t(s.branch)], [t("Joined"), shortDateL(s.joined, lang)], [t("Guardian name"), s.guardian], [t("Guardian phone"), s.guardianPhone || "—"]].map(([key, value]) => (
+                  <div key={key} className="min-w-0 rounded-lg border px-3 py-2.5"><dt className="text-[11px] font-medium text-muted-foreground">{key}</dt><dd className="mt-0.5 break-words text-sm font-medium"><bdi>{value}</bdi></dd></div>
+                ))}
+              </dl>
+            </Panel>
+          </TabsContent>
+        </Tabs>
+
+        {/* Context panel */}
+        <aside className="space-y-5">
+          <Panel title={t("Guardian")} icon={Users}><GuardianCard name={s.guardian} phone={s.guardianPhone} compact /></Panel>
+          {packages.length > 0 && (
+            <Panel title={t("Package sessions")} icon={PackageCheck}>
+              <ul className="space-y-4">
+                {packages.map((p) => p.rule.kind === "package" && (
+                  <li key={p.cid}>
+                    <div className="flex items-baseline justify-between gap-2 text-[13px]"><bdi className="min-w-0 truncate font-medium">{p.c.name}</bdi><span className={cn("shrink-0 font-semibold num", p.left <= 1 ? "text-warning" : "text-foreground")}>{fmtNum(Math.max(0, p.left), lang)}/{fmtNum(p.rule.sessions, lang)}</span></div>
+                    <Meter className="mt-1.5" value={(Math.max(0, p.left) / Math.max(p.rule.sessions, p.left)) * 100} tone={p.left <= 1 ? "warning" : "lavender"} label={t("Remaining sessions")} />
+                    <div className="mt-1 text-[11px] text-muted-foreground">{t(p.left <= 0 ? "Package used up" : "{n} sessions left", { n: fmtNum(p.left, lang) })}</div>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+          <Panel title={t("Contact")} icon={Phone}>
+            <dl className="space-y-3 text-sm">
+              <div className="flex items-center justify-between gap-2"><dt className="text-muted-foreground">{t("Phone")}</dt><dd className="font-medium"><bdi dir="ltr">{s.phone}</bdi></dd></div>
+              <div className="flex items-center justify-between gap-2"><dt className="text-muted-foreground">{t("Branch")}</dt><dd className="font-medium">{t(s.branch)}</dd></div>
+              <div className="flex items-center justify-between gap-2"><dt className="text-muted-foreground">{t("Joined")}</dt><dd className="font-medium">{shortDateL(s.joined, lang)}</dd></div>
+            </dl>
+          </Panel>
+        </aside>
       </div>
-      <Tabs value={tab} onValueChange={setTab} dir={lang === "ar" ? "rtl" : "ltr"}>
-        <div className="overflow-x-auto"><TabsList className="workspace-tabs h-auto min-w-full justify-start gap-3"><TabsTrigger value="overview">{t("Overview")}</TabsTrigger><TabsTrigger value="enroll">{t("Enrollments & Billing Rules")}</TabsTrigger><TabsTrigger value="att">{t("Attendance")}</TabsTrigger><TabsTrigger value="fin">{t("Ledger")}</TabsTrigger><TabsTrigger value="guardian">{t("Parent / Guardian")}</TabsTrigger><TabsTrigger value="edit">{t("Edit")}</TabsTrigger></TabsList></div>
-        <TabsContent value="overview" className="mt-5"><div className="grid gap-5 lg:grid-cols-2"><Panel title={t("Personal information")}><dl className="grid grid-cols-2 gap-5 text-sm">{[[t("Full name"), s.name], [t("Phone"), s.phone], [t("Grade"), t(s.grade)], [t("Branch"), t(s.branch)], [t("Joined"), shortDateL(s.joined, lang)]].map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words font-medium"><bdi>{value}</bdi></dd></div>)}</dl></Panel><Panel title={t("Enrolled classes")}><ul className="divide-y">{s.classIds.map((cid) => <li key={cid} className="py-3 first:pt-0"><bdi className="block text-sm font-medium">{classById(cid).name}</bdi><p className="mt-1 text-xs text-muted-foreground">{ruleSummary(L.ruleFor(s.id, cid).rule, t, lang)}</p></li>)}</ul></Panel></div></TabsContent>
-        <TabsContent value="guardian" className="mt-5"><Panel title={t("Parent / Guardian")}><div className="grid gap-4 sm:grid-cols-2"><div><p className="text-xs text-muted-foreground">{t("Guardian name")}</p><bdi className="mt-1 block font-medium">{s.guardian}</bdi></div><div><p className="text-xs text-muted-foreground">{t("Guardian phone")}</p><bdi className="mt-1 block font-medium">{s.guardianPhone || "—"}</bdi></div></div>{s.guardianPhone && <div className="mt-5 flex gap-2"><Button asChild variant="outline"><a href={`tel:${s.guardianPhone}`}><Phone />{t("Call")}</a></Button><Button asChild variant="outline"><a href={`https://wa.me/2${s.guardianPhone}`} target="_blank" rel="noreferrer"><MessageCircle />{t("WhatsApp")}</a></Button></div>}</Panel></TabsContent>
-        <TabsContent value="enroll" className="mt-4"><Panel bodyClass="p-0"><ul className="divide-y">
-          {s.classIds.map((cid) => {
-            const c = classById(cid);
-            const { rule, source } = L.ruleFor(s.id, cid);
-            const left = rule.kind === "package" ? packageRemaining(L.entries, s.id, cid) : 0;
-            return (
-              <li key={cid} className="flex flex-col gap-3 px-5 py-4 text-sm sm:flex-row sm:items-center">
-                <div className="min-w-0 flex-1">
-                  <div className="break-words font-medium">{c.name}</div>
-                  <div className="text-xs text-muted-foreground">{teacherById(c.teacherId).name} · {localDays(c.days, t)} · {localTime(c.time, lang)}</div>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <Pill tone={source === "enrollment" ? "brand" : "neutral"}>{ruleKindLabel(rule, t)}{source === "enrollment" ? ` · ${t("own rule")}` : ` · ${t("class rule")}`}</Pill>
-                    <span className="text-xs text-muted-foreground">{ruleSummary(rule, t, lang)}</span>
-                    {rule.kind === "package" && <Pill tone={left > 0 ? "positive" : "warning"}>{t("{n} sessions left", { n: fmtNum(left, lang) })}</Pill>}
-                    {rule.kind === "package" && <meter className="h-2 w-28" min={0} max={Math.max(rule.sessions, left)} value={Math.max(0, left)} aria-label={t("Remaining sessions")} /> }
-                  </div>
-                </div>
-                <div className="flex shrink-0 flex-wrap gap-2">
-                  {rule.kind === "package" && <Button size="sm" variant="outline" onClick={() => setSelling(cid)}><PackagePlus className="size-4" />{t("Add package")}</Button>}
-                  <Button size="sm" variant="outline" onClick={() => { setRuleFor(cid); setUseOwn(source === "enrollment"); setDraft(rule); setRuleError(""); }}><Pencil className="size-4" />{t("Billing rule")}</Button>
-                </div>
-              </li>
-            );
-          })}
-        </ul></Panel></TabsContent>
-        <TabsContent value="att" className="mt-4"><Panel bodyClass="p-0">
-          {attendance.length === 0 ? <EmptyState title={t("No attendance recorded yet")} hint={t("Attendance appears here once a teacher marks a session.")} /> : (
-            <ul className="divide-y">{attendance.map((r) => {
-              const m = r.marks[id];
-              return <li key={r.sessionId} className="flex items-center justify-between gap-3 px-5 py-2.5 text-sm"><span>{shortDateL(r.date, lang)} · {classById(r.classId).name}</span><Pill tone={m === "Present" ? "positive" : m === "Absent" ? "negative" : m === "Excused" ? "warning" : "neutral"}>{t(m ?? "Unmarked")}</Pill></li>;
-            })}</ul>)}
-        </Panel></TabsContent>
-        <TabsContent value="fin" className="mt-4"><section><div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2"><h2 className="text-sm font-semibold">{t("Ledger")}</h2><StudentBalance value={balance} /></div><p className="mb-4 text-xs text-muted-foreground">{t("Balance context is the end-of-day balance; pending and reversed entries are excluded.")}</p><TxnList rows={mine} label={typeLabel} rev={rev} studentId={s.id} /></section></TabsContent>
-        <TabsContent value="edit" className="mt-4">
-          <h2 className="mb-2 text-sm font-semibold">{t("Personal information")}</h2><p className="mb-4 text-sm text-muted-foreground">{t("Student details are read-only. Editing is not implemented; no changes are saved.")}</p>
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-5 border-y py-4 text-sm">{[[t("Full name"), s.name], [t("Phone"), s.phone], [t("Grade"), t(s.grade)], [t("Branch"), t(s.branch)], [t("Joined"), shortDateL(s.joined, lang)], [t("Guardian name"), s.guardian], [t("Guardian phone"), s.guardianPhone || "—"]].map(([key, value]) => <div key={key} className="min-w-0"><dt className="text-xs text-muted-foreground">{key}</dt><dd className="mt-1 break-words font-medium"><bdi>{value}</bdi></dd></div>)}</dl>
-          {s.guardianPhone && <div className="mt-3 flex flex-wrap gap-2"><Button variant="outline" asChild><a href={`tel:${s.guardianPhone}`}><Phone />{t("Call")}</a></Button><Button variant="outline" asChild><a href={`https://wa.me/2${s.guardianPhone}`} target="_blank" rel="noreferrer"><MessageCircle />{t("WhatsApp guardian")}</a></Button></div>}
-        </TabsContent>
-      </Tabs>
 
       <Dialog open={!!ruleFor} onOpenChange={(o) => !o && setRuleFor(null)}>
-        <DialogContent className="max-h-[92vh] overflow-y-auto">
+        <DialogContent className="max-h-[92vh] overflow-y-auto" dir={lang === "ar" ? "rtl" : "ltr"}>
           <DialogHeader>
             <DialogTitle>{t("Billing rule")} · {ruleFor ? classById(ruleFor).name : ""}</DialogTitle>
             <DialogDescription>{t("Applies to future finalized sessions for this student only. Posted charges are not recalculated. Demo only, not saved.")}</DialogDescription>
@@ -151,7 +249,7 @@ function Profile() {
       </Dialog>
 
       <AlertDialog open={!!selling} onOpenChange={(o) => !o && setSelling(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent dir={lang === "ar" ? "rtl" : "ltr"}>
           {selling && (() => { const r = L.ruleFor(s.id, selling).rule; return r.kind === "package" ? (<>
             <AlertDialogHeader>
               <AlertDialogTitle>{t("Add a package")} · {classById(selling).name}</AlertDialogTitle>
@@ -165,24 +263,100 @@ function Profile() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: ReactNode }) {
-  return <div className="min-w-0"><div className="text-xs text-muted-foreground">{label}</div><div className="mt-1 text-lg font-semibold num">{value}</div></div>;
+type Enrollment = { cid: string; c: ClassItem; rule: BillingRule; source: "class" | "enrollment"; left: number };
+
+function EnrollmentRow({ e, actions }: { e: Enrollment; actions?: ReactNode }) {
+  const { t, lang } = useI18n();
+  return (
+    <li className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center">
+      <IconTile icon={BookOpen} tone={e.c.kind === "Tutoring" ? "brand" : "teal"} className="hidden size-9 sm:grid [&_svg]:size-4" />
+      <div className="min-w-0 flex-1">
+        <bdi className="block break-words text-sm font-semibold">{e.c.name}</bdi>
+        <div className="mt-0.5 text-xs text-muted-foreground"><bdi>{teacherById(e.c.teacherId).name}</bdi> · {localDays(e.c.days, t)} · <bdi>{localTime(e.c.time, lang)}</bdi></div>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <Pill tone={e.source === "enrollment" ? "brand" : "neutral"}>{ruleKindLabel(e.rule, t)} · {t(e.source === "enrollment" ? "own rule" : "class rule")}</Pill>
+          <span className="text-xs text-muted-foreground">{ruleSummary(e.rule, t, lang)}</span>
+        </div>
+        {e.rule.kind === "package" && (
+          <div className="mt-2 flex max-w-xs items-center gap-2">
+            <Meter value={(Math.max(0, e.left) / Math.max(e.rule.sessions, e.left)) * 100} tone={e.left <= 1 ? "warning" : "lavender"} label={t("Remaining sessions")} />
+            <span className={cn("shrink-0 text-xs font-semibold num", e.left <= 1 ? "text-warning" : "text-foreground")}>{t("{n} sessions left", { n: fmtNum(e.left, lang) })}</span>
+          </div>
+        )}
+      </div>
+      {actions && <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>}
+    </li>
+  );
 }
-function TxnList({ rows, label, rev, studentId }: { rows: LedgerEntry[]; label: (x: LedgerEntry) => string; rev: Set<string>; studentId: string }) {
+
+function SummaryTile({ icon, tone, label, value, hint }: { icon: typeof Wallet; tone: Tone; label: string; value: ReactNode; hint: ReactNode }) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 rounded-xl border bg-card px-3.5 py-3">
+      <IconTile icon={icon} tone={tone} />
+      <div className="min-w-0"><div className="truncate text-[11px] font-medium text-muted-foreground">{label}</div><div className="truncate font-display text-lg font-bold tracking-tight num">{value}</div><div className="truncate text-[11px] text-muted-foreground">{hint}</div></div>
+    </div>
+  );
+}
+
+function GuardianCard({ name, phone, compact = false }: { name: string; phone: string; compact?: boolean }) {
+  const { t } = useI18n();
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        <Avatar name={name} size="lg" />
+        <div className="min-w-0"><bdi className="block truncate font-semibold">{name}</bdi><div className="text-xs text-muted-foreground">{phone ? <bdi dir="ltr">{phone}</bdi> : t("No phone on file")}</div></div>
+      </div>
+      {phone && (
+        <div className={cn("mt-4 grid gap-2", compact ? "grid-cols-2" : "max-w-sm grid-cols-2")}>
+          <Button asChild variant="outline" size="sm"><a href={`tel:${phone}`}><Phone />{t("Call")}</a></Button>
+          <Button asChild variant="outline" size="sm"><a href={`https://wa.me/2${phone}`} target="_blank" rel="noreferrer"><MessageCircle className="text-positive" />{t("WhatsApp")}</a></Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const entryMeta: Record<LedgerEntry["type"], [typeof Wallet, Tone]> = {
+  Charge: [Receipt, "brand"], Payment: [Banknote, "positive"], Refund: [Undo2, "coral"], Discount: [BadgePercent, "lavender"], Reversal: [RotateCcw, "neutral"], PackageUse: [PackageCheck, "teal"],
+};
+
+function TxnList({ rows, label, rev, studentId, compact = false }: { rows: LedgerEntry[]; label: (x: LedgerEntry) => string; rev: Set<string>; studentId: string; compact?: boolean }) {
   const { t, lang } = useI18n();
   const { entries } = useLedger();
-  if (rows.length === 0) return <EmptyState title={t("No transactions yet")} />;
-  return <ul className="divide-y">{rows.map((entry) => {
-    const status = displayStatus(entry, rev);
-    const context = balancesAsOf(entries, entry.date).get(studentId) ?? 0;
-    const replacement = rows.find((item) => item.replacesId === entry.id);
-    const reversal = rows.find((item) => item.reversesId === entry.id);
-    return <li id={`entry-${entry.id}`} key={entry.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-3 text-sm scroll-mt-20">
-      <div className="min-w-0"><div className="break-words font-medium">{label(entry)}</div><div className="mt-1 break-words text-xs text-muted-foreground"><bdi>{entry.id}</bdi> · {shortDateL(entry.date, lang)} · {entry.method ? t(entry.method) : entry.reason ?? (entry.classId ? classById(entry.classId).name : "—")}</div>
-        <div className="mt-1 flex flex-wrap gap-2 text-xs text-brand">{[entry.reversesId, entry.replacesId, reversal?.id, replacement?.id].filter((id): id is string => !!id).map((id) => <a key={id} href={`#entry-${id}`} className="underline"><bdi>{id}</bdi></a>)}</div>
-        <div className="mt-1 text-xs text-muted-foreground">{t("End-of-day balance")} · {t(context > 0 ? "Owing" : context < 0 ? "Credit" : "Settled")} · <Money value={Math.abs(context)} /></div>
-      </div>
-      <div className="shrink-0 text-right"><div className={cn("whitespace-nowrap font-medium num", entry.type === "Payment" && status === "Completed" ? "text-positive" : "text-muted-foreground", status === "Reversed" && "line-through")}>{entry.type === "PackageUse" ? t("1 session") : <bdi>{entry.type === "Payment" || entry.type === "Discount" ? "−" : entry.type === "Charge" || entry.type === "Refund" ? "+" : ""}<Money value={entry.amount} /></bdi>}</div><div className="mt-1 text-xs text-muted-foreground">{t(status)}</div></div>
-    </li>;
-  })}</ul>;
+  if (rows.length === 0) return <EmptyState icon={Receipt} title={t("No transactions yet")} compact />;
+  return (
+    <ol className="relative">
+      {rows.map((entry, i) => {
+        const status = displayStatus(entry, rev);
+        const context = balancesAsOf(entries, entry.date).get(studentId) ?? 0;
+        const replacement = rows.find((item) => item.replacesId === entry.id);
+        const reversal = rows.find((item) => item.reversesId === entry.id);
+        const [EIcon, tone] = entryMeta[entry.type];
+        const sign = entry.type === "Payment" || entry.type === "Discount" ? "−" : entry.type === "Charge" || entry.type === "Refund" ? "+" : "";
+        const links = [entry.reversesId, entry.replacesId, reversal?.id, replacement?.id].filter((x): x is string => !!x);
+        const detail = entry.method ? t(entry.method) : noteText(entry.reason ?? entry.note, t, lang) ?? (entry.classId ? classById(entry.classId).name : "—");
+        return (
+          <li id={compact ? undefined : `entry-${entry.id}`} key={entry.id} className="relative flex scroll-mt-24 gap-3 pb-4 last:pb-0">
+            {i < rows.length - 1 && <span aria-hidden className="absolute start-4 top-9 bottom-0 w-px bg-border" />}
+            <IconTile icon={EIcon} tone={status === "Reversed" ? "neutral" : tone} className="relative size-8 rounded-full [&_svg]:size-3.5" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5"><span className="break-words text-sm font-medium">{label(entry)}</span>{status !== "Completed" && <Pill tone={status === "Pending" ? "warning" : "neutral"}>{t(status)}</Pill>}</div>
+                  <div className="mt-0.5 break-words text-xs text-muted-foreground"><bdi dir="ltr">{entry.id}</bdi> · {shortDateL(entry.date, lang)} · <bdi>{detail}</bdi></div>
+                </div>
+                <div className="shrink-0 text-end">
+                  <div className={cn("whitespace-nowrap text-sm font-semibold num", entry.type === "Payment" && status === "Completed" ? "text-positive" : status === "Reversed" ? "text-muted-foreground line-through" : "text-foreground")}>
+                    {entry.type === "PackageUse" ? t("1 session") : <bdi>{sign}<Money value={entry.amount} /></bdi>}
+                  </div>
+                </div>
+              </div>
+              {!compact && links.length > 0 && <div className="mt-1 flex flex-wrap gap-2 text-xs">{links.map((lid) => <a key={lid} href={`#entry-${lid}`} className="rounded bg-tint-blue px-1.5 py-0.5 font-medium text-tint-blue-ink hover:underline"><bdi dir="ltr">{lid}</bdi></a>)}</div>}
+              {!compact && <div className="mt-1 text-[11px] text-muted-foreground">{t("End-of-day balance")} · {t(context > 0 ? "Owing" : context < 0 ? "Credit" : "Settled")} · <Money value={Math.abs(context)} /></div>}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
 }

@@ -23,9 +23,13 @@ export function CommandSearch() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
   return <>
-    <Button variant="outline" aria-label={t("Search students and classes")} title={t("Search students and classes")} onClick={() => setOpen(true)} className="h-9 w-full justify-start border-transparent bg-muted/65 px-3 text-muted-foreground shadow-none md:w-64">
-      <Search className="size-4 shrink-0" /><span className="min-w-0 truncate text-xs">{t("Search students and classes")}</span>
+    <Button variant="ghost" size="icon" aria-label={t("Search students and classes")} title={t("Search students and classes")} onClick={() => setOpen(true)} className="size-9 text-muted-foreground lg:hidden">
+      <Search />
     </Button>
+    <button type="button" aria-label={t("Search students and classes")} onClick={() => setOpen(true)} className="hidden h-9 w-52 items-center gap-2 rounded-lg border bg-muted/60 px-3 text-start text-muted-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring lg:flex 2xl:w-72">
+      <Search className="size-4 shrink-0" /><span className="min-w-0 flex-1 truncate text-xs">{t("Search students and classes")}</span>
+      <kbd className="hidden shrink-0 rounded border bg-card px-1.5 py-0.5 font-sans text-[10px] font-medium text-muted-foreground lg:inline" dir="ltr">Ctrl K</kbd>
+    </button>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent dir={lang === "ar" ? "rtl" : "ltr"} className="overflow-hidden p-0" >
         <DialogTitle className="sr-only">{t("Search students and classes")}</DialogTitle>

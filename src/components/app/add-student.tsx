@@ -18,7 +18,7 @@ import { ruleKindLabel, ruleSummary } from "@/lib/l10n";
 import { contactErrors } from "@/lib/student-display";
 
 export const GRADES = ["Thanaweya 3", "Thanaweya 2", "Thanaweya 1", "Prep 3", "Adult"];
-export function AddStudent() {
+export function AddStudent({ className, variant }: { className?: string; variant?: "default" | "outline" | "secondary" | "ghost" } = {}) {
   const { t, lang } = useI18n();
   const { addStudent, classRule, classes } = useLedger();
   const mobile = useIsMobile();
@@ -71,5 +71,5 @@ export function AddStudent() {
   </form>;
   const description = t("Demo only: the student is added to the sample data in this tab and disappears on refresh.");
   const wrap = (children: ReactNode) => <div className="mx-auto w-full max-w-2xl space-y-5">{children}</div>;
-  return <><Button onClick={() => { reset(); setOpen(true); }}><UserPlus />{t("Add student")}</Button>{mobile ? <Sheet open={open} onOpenChange={setOpen}><SheetContent side="bottom" dir={lang === "ar" ? "rtl" : "ltr"} className="h-dvh w-full overflow-y-auto px-4 pb-6 pt-12">{wrap(<><SheetTitle>{t("Add student")}</SheetTitle><SheetDescription>{description}</SheetDescription>{content}</>)}</SheetContent></Sheet> : <Dialog open={open} onOpenChange={setOpen}><DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl" dir={lang === "ar" ? "rtl" : "ltr"}><DialogHeader><DialogTitle>{t("Add student")}</DialogTitle><DialogDescription>{description}</DialogDescription></DialogHeader>{content}</DialogContent></Dialog>}</>;
+  return <><Button variant={variant} className={className} onClick={() => { reset(); setOpen(true); }}><UserPlus />{t("Add student")}</Button>{mobile ? <Sheet open={open} onOpenChange={setOpen}><SheetContent side="bottom" dir={lang === "ar" ? "rtl" : "ltr"} className="h-dvh w-full overflow-y-auto px-4 pb-6 pt-12">{wrap(<><SheetTitle>{t("Add student")}</SheetTitle><SheetDescription>{description}</SheetDescription>{content}</>)}</SheetContent></Sheet> : <Dialog open={open} onOpenChange={setOpen}><DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl" dir={lang === "ar" ? "rtl" : "ltr"}><DialogHeader><DialogTitle>{t("Add student")}</DialogTitle><DialogDescription>{description}</DialogDescription></DialogHeader>{content}</DialogContent></Dialog>}</>;
 }
