@@ -65,7 +65,7 @@ function SignUp() {
 
   if (sentTo) {
     return (
-      <AuthLayout title={t("Check your email")} footer={<Link to="/" className="font-medium text-brand hover:underline">{t("Back to sign in")}</Link>}>
+      <AuthLayout title={t("Check your email")} footer={<Link to="/login" className="font-medium text-brand hover:underline">{t("Back to sign in")}</Link>}>
         <div className="flex items-start gap-3 rounded-lg border bg-card p-4 text-sm">
           <MailCheck className="mt-0.5 size-5 shrink-0 text-positive" />
           <p>{t("We sent a confirmation link to {email}. Open it, then sign in to finish setting up your center.", { email: sentTo })}</p>
@@ -76,7 +76,7 @@ function SignUp() {
 
   return (
     <AuthLayout title={t("Create your account")} subtitle={t("Set up your center in a minute. You will be its owner.")}
-      footer={<>{t("Already have an account?")} <Link to="/" className="font-medium text-brand hover:underline">{t("Sign in")}</Link></>}>
+      footer={<>{t("Already have an account?")} <Link to="/login" className="font-medium text-brand hover:underline">{t("Sign in")}</Link></>}>
       <form className="space-y-4" onSubmit={submit} noValidate>
         <Field id="su-name" label={t("Your name")} autoComplete="name" value={form.name} onChange={set("name")} error={errors["name"]} />
         <Field id="su-email" label={t("Email")} type="email" autoComplete="email" dir="ltr" value={form.email} onChange={set("email")} error={errors["email"]} />

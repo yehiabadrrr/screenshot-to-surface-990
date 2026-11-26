@@ -21,9 +21,9 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/_console")({
   ssr: false,
   beforeLoad: async ({ location }) => {
-    if (!isSupabaseConfigured) throw redirect({ to: "/" });
+    if (!isSupabaseConfigured) throw redirect({ to: "/login" });
     const session = await currentSession();
-    if (!session) throw redirect({ to: "/", search: { redirect: location.href } });
+    if (!session) throw redirect({ to: "/login", search: { redirect: location.href } });
   },
   pendingComponent: ConsoleSplash,
   component: ConsoleLayout,
@@ -55,7 +55,7 @@ function ConsoleLayout() {
   const { status, user } = useAuth();
   const { t } = useI18n();
   const centers = useQuery({ queryKey: ["centers", user?.id], queryFn: () => getMyCenters(), enabled: status === "signedIn" });
-  if (status === "signedOut") return <Navigate to="/" />;
+  if (status === "signedOut") return <Navigate to="/login" />;
   if (status !== "signedIn" || !user || centers.isPending) return <ConsoleSplash label={t("Loading your center…")} />;
   if (centers.isError) return <ConsoleError message={errorMessage(centers.error, "Could not load your centers.")} retry={() => void centers.refetch()} />;
   if (!centers.data.length) return <Navigate to="/onboarding" />;

@@ -44,7 +44,7 @@ export function RecordPaymentDialog({ trigger, studentId, controlledOpen, onOpen
     const st = students.find((x) => x.id === id);
     if (st) { setBranch(st.branch); setClassId(st.classIds[0] ?? NO_CLASS); }
   };
-  const reset = () => { setAmount(""); setReference(""); setNote(""); setError(""); setStatus("Completed"); setDate(todayIso()); };
+  const reset = () => { setAmount(""); setMethod("Cash"); setReference(""); setNote(""); setError(""); setStatus("Completed"); setDate(todayIso()); };
   const optional = <span className="font-normal text-muted-foreground">({t("optional")})</span>;
 
   return (

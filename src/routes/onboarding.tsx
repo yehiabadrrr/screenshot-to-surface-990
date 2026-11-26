@@ -17,7 +17,7 @@ import { PENDING_CENTER_KEY, splitBranches } from "@/lib/auth-forms";
 export const Route = createFileRoute("/onboarding")({
   ssr: false,
   beforeLoad: async () => {
-    if (!isSupabaseConfigured || !(await currentSession())) throw redirect({ to: "/" });
+    if (!isSupabaseConfigured || !(await currentSession())) throw redirect({ to: "/login" });
   },
   head: pageHead("Set up your center", "Create your Markazly center."),
   component: Onboarding,
@@ -40,7 +40,7 @@ function Onboarding() {
   const [busy, setBusy] = useState(false);
   const centers = useQuery({ queryKey: ["centers", user?.id], queryFn: () => getMyCenters(), enabled: status === "signedIn" });
 
-  if (status === "signedOut") return <Navigate to="/" />;
+  if (status === "signedOut") return <Navigate to="/login" />;
   if (centers.data?.length) return <Navigate to="/overview" />;
 
   const submit = async (e: FormEvent) => {
@@ -69,7 +69,7 @@ function Onboarding() {
 
   return (
     <AuthLayout title={t("Set up your center")} subtitle={t("You will be its owner. You can add branches later.")}
-      footer={<button type="button" onClick={() => void signOut().then(() => navigate({ to: "/" }))} className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline"><LogOut className="size-3.5 rtl:-scale-x-100" />{t("Sign out")}</button>}>
+      footer={<button type="button" onClick={() => void signOut().then(() => navigate({ to: "/login" }))} className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline"><LogOut className="size-3.5 rtl:-scale-x-100" />{t("Sign out")}</button>}>
       <form className="space-y-4" onSubmit={submit} noValidate>
         <Field id="ob-center" label={t("Center name")} value={name} onChange={(e) => setName(e.target.value)} error={errors["name"]} />
         <Field id="ob-branches" label={t("Branches")} value={branches} onChange={(e) => setBranches(e.target.value)} error={errors["branches"]} hint={t("Separate branches with commas, e.g. Nasr City, Maadi")} />

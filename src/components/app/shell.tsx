@@ -199,7 +199,7 @@ function UserMenu() {
   const leave = async () => {
     await signOut();
     queryClient.clear(); // no data from this session survives sign-out
-    void navigate({ to: "/", replace: true });
+    void navigate({ to: "/login", replace: true });
   };
   return (
     <DropdownMenu dir={lang === "ar" ? "rtl" : "ltr"}>

@@ -78,6 +78,21 @@ export const students: Student[] = Array.from({ length: 300 }, (_, i) => {
   };
 });
 
+/** Demo students renamed by the uniqueness pass below (original seed name → current name). The Demo Center seed keeps `from`; a later migration applies `to`. */
+export const demoRenames: { id: string; from: string; to: string }[] = [];
+// Keep demo names unique: a duplicate takes the next unused first name with the same surname (no extra rnd() calls, so all other seed data is unchanged).
+{
+  const used = new Set<string>();
+  for (const s of students) {
+    const [fn, ...rest] = s.name.split(" ");
+    const ln = rest.join(" ");
+    let i = first.indexOf(fn!);
+    for (let n = 0; used.has(s.name) && n < first.length; n++) { i = (i + 1) % first.length; s.name = `${first[i]} ${ln}`; }
+    if (s.name !== `${fn} ${ln}`) demoRenames.push({ id: s.id, from: `${fn} ${ln}`, to: s.name });
+    used.add(s.name);
+  }
+}
+
 export const studentById = (id: string) => students.find((s) => s.id === id);
 export const teacherById = (id: string) => teachers.find((t) => t.id === id)!;
 export const classById = (id: string) => classes.find((c) => c.id === id)!;

@@ -33,7 +33,7 @@ function ForgotPassword() {
 
   return (
     <AuthLayout title={t("Reset your password")} subtitle={sent ? undefined : t("We will email you a link to choose a new password.")}
-      footer={<Link to="/" className="font-medium text-brand hover:underline">{t("Back to sign in")}</Link>}>
+      footer={<Link to="/login" className="font-medium text-brand hover:underline">{t("Back to sign in")}</Link>}>
       {sent ? (
         <div className="flex items-start gap-3 rounded-lg border bg-card p-4 text-sm">
           <MailCheck className="mt-0.5 size-5 shrink-0 text-positive" />
