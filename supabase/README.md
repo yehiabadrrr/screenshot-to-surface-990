@@ -117,7 +117,7 @@ Authentication settings are not schema and cannot live in a migration; record an
 
 | Value | Where it lives |
 | --- | --- |
-| Project URL, publishable key | `.env.local` (gitignored) locally; hosting environment variables in deployment. Public by design. |
+| Project URL, publishable key | `.env.local` (gitignored) locally; `.env.production` (committed) for the Lovable build, which cannot set build variables. Public by design. Production project: `woyazulvvgxilsawkved`. |
 | Service-role key | Supabase dashboard only. Not used by the app. Never in the repo, `.env.example`, CI logs or client code. |
 | Database password, CLI access token | Your machine (`supabase link` / `supabase login`). Never in the repo. |
 | Test user passwords | Your shell or `.env.test.local` (gitignored). |
