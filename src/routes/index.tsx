@@ -1,604 +1,315 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  BookOpenCheck,
-  Building2,
-  Languages,
-  MessageCircle,
-  NotebookPen,
-  Receipt,
-  RotateCcw,
-  UsersRound,
-  Wallet,
-} from "lucide-react";
-import { Logo } from "@/components/app/logo";
-import { SessionDemo, mono } from "@/components/landing/session-demo";
-import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { useI18n, type Lang } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import { CONTACT_WHATSAPP, LANDING_COPY, SAMPLE_NAMES } from "@/components/landing/copy";
+import { RegisterSection } from "@/components/landing/register-demo";
+import landingCss from "@/components/landing/landing.css?url";
 
-/**
- * Sales contact for "Book a demo". Set to an international number without "+"
- * (e.g. "2010xxxxxxxx") to show the WhatsApp buttons; while null they are hidden.
+/*
+ * Landing page, grammar "Ledger feature": editorial chapters whose figures are working
+ * instruments on labelled sample data. Arabic first. Seven chapters:
+ *   1 front desk (layered hero) · 2 where money slips (quiet) · 3 the register (peak: the
+ *   scroll is the class clock) · 4 nothing is erased (wipe) · 5 your rules (lateral rail)
+ *   · 6 questions · 7 the last entry (CTA as a ledger row).
+ * Real app screenshots live in public/landing (Demo Center, light mode).
  */
-const CONTACT_WHATSAPP: string | null = null;
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Markazly — Attendance, fees and teacher pay for education centers in Egypt" },
-      {
-        name: "description",
-        content:
-          "Markazly turns every session into a ledger line: monthly, per-session and package fees, cash, InstaPay and Fawry, and teacher pay, in Arabic and English.",
-      },
-      { property: "og:title", content: "Markazly — Mark attendance. The billing does itself." },
-      {
-        property: "og:description",
-        content: "Back office for tutoring centers and language schools in Egypt.",
-      },
+      { title: LANDING_COPY.en.title },
+      { name: "description", content: LANDING_COPY.en.description },
+      { property: "og:title", content: "Markazly · Mark attendance. The billing does itself." },
+      { property: "og:description", content: "Back office for tutoring centers and language schools in Egypt." },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "/landing/overview-en.jpg" },
+      { property: "og:image", content: "/landing/overview-en.webp" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
-      },
-    ],
+    links: [{ rel: "stylesheet", href: landingCss }],
   }),
   component: Landing,
 });
 
-const COPY = {
-  en: {
-    nav: { how: "How it works", features: "Features", faq: "FAQ", signIn: "Sign in" },
-    eyebrow: "For tutoring centers and language schools in Egypt",
-    title: ["Mark attendance.", "The billing does itself."],
-    lede: "Markazly turns every session into a ledger line: fees by month, by session or by package; cash, InstaPay and Fawry; and teacher pay. One set of numbers that always adds up.",
-    demo: "Try the live demo",
-    book: "Book a demo on WhatsApp",
-    demoNote: "The live demo uses sample data. No sign-up.",
-    problemTitle: "Where the money slips today",
-    problems: [
-      {
-        icon: NotebookPen,
-        t: "The attendance notebook",
-        d: "Sessions get marked on paper, and nobody bills from the paper.",
-      },
-      {
-        icon: Receipt,
-        t: "Payment screenshots",
-        d: "InstaPay transfers live in WhatsApp chats, not in a ledger.",
-      },
-      {
-        icon: UsersRound,
-        t: "Month-end with teachers",
-        d: "Percentage pay gets argued from memory instead of read from collections.",
-      },
-    ],
-    howTitle: "How a session becomes money",
-    steps: [
-      {
-        t: "Mark the register",
-        d: "Present, absent or excused, from a phone at the classroom door.",
-      },
-      {
-        t: "Billing posts by the class rule",
-        d: "Monthly fee, per attended session or a prepaid package. A student can have their own rule.",
-      },
-      {
-        t: "See who owes and what teachers earn",
-        d: "Balances, collections by method and teacher pay, all from the same entries.",
-      },
-    ],
-    shotAlt:
-      "Markazly owner dashboard with revenue, collections, outstanding balances and today's classes",
-    shotCaption:
-      "The owner's dashboard: revenue, collections, balances and today's classes, per branch or for the whole center.",
-    featuresTitle: "What's in it",
-    features: [
-      {
-        icon: BookOpenCheck,
-        t: "Monthly, per session or packages",
-        d: "Set a billing rule per class and override it per student.",
-      },
-      {
-        icon: Wallet,
-        t: "Every way students pay",
-        d: "Record the method and reference, so each transfer can be traced.",
-      },
-      {
-        icon: UsersRound,
-        t: "Teacher pay",
-        d: "Fixed salary, per session, or a percentage of what their classes collect.",
-      },
-      {
-        icon: MessageCircle,
-        t: "WhatsApp to guardians",
-        d: "Open a chat with a guardian's number in one tap.",
-      },
-      {
-        icon: Building2,
-        t: "Every branch, one view",
-        d: "Filter any screen by branch, or see the whole center.",
-      },
-      { icon: Languages, t: "Arabic and English", d: "Switch any screen, right to left included." },
-    ],
-    methods: ["Cash", "InstaPay", "Fawry", "Bank transfer"],
-    trustEyebrow: "Audit trail",
-    trustTitle: "Nothing is erased.",
-    trustBody:
-      "A wrong payment isn't edited or deleted. A reversal is added with the reason and who made it, then the correct amount is posted again. The owner can always see what happened, and the dashboard can't disagree with the transactions.",
-    trustLines: [
-      {
-        id: "TX-43771",
-        what: "Payment · InstaPay · Logy Soliman",
-        amt: "+1,050",
-        by: "Reem, front desk",
-      },
-      {
-        id: "REV-43772",
-        what: "Reversal of TX-43771 · typed 1,050 instead of 1,500",
-        amt: "−1,050",
-        by: "Karim, accountant",
-        rev: true,
-      },
-      {
-        id: "TX-43773",
-        what: "Replaces TX-43771 · same reference",
-        amt: "+1,500",
-        by: "Karim, accountant",
-      },
-    ],
-    pilotTitle: "Free pilot for the first centers",
-    pilotBody:
-      "We're onboarding a small group of centers now. Try the demo, then tell us how your center runs.",
-    faqTitle: "Questions owners ask",
-    faq: [
-      {
-        q: "Does it work on a phone?",
-        a: "Yes. Attendance and payments are designed for a phone at the front desk or the classroom door.",
-      },
-      {
-        q: "Is it in Arabic?",
-        a: "Every screen, right to left. Each person can switch between Arabic and English.",
-      },
-      {
-        q: "We use Excel today. Can we move over?",
-        a: "During the pilot we set it up with you, starting from your current student list.",
-      },
-      {
-        q: "What does the live demo show?",
-        a: "A sample center with three branches and 300 students. Nothing you enter is saved.",
-      },
-    ],
-    footer: "Back office for education centers in Egypt.",
-  },
-  ar: {
-    nav: { how: "بيشتغل إزاي", features: "المميزات", faq: "أسئلة", signIn: "تسجيل الدخول" },
-    eyebrow: "للسناتر ومدارس اللغات في مصر",
-    title: ["سجّل الحضور…", "والحساب بيتعمل لوحده."],
-    lede: "مركزلي بيحوّل كل حصة لقيد في الدفاتر: اشتراك شهري أو بالحصة أو باكدج، كاش وإنستاباي وفوري، ومستحقات المدرسين. أرقام واحدة دايمًا مظبوطة.",
-    demo: "جرّب النسخة التجريبية",
-    book: "احجز عرض على واتساب",
-    demoNote: "النسخة التجريبية ببيانات تجريبية. من غير تسجيل.",
-    problemTitle: "الفلوس بتضيع فين النهارده",
-    problems: [
-      { icon: NotebookPen, t: "كشكول الغياب", d: "الحضور بيتسجّل على ورق، ومحدش بيحاسب من الورق." },
-      {
-        icon: Receipt,
-        t: "سكرين شوت التحويلات",
-        d: "تحويلات إنستاباي في شاتات واتساب، مش في دفتر.",
-      },
-      {
-        icon: UsersRound,
-        t: "آخر الشهر مع المدرسين",
-        d: "النسبة بتتحسب من الذاكرة بدل ما تتقري من التحصيل.",
-      },
-    ],
-    howTitle: "إزاي الحصة بتتحول لفلوس",
-    steps: [
-      { t: "سجّل الحضور", d: "حاضر أو غايب أو بعذر، من الموبايل على باب الفصل." },
-      {
-        t: "الحساب بيتسجّل حسب نظام الفصل",
-        d: "شهري أو بالحصة أو باكدج مدفوع مقدمًا، ولكل طالب نظامه لو حبيت.",
-      },
-      {
-        t: "اعرف مين عليه فلوس والمدرس ليه كام",
-        d: "الأرصدة والتحصيل بطريقة الدفع ومستحقات المدرسين، كلها من نفس القيود.",
-      },
-    ],
-    shotAlt: "لوحة صاحب السنتر في مركزلي: الإيرادات والتحصيل والأرصدة وحصص النهارده",
-    shotCaption:
-      "لوحة صاحب السنتر: الإيرادات والتحصيل والأرصدة وحصص النهارده، لكل فرع أو للسنتر كله.",
-    featuresTitle: "فيه إيه",
-    features: [
-      {
-        icon: BookOpenCheck,
-        t: "شهري أو بالحصة أو باكدج",
-        d: "حدّد نظام الحساب لكل فصل، وغيّره لطالب معيّن لو محتاج.",
-      },
-      { icon: Wallet, t: "كل طرق الدفع", d: "سجّل طريقة الدفع ورقم العملية، عشان أي تحويل يتتبع." },
-      {
-        icon: UsersRound,
-        t: "مستحقات المدرسين",
-        d: "مرتب ثابت، أو بالحصة، أو نسبة من تحصيل فصوله.",
-      },
-      { icon: MessageCircle, t: "واتساب لأولياء الأمور", d: "افتح شات مع ولي الأمر بضغطة واحدة." },
-      {
-        icon: Building2,
-        t: "كل الفروع في مكان واحد",
-        d: "فلتر أي شاشة بالفرع، أو شوف السنتر كله.",
-      },
-      { icon: Languages, t: "عربي وإنجليزي", d: "غيّر لغة أي شاشة، ومن اليمين للشمال." },
-    ],
-    methods: ["كاش", "إنستاباي", "فوري", "تحويل بنكي"],
-    trustEyebrow: "سجل المراجعة",
-    trustTitle: "مفيش حاجة بتتمسح.",
-    trustBody:
-      "الدفعة الغلط مش بتتعدّل ولا بتتمسح. بيتضاف قيد إلغاء بالسبب واسم اللي عمله، وبعدين المبلغ الصح بيتسجّل من جديد. صاحب السنتر دايمًا شايف اللي حصل، واللوحة عمرها ما تختلف عن المعاملات.",
-    trustLines: [
-      {
-        id: "TX-43771",
-        what: "دفعة · إنستاباي · لوجي سليمان",
-        amt: "+1,050",
-        by: "ريم، الاستقبال",
-      },
-      {
-        id: "REV-43772",
-        what: "إلغاء TX-43771 · اتكتب 1,050 بدل 1,500",
-        amt: "−1,050",
-        by: "كريم، المحاسب",
-        rev: true,
-      },
-      {
-        id: "TX-43773",
-        what: "بدل TX-43771 · نفس رقم العملية",
-        amt: "+1,500",
-        by: "كريم، المحاسب",
-      },
-    ],
-    pilotTitle: "تجربة مجانية لأول السناتر",
-    pilotBody:
-      "بنضم مجموعة صغيرة من السناتر دلوقتي. جرّب النسخة التجريبية، وبعدين احكيلنا السنتر بتاعك بيشتغل إزاي.",
-    faqTitle: "أسئلة أصحاب السناتر",
-    faq: [
-      {
-        q: "بيشتغل على الموبايل؟",
-        a: "أيوه. الحضور والمدفوعات معمولين للموبايل على الاستقبال أو على باب الفصل.",
-      },
-      {
-        q: "هو بالعربي؟",
-        a: "كل الشاشات، ومن اليمين للشمال. وكل واحد يقدر يبدّل بين العربي والإنجليزي.",
-      },
-      {
-        q: "إحنا شغالين على إكسل. نقدر ننقل؟",
-        a: "في فترة التجربة بنجهّزه معاك، ونبدأ من قائمة الطلاب اللي عندك.",
-      },
-      {
-        q: "النسخة التجريبية فيها إيه؟",
-        a: "سنتر تجريبي بتلات فروع و300 طالب. مفيش حاجة بتدخلها بتتحفظ.",
-      },
-    ],
-    footer: "إدارة السناتر والمراكز التعليمية في مصر.",
-  },
-} as const;
+const span = (n: number) => ({ "--span": n }) as CSSProperties;
+const waHref = (lang: Lang) => `https://wa.me/${CONTACT_WHATSAPP}?text=${encodeURIComponent(LANDING_COPY[lang].waText)}`;
 
-const waLink = (lang: Lang) =>
-  CONTACT_WHATSAPP
-    ? `https://wa.me/${CONTACT_WHATSAPP}?text=${encodeURIComponent(
-        lang === "ar" ? "أهلًا، عايز أحجز عرض لمركزلي." : "Hi, I'd like to book a Markazly demo.",
-      )}`
-    : null;
+function Tick({ d = "M2.5 8.5l3.5 3.5 7.5-8" }: { d?: string }) {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d={d} /></svg>;
+}
+const TICKS = ["M2.5 8.5l3.5 3.5 7.5-8", "M2 9l4 3 8-9", "M3 8l3 4 7-8.5"];
+const Ticks = ({ n }: { n: number }) => (
+  <span className="ticks">{Array.from({ length: n }, (_, i) => <Tick key={i} d={TICKS[i % 3]!} />)}</span>
+);
 
-function Ctas({ lang, onDark = false }: { lang: Lang; onDark?: boolean }) {
-  const c = COPY[lang];
-  const wa = waLink(lang);
+function Mark() {
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Button
-        asChild
-        size="lg"
-        className={cn("h-11 gap-2 px-5", onDark && "bg-white text-navy hover:bg-white/90")}
-      >
-        <Link to="/overview">
-          {c.demo}
-          <ArrowRight className="size-4 rtl:-scale-x-100" />
-        </Link>
-      </Button>
-      {wa && (
-        <Button
-          asChild
-          size="lg"
-          variant="outline"
-          className={cn(
-            "h-11 gap-2 px-5",
-            onDark &&
-              "border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white",
-          )}
-        >
-          <a href={wa} target="_blank" rel="noopener noreferrer">
-            <MessageCircle className="size-4" />
-            {c.book}
-          </a>
-        </Button>
-      )}
-    </div>
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="8" fill="#172540" />
+      <path d="M8.5 23V10L16 17.5L23.5 10V23" fill="none" stroke="white" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="16" cy="24" r="2.4" fill="white" />
+    </svg>
   );
+}
+
+/** Publishes --p (0..1) on each pinned section and the reveal section, drives the rail, fades [data-in]. */
+function useLandingScroll(root: RefObject<HTMLDivElement | null>, onChapter: (i: number) => void) {
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const pins = Array.from(el.querySelectorAll<HTMLElement>(".lp-pin"));
+    const flows = Array.from(el.querySelectorAll<HTMLElement>("[data-flow]"));
+    const range = el.querySelector<HTMLElement>(".lp-range");
+    const rail = el.querySelector<HTMLElement>(".rail");
+    let over = 0;
+    const measure = () => { over = rail ? Math.max(rail.scrollWidth - innerWidth, 0) : 0; };
+    let raf = 0;
+    const tick = () => {
+      raf = 0;
+      const vh = innerHeight;
+      for (const s of pins) {
+        const r = s.getBoundingClientRect();
+        const p = Math.min(Math.max(-r.top / Math.max(s.offsetHeight - vh, 1), 0), 1);
+        s.style.setProperty("--p", p.toFixed(4));
+        if (s === range && rail && !reduce) {
+          const dir = document.documentElement.dir === "rtl" ? 1 : -1;
+          rail.style.transform = `translate3d(${(over * p * dir).toFixed(1)}px,0,0)`;
+        }
+      }
+      for (const s of flows) {
+        const r = s.getBoundingClientRect();
+        s.style.setProperty("--p", Math.min(Math.max((vh - r.top) / (vh + r.height), 0), 1).toFixed(4));
+      }
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(tick); };
+    const onResize = () => { measure(); onScroll(); };
+    measure();
+    tick();
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onResize);
+    void document.fonts?.ready.then(onResize);
+
+    const fade = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) { e.target.classList.add("is-in"); fade.unobserve(e.target); }
+    }, { rootMargin: "0px 0px -12% 0px" });
+    el.querySelectorAll("[data-in]").forEach((n) => fade.observe(n));
+
+    const folio = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) onChapter(Number((e.target as HTMLElement).dataset["chapter"]));
+    }, { rootMargin: "-45% 0px -54% 0px" });
+    el.querySelectorAll("[data-chapter]").forEach((n) => folio.observe(n));
+
+    return () => {
+      removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onResize);
+      if (raf) cancelAnimationFrame(raf);
+      fade.disconnect();
+      folio.disconnect();
+    };
+  }, [root, onChapter]);
 }
 
 function Landing() {
   const { lang, setLang } = useI18n();
-  const c = COPY[lang];
+  const c = LANDING_COPY[lang];
+  const names = SAMPLE_NAMES[lang];
+  const root = useRef<HTMLDivElement>(null);
+  const [chapter, setChapter] = useState(0);
+  useLandingScroll(root, setChapter);
+
+  // Arabic first for visitors who have never chosen a language.
+  useEffect(() => {
+    try { if (!localStorage.getItem("centeros-lang")) setLang("ar"); } catch { /* storage may be unavailable */ }
+  }, [setLang]);
+  useEffect(() => { document.title = c.title; }, [c.title]);
+  // The rail width changes with the language; re-measure by nudging a resize.
+  useEffect(() => { dispatchEvent(new Event("resize")); }, [lang]);
+
+  const cta = (
+    <Link to="/overview" className="lp-btn lp-btn--primary">
+      {c.cta}
+      <svg className="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
+    </Link>
+  );
+  const wa = <a className="lp-btn lp-btn--quiet" href={waHref(lang)} target="_blank" rel="noopener noreferrer">{c.wa}</a>;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b border-navy/10 bg-background/85 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
-          <Link
-            to="/"
-            className="flex items-center gap-2.5 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-brand"
-          >
-            <Logo className="size-8" />
-            <span className="font-display text-lg font-extrabold tracking-tight">
-              {lang === "ar" ? "مركزلي" : "Markazly"}
-            </span>
-          </Link>
-          <nav
-            aria-label="Page sections"
-            className="hidden items-center gap-5 text-sm text-muted-foreground md:flex"
-          >
-            <a href="#how" className="hover:text-foreground">
-              {c.nav.how}
-            </a>
-            <a href="#features" className="hover:text-foreground">
-              {c.nav.features}
-            </a>
-            <a href="#faq" className="hover:text-foreground">
-              {c.nav.faq}
-            </a>
-          </nav>
-          <div className="ms-auto flex items-center gap-1 sm:gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLang(lang === "en" ? "ar" : "en")}
-              className="gap-1.5 text-muted-foreground"
-            >
-              <Languages className="size-4" />
-              {lang === "en" ? "العربية" : "English"}
-            </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <Link to="/login">{c.nav.signIn}</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link to="/overview">{c.demo}</Link>
-            </Button>
-          </div>
+    <div className="lp" ref={root}>
+      <div className="lp-grain" aria-hidden="true" />
+
+      <header className="lp-bar">
+        <Link to="/" className="lp-mark" aria-label="Markazly"><Mark /><span>{c.brand}</span></Link>
+        <p className="lp-folio" aria-hidden="true"><span className="lp-folio__n" dir="ltr">{chapter + 1}</span><span>{c.chapters[chapter]}</span></p>
+        <div className="lp-bar__end">
+          <button type="button" className="lp-lang" lang={lang === "en" ? "ar" : "en"} onClick={() => setLang(lang === "en" ? "ar" : "en")}>{c.langSwitch}</button>
+          <Link to="/login" className="lp-signin">{c.signIn}</Link>
+          <Link to="/overview" className="lp-btn lp-btn--primary lp-btn--sm">{c.cta}</Link>
         </div>
       </header>
 
-      <main>
-        {/* Hero: the thesis is the demo itself — attendance in, ledger out. */}
-        <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pt-14 pb-20 sm:px-6 lg:grid-cols-[0.9fr_1.2fr] lg:pt-20 lg:pb-28">
-          <div>
-            <p className="text-sm font-semibold text-teal">{c.eyebrow}</p>
-            <h1 className="mt-4 font-display text-[2.6rem] font-extrabold leading-[1.05] tracking-tight text-navy sm:text-6xl dark:text-foreground">
-              {c.title[0]}
-              <br />
-              <span className="text-brand">{c.title[1]}</span>
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">{c.lede}</p>
-            <div className="mt-8">
-              <Ctas lang={lang} />
+      <main id="top">
+        {/* 1 · Front desk: dashboard far, paper register and phone near; scroll lets the near planes fall away. */}
+        <section className="lp-pin lp-hero" style={span(1.9)} data-chapter={0}>
+          <div className="lp-stage">
+            <div className="hero__copy">
+              <h1><span>{c.h1a}</span> <span className="h1b">{c.h1b}</span></h1>
+              <p className="lede">{c.lede}</p>
+              <div className="ctas">{cta}{wa}</div>
+              <p className="note">{c.note}</p>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">{c.demoNote}</p>
-          </div>
-          <SessionDemo lang={lang} />
-        </section>
-
-        {/* The problem, in the center's own materials. */}
-        <section className="border-y border-navy/10 bg-card">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-            <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-              {c.problemTitle}
-            </h2>
-            <div className="mt-8 grid gap-8 md:grid-cols-3">
-              {c.problems.map((p) => (
-                <div key={p.t} className="flex gap-4">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-warning-soft text-warning">
-                    <p.icon className="size-5" />
-                  </span>
-                  <div>
-                    <h3 className="font-semibold">{p.t}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{p.d}</p>
-                  </div>
+            <div className="scene" aria-hidden="true">
+              <figure className="plane plane--far">
+                <div className="win">
+                  <div className="win__bar"><span dir="ltr">markazly.dev/overview</span></div>
+                  <img src={`/landing/overview-${lang}.webp`} width={2880} height={1800} alt="" fetchPriority="high" />
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* A real sequence, so the steps are numbered. */}
-        <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
-          <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-            {c.howTitle}
-          </h2>
-          <ol className="mt-10 grid gap-10 md:grid-cols-3 md:gap-8">
-            {c.steps.map((s, i) => (
-              <li key={s.t} className="relative border-t-2 border-navy/15 pt-5">
-                <span
-                  className={cn("absolute -top-[2px] start-0 h-[2px] w-12 bg-teal-bright")}
-                  aria-hidden
-                />
-                <span className={mono + " " + cn("text-sm font-semibold text-teal")} dir="ltr">
-                  {i + 1}
-                </span>
-                <h3 className="mt-2 text-lg font-semibold">{s.t}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{s.d}</p>
-              </li>
-            ))}
-          </ol>
-
-          <figure className="mt-16">
-            <div className="overflow-hidden rounded-2xl border border-navy/10 bg-card shadow-[0_30px_80px_-40px_oklch(0.288_0.064_256.5/0.5)]">
-              <div
-                className="flex h-8 items-center gap-1.5 border-b border-navy/10 bg-muted/60 px-4"
-                aria-hidden
-              >
-                <span className="size-2.5 rounded-full bg-navy/15" />
-                <span className="size-2.5 rounded-full bg-navy/15" />
-                <span className="size-2.5 rounded-full bg-navy/15" />
+                <figcaption>{c.farCap}</figcaption>
+              </figure>
+              <div className="plane sheet">
+                <div className="sheet__head"><b>{c.sheetT}</b><span>{c.sheetM}</span></div>
+                <ol>
+                  {[3, 2, 1, 0, 2, 0].map((n, i) => (
+                    <li key={i}><span>{names[i]}</span>{n ? <Ticks n={n} /> : <span className="q">?</span>}</li>
+                  ))}
+                </ol>
               </div>
-              <img
-                src={`/landing/overview-${lang}.jpg`}
-                alt={c.shotAlt}
-                width={1440}
-                height={900}
-                loading="lazy"
-                className="block h-auto w-full"
-              />
-            </div>
-            <figcaption className="mt-3 text-center text-sm text-muted-foreground">
-              {c.shotCaption}
-            </figcaption>
-          </figure>
-        </section>
-
-        <section id="features" className="scroll-mt-20 border-t border-navy/10 bg-card">
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-            <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-              {c.featuresTitle}
-            </h2>
-            <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-navy/10 bg-navy/10 sm:grid-cols-2 lg:grid-cols-3">
-              {c.features.map((f, i) => (
-                <div key={f.t} className="bg-card p-6">
-                  <f.icon className="size-5 text-brand" />
-                  <h3 className="mt-4 font-semibold">{f.t}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{f.d}</p>
-                  {i === 1 && (
-                    <div className="mt-4 flex flex-wrap gap-1.5">
-                      {c.methods.map((m) => (
-                        <span
-                          key={m}
-                          className="rounded-full border border-navy/10 bg-muted px-2.5 py-0.5 text-xs font-medium"
-                        >
-                          {m}
-                        </span>
-                      ))}
+              <div className="plane phone">
+                <div className="phone__screen">
+                  <div className="phone__top"><i /><span>{c.chatWho}<small>{c.chatSub}</small></span></div>
+                  <div className="chat">
+                    <div className="bubble">
+                      <div className="slip"><div className="slip__ok">{c.slipOk}</div><div className="slip__amt" dir="ltr">320 EGP</div><div className="slip__ref" dir="ltr">Ref 48201</div></div>
+                      <span>{c.chatMsg}</span><time dir="ltr">6:25 PM</time>
                     </div>
-                  )}
+                    <div className="bubble"><span>{c.chatMsg2}</span><time dir="ltr">6:31 PM</time></div>
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Trust: the ledger rule, shown as the ledger. */}
-        <section className="bg-sidebar-gradient text-white">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.1fr]">
-            <div>
-              <p className="text-sm font-semibold text-teal-bright">{c.trustEyebrow}</p>
-              <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-                {c.trustTitle}
-              </h2>
-              <p className="mt-5 max-w-lg leading-relaxed text-white/75">{c.trustBody}</p>
-            </div>
-            <ol className="space-y-2">
-              {c.trustLines.map((l) => (
-                <li
-                  key={l.id}
-                  className={cn(
-                    "rounded-xl border px-4 py-3",
-                    "rev" in l && l.rev
-                      ? "border-warning/50 bg-warning/10"
-                      : "border-white/10 bg-white/5",
-                  )}
-                >
-                  <div className="flex items-baseline justify-between gap-4">
-                    <span className={mono + " " + cn("text-xs text-white/60")} dir="ltr">
-                      {l.id}
-                    </span>
-                    <span
-                      className={
-                        mono +
-                        " " +
-                        cn(
-                          "text-base font-semibold",
-                          "rev" in l && l.rev ? "text-warning" : "text-white",
-                        )
-                      }
-                      dir="ltr"
-                    >
-                      {l.amt}
-                    </span>
+        {/* 2 · Where it slips: authored stillness before the peak. */}
+        <section className="lp-slips" data-chapter={1} aria-labelledby="slips-h">
+          <div className="lp-wrap">
+            <h2 id="slips-h" data-in>{c.slipsH}</h2>
+            <ol className="slips__list">
+              <li className="slip-row" data-in>
+                <div className="exhibit" aria-hidden="true">
+                  <div className="ex-note">
+                    <div className="line"><span>{names[0]}</span><Ticks n={4} /><span className="unbilled">{c.unbilled}</span></div>
+                    <div className="line"><span>{names[1]}</span><Ticks n={1} /></div>
                   </div>
-                  <div className="mt-1 flex items-center gap-1.5 text-sm text-white/85">
-                    {"rev" in l && l.rev && (
-                      <RotateCcw className="size-3.5 shrink-0 text-warning" />
-                    )}
-                    {l.what}
-                  </div>
-                  <div className="mt-0.5 text-xs text-white/50">{l.by}</div>
-                </li>
-              ))}
+                </div>
+                <div><h3>{c.slips[0].t}</h3><p>{c.slips[0].d}</p></div>
+              </li>
+              <li className="slip-row" data-in>
+                <div className="exhibit" aria-hidden="true">
+                  <div className="ex-chat"><div className="bubble"><div className="slip"><div className="slip__ok">{c.slipOk}</div><div className="slip__amt" dir="ltr">320 EGP</div></div><time dir="ltr">6:25 PM</time></div></div>
+                </div>
+                <div><h3>{c.slips[1].t}</h3><p>{c.slips[1].d}</p></div>
+              </li>
+              <li className="slip-row" data-in>
+                <div className="exhibit" aria-hidden="true">
+                  <div className="ex-sticky"><span>{c.stickyT}</span><div className="sum" dir="ltr"><s>4,800</s> 4,960 ?</div></div>
+                </div>
+                <div><h3>{c.slips[2].t}</h3><p>{c.slips[2].d}</p></div>
+              </li>
             </ol>
           </div>
         </section>
 
-        <section id="faq" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
-          <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr]">
-            <div>
-              <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-                {c.pilotTitle}
-              </h2>
-              <p className="mt-4 max-w-md leading-relaxed text-muted-foreground">{c.pilotBody}</p>
-              <div className="mt-6">
-                <Ctas lang={lang} />
-              </div>
+        {/* 3 · The register: the peak. */}
+        <RegisterSection lang={lang} chapter={2} />
+
+        {/* 4 · Nothing is erased: the wipe replaces edited history with kept history. */}
+        <section className="lp-trust" data-flow data-chapter={3} aria-labelledby="trust-h">
+          <div className="lp-wrap trust__grid">
+            <div className="trust__copy" data-in>
+              <h2 id="trust-h">{c.trustH}</h2>
+              <p>{c.trustP}</p>
             </div>
-            <div>
-              <h2 className="text-sm font-semibold text-muted-foreground">{c.faqTitle}</h2>
-              <div className="mt-3 divide-y divide-navy/10 border-y border-navy/10">
-                {c.faq.map((f) => (
-                  <details key={f.q} className="group py-4">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand [&::-webkit-details-marker]:hidden">
-                      {f.q}
-                      <span
-                        className="text-xl leading-none text-muted-foreground transition-transform group-open:rotate-45"
-                        aria-hidden
-                      >
-                        +
-                      </span>
-                    </summary>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
-                  </details>
-                ))}
+            <figure className="tfig">
+              <div className="tlayer">
+                <p className="tlabel"><b>{c.aLabel}</b><span>{c.aSub}</span></p>
+                <div className="sheetgrid">
+                  {c.cols.map((h) => <div key={h} className="h">{h}</div>)}
+                  <div>{c.sheetRows[0][0]}</div><div>{c.sheetRows[0][1]}</div><div className="edited" dir="ltr"><s>1,050</s>1,500</div>
+                  <div>{c.sheetRows[1][0]}</div><div>{c.sheetRows[1][1]}</div><div className="mono" dir="ltr">560</div>
+                  <div>{c.sheetRows[2][0]}</div><div>{c.sheetRows[2][1]}</div><div className="mono" dir="ltr">320</div>
+                </div>
+                <p className="gone">{c.gone}</p>
               </div>
+              <div className="tlayer tlayer--b">
+                <p className="tlabel"><b>{c.bLabel}</b><span>{c.bSub}</span></p>
+                <ol className="ledger">
+                  {(["TX-43771", "REV-43772", "TX-43773"] as const).map((id, i) => (
+                    <li key={id} className={i === 1 ? "rev" : undefined}>
+                      <span className="stamp" dir="ltr">{id}</span>
+                      <span className="what">{c.ledger[i]!.what}</span>
+                      <span className="amt" dir="ltr">{["+1,050", "−1,050", "+1,500"][i]}</span>
+                      <span className="by">{c.ledger[i]!.by}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </figure>
+          </div>
+        </section>
+
+        {/* 5 · Your rules: lateral travel, the right way round in RTL. */}
+        <section className="lp-pin lp-range" style={span(2.6)} data-chapter={4} aria-labelledby="range-h">
+          <div className="lp-stage">
+            <div className="rail">
+              <div className="rail__lead"><h2 id="range-h">{c.rangeH}</h2><p>{c.rangeP}</p></div>
+              {c.rules.map((r) => (
+                <article key={r.t} className="rule-item">
+                  <div className="ex" dir="ltr">{r.ex}<span dir="auto">{r.exNote}</span></div>
+                  <h3>{r.t}</h3>
+                  <p>{r.d}</p>
+                </article>
+              ))}
+              <article className="rule-item rule-item--shot">
+                <div className="win">
+                  <div className="win__bar"><span dir="ltr">markazly.dev/attendance</span></div>
+                  <img src={`/landing/attendance-${lang}.webp`} width={2880} height={1800} alt={c.shotAlt} loading="lazy" />
+                </div>
+                <h3>{c.shotT}</h3>
+                <p>{c.shotD}</p>
+              </article>
+              <p className="rail__end">{c.railEnd}</p>
             </div>
           </div>
         </section>
-      </main>
 
-      <footer className="border-t border-navy/10">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-8 text-sm text-muted-foreground sm:px-6">
-          <span className="flex items-center gap-2">
-            <Logo className="size-6" />
-            <span className="font-semibold text-foreground">
-              {lang === "ar" ? "مركزلي" : "Markazly"}
-            </span>
-          </span>
-          <span>{c.footer}</span>
-          <span className="ms-auto flex gap-5">
-            <Link to="/login" className="hover:text-foreground">
-              {c.nav.signIn}
-            </Link>
-            <span dir="ltr">© 2026</span>
-          </span>
-        </div>
-      </footer>
+        {/* 6 · Questions: administrative, so it gets little scroll. */}
+        <section className="lp-faq" data-chapter={5} aria-labelledby="faq-h">
+          <div className="lp-wrap faq__grid">
+            <h2 id="faq-h" data-in>{c.faqH}</h2>
+            <div data-in>
+              {c.faq.map((f) => <details key={f.q}><summary>{f.q}</summary><p>{f.a}</p></details>)}
+            </div>
+          </div>
+        </section>
+
+        {/* 7 · The last entry: the call to action is the next ledger row. It holds. */}
+        <section className="lp-pin lp-close" style={span(1.2)} data-chapter={6} aria-labelledby="close-h">
+          <div className="lp-stage">
+            <div className="close__main">
+              <h2 id="close-h">{c.closeH}</h2>
+              <div className="entry">
+                <span className="entry__code" dir="ltr">PILOT</span>
+                <div className="entry__what"><b>{c.pilotT}</b><span>{c.pilotP}</span></div>
+                <div className="entry__act">{cta}{wa}</div>
+              </div>
+            </div>
+            <footer className="lp-foot">
+              <span>{c.brand} · {c.footer}</span>
+              <span><Link to="/login">{c.signIn}</Link> · <span dir="ltr">© 2026 Markazly</span></span>
+            </footer>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
