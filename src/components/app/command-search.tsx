@@ -28,7 +28,7 @@ export function CommandSearch() {
     </Button>
     <button type="button" aria-label={t("Search students and classes")} onClick={() => setOpen(true)} className="hidden h-9 w-52 items-center gap-2 rounded-lg border bg-muted/60 px-3 text-start text-muted-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring lg:flex 2xl:w-72">
       <Search className="size-4 shrink-0" /><span className="min-w-0 flex-1 truncate text-xs">{t("Search students and classes")}</span>
-      <kbd className="hidden shrink-0 rounded border bg-card px-1.5 py-0.5 font-sans text-[10px] font-medium text-muted-foreground lg:inline" dir="ltr">Ctrl K</kbd>
+      <kbd className="hidden shrink-0 rounded border bg-card px-1.5 py-0.5 font-sans text-meta font-medium text-muted-foreground lg:inline" dir="ltr">Ctrl K</kbd>
     </button>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent dir={lang === "ar" ? "rtl" : "ltr"} className="overflow-hidden p-0" >

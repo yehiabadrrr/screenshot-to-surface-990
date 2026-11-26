@@ -5,7 +5,7 @@ import {
   BookOpen, Banknote, Receipt, Undo2, BadgePercent, RotateCcw, PackageCheck, UserRound, Lock, Users,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Panel, Pill, Money, EmptyState, Avatar, Meter, IconTile, type Tone } from "@/components/app/ui";
+import { Panel, Pill, Money, EmptyState, Avatar, Meter, IconTile, LedgerCode, type Tone } from "@/components/app/ui";
 import { RuleEditor, ruleIsValid } from "@/components/app/rule-editor";
 import { RuleEffects } from "@/components/app/rule-effects";
 import { Button } from "@/components/ui/button";
@@ -101,15 +101,14 @@ function Profile() {
 
       {/* Profile header */}
       <header className="surface mb-5 overflow-hidden">
-        <div className="h-20 bg-[linear-gradient(120deg,var(--tint-blue),var(--tint-teal)_55%,var(--tint-lavender))] sm:h-24" aria-hidden />
-        <div className="px-5 pb-5 sm:px-6">
-          <div className="-mt-10 flex flex-wrap items-end justify-between gap-4 sm:-mt-12">
-            <div className="flex min-w-0 items-end gap-4">
-              <Avatar name={s.name} seed={s.id} size="xl" className="size-20 text-xl ring-4 ring-card sm:size-24 sm:text-2xl" />
+        <div className="px-5 py-5 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <Avatar name={s.name} seed={s.id} size="xl" className="size-14 text-lg sm:size-16" />
               <div className="min-w-0 pb-1">
-                <div className="flex flex-wrap items-center gap-2"><h2 className="break-words font-display text-xl font-bold tracking-tight sm:text-2xl"><bdi>{s.name}</bdi></h2><Pill tone={statusTone} dot>{t(s.status)}</Pill></div>
+                <div className="flex flex-wrap items-center gap-2"><h2 className="break-words text-xl font-medium sm:text-2xl"><bdi>{s.name}</bdi></h2><Pill tone={statusTone} dot>{t(s.status)}</Pill></div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1"><IdCard className="size-3.5" /><bdi dir="ltr">{s.id}</bdi></span>
+                  <LedgerCode code={s.id} />
                   <span className="inline-flex items-center gap-1"><GraduationCap className="size-3.5" />{t(s.grade)}</span>
                   <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" />{t(s.branch)}</span>
                   <span className="inline-flex items-center gap-1"><CalendarDays className="size-3.5" />{t("Joined {date}", { date: shortDateL(s.joined, lang) })}</span>
@@ -183,7 +182,7 @@ function Profile() {
                   return (
                     <li key={r.sessionId}>
                       <Link to="/attendance" search={{ classId: r.classId, date: r.date }} className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-muted/40">
-                        <div className="w-14 shrink-0 text-center"><div className="font-display text-base font-bold leading-none num">{Number(r.date.slice(8))}</div><div className="mt-1 text-[10px] uppercase text-muted-foreground">{shortDateL(r.date, lang).replace(/^\d+\s*/, "")}</div></div>
+                        <div className="w-14 shrink-0 text-center"><div className="text-base font-medium leading-none num">{Number(r.date.slice(8))}</div><div className="mt-1 text-meta text-muted-foreground">{shortDateL(r.date, lang).replace(/^\d+\s*/, "")}</div></div>
                         <div className="min-w-0 flex-1"><bdi className="block truncate font-medium">{classById(r.classId).name}</bdi><div className="text-xs text-muted-foreground">{r.finalized ? t("Finalized") : t("Not finalized")}</div></div>
                         <Pill tone={tone} dot>{t(m ?? "Unmarked")}</Pill>
                       </Link>
@@ -195,7 +194,7 @@ function Profile() {
 
           <TabsContent value="fin" className="mt-0">
             <Panel title={t("Financial statement")} subtitle={t("Balance context is the end-of-day balance; pending and reversed entries are excluded.")} icon={Receipt}
-              action={<div className="text-end"><div className="text-[11px] text-muted-foreground">{t("Balance today")}</div><div className={cn("font-display text-lg font-bold num", owes ? "text-destructive" : credit ? "text-positive" : "text-foreground")}><Money value={Math.abs(balance)} /></div></div>}>
+              action={<div className="text-end"><div className="text-meta text-muted-foreground">{t("Balance today")}</div><div className={cn("text-lg font-medium num", owes ? "text-destructive" : credit ? "text-positive" : "text-foreground")}><Money value={Math.abs(balance)} /></div></div>}>
               <TxnList rows={mine} label={typeLabel} rev={rev} studentId={s.id} />
             </Panel>
           </TabsContent>
@@ -208,10 +207,10 @@ function Profile() {
             <Panel title={t("Personal details")} icon={IdCard} subtitle={t("Saved to your center's database")}>
               {canEditStudents && remote.data ? <EditStudentForm row={remote.data} /> : (
                 <>
-                  <p className="mb-4 flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2.5 text-[13px] text-muted-foreground"><Lock className="mt-0.5 size-4 shrink-0" />{t(canEditStudents ? "Loading the saved record…" : "Your role can view students but not edit them.")}</p>
+                  <p className="mb-4 flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2.5 text-ui text-muted-foreground"><Lock className="mt-0.5 size-4 shrink-0" />{t(canEditStudents ? "Loading the saved record…" : "Your role can view students but not edit them.")}</p>
                   <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
                     {[[t("Full name"), s.name], [t("Student ID"), s.id], [t("Phone"), s.phone], [t("Grade"), t(s.grade)], [t("Branch"), t(s.branch)], [t("Joined"), shortDateL(s.joined, lang)], [t("Guardian name"), s.guardian || "—"], [t("Guardian phone"), s.guardianPhone || "—"]].map(([key, value]) => (
-                      <div key={key} className="min-w-0 rounded-lg border px-3 py-2.5"><dt className="text-[11px] font-medium text-muted-foreground">{key}</dt><dd className="mt-0.5 break-words text-sm font-medium"><bdi>{value}</bdi></dd></div>
+                      <div key={key} className="min-w-0 rounded-lg border px-3 py-2.5"><dt className="text-meta font-medium text-muted-foreground">{key}</dt><dd className="mt-0.5 break-words text-sm font-medium"><bdi>{value}</bdi></dd></div>
                     ))}
                   </dl>
                 </>
@@ -228,9 +227,9 @@ function Profile() {
               <ul className="space-y-4">
                 {packages.map((p) => p.rule.kind === "package" && (
                   <li key={p.cid}>
-                    <div className="flex items-baseline justify-between gap-2 text-[13px]"><bdi className="min-w-0 truncate font-medium">{p.c.name}</bdi><span className={cn("shrink-0 font-semibold num", p.left <= 1 ? "text-warning" : "text-foreground")}>{fmtNum(Math.max(0, p.left), lang)}/{fmtNum(p.rule.sessions, lang)}</span></div>
+                    <div className="flex items-baseline justify-between gap-2 text-ui"><bdi className="min-w-0 truncate font-medium">{p.c.name}</bdi><span className={cn("shrink-0 font-medium num", p.left <= 1 ? "text-warning" : "text-foreground")}>{fmtNum(Math.max(0, p.left), lang)}/{fmtNum(p.rule.sessions, lang)}</span></div>
                     <Meter className="mt-1.5" value={(Math.max(0, p.left) / Math.max(p.rule.sessions, p.left)) * 100} tone={p.left <= 1 ? "warning" : "lavender"} label={t("Remaining sessions")} />
-                    <div className="mt-1 text-[11px] text-muted-foreground">{t(p.left <= 0 ? "Package used up" : "{n} sessions left", { n: fmtNum(p.left, lang) })}</div>
+                    <div className="mt-1 text-meta text-muted-foreground">{t(p.left <= 0 ? "Package used up" : "{n} sessions left", { n: fmtNum(p.left, lang) })}</div>
                   </li>
                 ))}
               </ul>
@@ -292,9 +291,9 @@ function EnrollmentRow({ e, actions }: { e: Enrollment; actions?: ReactNode }) {
   const { t, lang } = useI18n();
   return (
     <li className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center">
-      <IconTile icon={BookOpen} tone={e.c.kind === "Tutoring" ? "brand" : "teal"} className="hidden size-9 sm:grid [&_svg]:size-4" />
+      <IconTile icon={BookOpen} tone="neutral" className="hidden size-9 sm:grid [&_svg]:size-4" />
       <div className="min-w-0 flex-1">
-        <bdi className="block break-words text-sm font-semibold">{e.c.name}</bdi>
+        <bdi className="block break-words text-sm font-medium">{e.c.name}</bdi>
         <div className="mt-0.5 text-xs text-muted-foreground"><bdi>{teacherById(e.c.teacherId).name}</bdi> · {localDays(e.c.days, t)} · <bdi>{localTime(e.c.time, lang)}</bdi></div>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <Pill tone={e.source === "enrollment" ? "brand" : "neutral"}>{ruleKindLabel(e.rule, t)} · {t(e.source === "enrollment" ? "own rule" : "class rule")}</Pill>
@@ -303,7 +302,7 @@ function EnrollmentRow({ e, actions }: { e: Enrollment; actions?: ReactNode }) {
         {e.rule.kind === "package" && (
           <div className="mt-2 flex max-w-xs items-center gap-2">
             <Meter value={(Math.max(0, e.left) / Math.max(e.rule.sessions, e.left)) * 100} tone={e.left <= 1 ? "warning" : "lavender"} label={t("Remaining sessions")} />
-            <span className={cn("shrink-0 text-xs font-semibold num", e.left <= 1 ? "text-warning" : "text-foreground")}>{t("{n} sessions left", { n: fmtNum(e.left, lang) })}</span>
+            <span className={cn("shrink-0 text-xs font-medium num", e.left <= 1 ? "text-warning" : "text-foreground")}>{t("{n} sessions left", { n: fmtNum(e.left, lang) })}</span>
           </div>
         )}
       </div>
@@ -317,7 +316,7 @@ function SummaryTile({ icon, tone, label, value, hint, demo = false }: { icon: t
   return (
     <div className="flex min-w-0 items-center gap-3 rounded-xl border bg-card px-3.5 py-3">
       <IconTile icon={icon} tone={tone} />
-      <div className="min-w-0"><div className="flex items-center gap-1.5 truncate text-[11px] font-medium text-muted-foreground">{label}{demo && <span className="rounded bg-warning-soft px-1 py-px text-[9px] font-bold uppercase text-warning">{t("Demo")}</span>}</div><div className="truncate font-display text-lg font-bold tracking-tight num">{value}</div><div className="truncate text-[11px] text-muted-foreground">{hint}</div></div>
+      <div className="min-w-0"><div className="flex items-center gap-1.5 truncate text-meta font-medium text-muted-foreground">{label}{demo && <span className="rounded bg-warning-soft px-1 py-px text-meta font-medium text-warning">{t("Demo")}</span>}</div><div className="truncate text-lg font-medium num">{value}</div><div className="truncate text-meta text-muted-foreground">{hint}</div></div>
     </div>
   );
 }
@@ -328,7 +327,7 @@ function GuardianCard({ name, phone, compact = false }: { name: string; phone: s
     <div>
       <div className="flex items-center gap-3">
         <Avatar name={name} size="lg" />
-        <div className="min-w-0"><bdi className="block truncate font-semibold">{name}</bdi><div className="text-xs text-muted-foreground">{phone ? <bdi dir="ltr">{phone}</bdi> : t("No phone on file")}</div></div>
+        <div className="min-w-0"><bdi className="block truncate font-medium">{name}</bdi><div className="text-xs text-muted-foreground">{phone ? <bdi dir="ltr">{phone}</bdi> : t("No phone on file")}</div></div>
       </div>
       {phone && (
         <div className={cn("mt-4 grid gap-2", compact ? "grid-cols-2" : "max-w-sm grid-cols-2")}>
@@ -370,13 +369,13 @@ function TxnList({ rows, label, rev, studentId, compact = false }: { rows: Ledge
                   <div className="mt-0.5 break-words text-xs text-muted-foreground"><bdi dir="ltr">{entry.id}</bdi> · {shortDateL(entry.date, lang)} · <bdi>{detail}</bdi></div>
                 </div>
                 <div className="shrink-0 text-end">
-                  <div className={cn("whitespace-nowrap text-sm font-semibold num", entry.type === "Payment" && status === "Completed" ? "text-positive" : status === "Reversed" ? "text-muted-foreground line-through" : "text-foreground")}>
+                  <div className={cn("whitespace-nowrap text-sm font-medium num", entry.type === "Payment" && status === "Completed" ? "text-positive" : status === "Reversed" ? "text-muted-foreground line-through" : "text-foreground")}>
                     {entry.type === "PackageUse" ? t("1 session") : <bdi>{sign}<Money value={entry.amount} /></bdi>}
                   </div>
                 </div>
               </div>
-              {!compact && links.length > 0 && <div className="mt-1 flex flex-wrap gap-2 text-xs">{links.map((lid) => <a key={lid} href={`#entry-${lid}`} className="rounded bg-tint-blue px-1.5 py-0.5 font-medium text-tint-blue-ink hover:underline"><bdi dir="ltr">{lid}</bdi></a>)}</div>}
-              {!compact && <div className="mt-1 text-[11px] text-muted-foreground">{t("End-of-day balance")} · {t(context > 0 ? "Owing" : context < 0 ? "Credit" : "Settled")} · <Money value={Math.abs(context)} /></div>}
+              {!compact && links.length > 0 && <div className="mt-1 flex flex-wrap gap-2 text-xs">{links.map((lid) => <a key={lid} href={`#entry-${lid}`} className="ledger-code text-brand hover:underline"><bdi dir="ltr">{lid}</bdi></a>)}</div>}
+              {!compact && <div className="mt-1 text-meta text-muted-foreground">{t("End-of-day balance")} · {t(context > 0 ? "Owing" : context < 0 ? "Credit" : "Settled")} · <Money value={Math.abs(context)} /></div>}
             </div>
           </li>
         );
@@ -445,7 +444,7 @@ function EditStudentForm({ row }: { row: StudentRow }) {
         {choice("status", "Status", STUDENT_STATUSES.map((s) => [s, s]))}
         <div className="space-y-1.5"><Label>{t("Student ID")}</Label><Input value={row.student_code} readOnly disabled dir="ltr" className="bg-muted/40 disabled:opacity-100" /></div>
       </div>
-      <fieldset className="grid gap-4 border-t pt-4 sm:grid-cols-2"><legend className="mb-1 text-sm font-semibold">{t("Guardian")}</legend>{text("guardianName", "Guardian name")}{text("guardianPhone", "Guardian phone", true)}</fieldset>
+      <fieldset className="grid gap-4 border-t pt-4 sm:grid-cols-2"><legend className="mb-1 text-sm font-medium">{t("Guardian")}</legend>{text("guardianName", "Guardian name")}{text("guardianPhone", "Guardian phone", true)}</fieldset>
       {errors["form"] && <p role="alert" className="rounded-md bg-negative-soft px-3 py-2 text-sm text-destructive">{errors["form"]}</p>}
       <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-4">
         <span className="me-auto text-xs text-muted-foreground">{t("Joined {date}", { date: shortDateL(row.joined_on, lang) })} · {t("Last updated {date}", { date: shortDateL(row.updated_at, lang) })}</span>

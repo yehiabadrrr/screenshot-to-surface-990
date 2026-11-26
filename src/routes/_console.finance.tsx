@@ -4,7 +4,7 @@ import {
   Plus, Download, MoreHorizontal, Receipt, Wallet, Coins, CircleAlert, BadgePercent, Undo2, Hourglass, RotateCcw, PiggyBank, GraduationCap,
   CheckCircle2, Minus, Equal, PackageCheck, ChevronLeft, ChevronRight, Lock, BookOpenText, ArrowLeftRight, Filter as FilterIcon,
 } from "lucide-react";
-import { PageHeader, Panel, Pill, Money, EmptyState, StatCard, MiniStat, type Tone } from "@/components/app/ui";
+import { PageHeader, Panel, Pill, Money, EmptyState, StatCard, MiniStat, LedgerCode, type Tone } from "@/components/app/ui";
 import { PeriodBranchFilter, usePartialPeriod } from "@/components/app/filters";
 import { FinanceDefinitions } from "@/components/app/definitions";
 import { CorrectEntryDialog } from "@/components/app/correct-entry";
@@ -76,7 +76,7 @@ function FinancePage() {
           meter={c.netBilled > 0 ? { value: (c.grossCollections / c.netBilled) * 100, label: t("Collected against net billed"), tone: "positive" } : undefined} />
         <StatCard icon={Coins} tone="teal" label={t("Net collections")} value={<Money value={c.netCollections} />} hint={t("Gross − refunds {amount}", { amount: egp(c.refunds, lang) })} />
         <StatCard icon={CircleAlert} tone="negative" label={t("Outstanding receivables")} value={<Money value={c.outstanding} />} hint={t("{n} students owe · end of period", { n: fmtNum(c.studentsOwing, lang) })}
-          footer={<span className="flex items-center justify-between gap-2"><span>{t("Prepaid balances")}</span><span className="font-semibold text-positive"><Money value={c.prepaid} /></span></span>} />
+          footer={<span className="flex items-center justify-between gap-2"><span>{t("Prepaid balances")}</span><span className="font-medium text-positive"><Money value={c.prepaid} /></span></span>} />
       </section>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-3">
@@ -91,14 +91,14 @@ function FinancePage() {
             <FlowTile tone="brand" label={t("Net collections")} value={<Money value={c.netCollections} />} hint={t("Kept by the center")} strong />
           </div>
           <div className="mt-5">
-            <div className="mb-2 flex items-center justify-between gap-2 text-xs"><span className="font-medium text-muted-foreground">{t("Gross collections by method")}</span><span className="font-semibold num"><Money value={methodTotal} /></span></div>
+            <div className="mb-2 flex items-center justify-between gap-2 text-xs"><span className="font-medium text-muted-foreground">{t("Gross collections by method")}</span><span className="font-medium num"><Money value={methodTotal} /></span></div>
             <div className="flex h-3 overflow-hidden rounded-full bg-muted" role="img" aria-label={c.byMethod.map((b) => `${t(b.method)} ${egp(b.amount, lang)}`).join(" · ")}>
               {c.byMethod.filter((b) => b.amount > 0).map((b) => <span key={b.method} className={methodColor[b.method]} style={{ width: `${(b.amount / Math.max(1, methodTotal)) * 100}%` }} title={`${t(b.method)} · ${egp(b.amount, lang)}`} />)}
             </div>
           </div>
           <div className="mt-4 grid gap-2 border-t pt-4 text-xs sm:grid-cols-2">
-            <div className="flex items-center gap-2 rounded-lg bg-warning-soft px-3 py-2"><Hourglass className="size-4 shrink-0 text-warning" /><span className="min-w-0 flex-1">{t("Pending · not counted")}</span><b className="font-semibold num"><Money value={c.pending} /></b><span className="text-muted-foreground num">({fmtNum(c.pendingCount, lang)})</span></div>
-            <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2"><RotateCcw className="size-4 shrink-0 text-muted-foreground" /><span className="min-w-0 flex-1">{t("Reversed · not counted")}</span><b className="font-semibold num"><Money value={c.reversed} /></b><span className="text-muted-foreground num">({fmtNum(c.reversedCount, lang)})</span></div>
+            <div className="flex items-center gap-2 rounded-lg bg-warning-soft px-3 py-2"><Hourglass className="size-4 shrink-0 text-warning" /><span className="min-w-0 flex-1">{t("Pending · not counted")}</span><b className="font-medium num"><Money value={c.pending} /></b><span className="text-muted-foreground num">({fmtNum(c.pendingCount, lang)})</span></div>
+            <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2"><RotateCcw className="size-4 shrink-0 text-muted-foreground" /><span className="min-w-0 flex-1">{t("Reversed · not counted")}</span><b className="font-medium num"><Money value={c.reversed} /></b><span className="text-muted-foreground num">({fmtNum(c.reversedCount, lang)})</span></div>
           </div>
         </Panel>
 
@@ -109,19 +109,19 @@ function FinancePage() {
               const share = methodTotal > 0 ? (b.amount / methodTotal) * 100 : 0;
               return (
                 <li key={b.method}>
-                  <div className="flex items-center justify-between gap-2 text-[13px]">
+                  <div className="flex items-center justify-between gap-2 text-ui">
                     <span className="flex min-w-0 items-center gap-2"><span className={cn("size-2.5 shrink-0 rounded-sm", methodColor[b.method])} /><span className="truncate font-medium">{t(b.method)}</span><span className="text-xs text-muted-foreground num">· {fmtNum(b.count, lang)}</span></span>
-                    <span className="shrink-0 font-semibold num"><Money value={b.amount} /></span>
+                    <span className="shrink-0 font-medium num"><Money value={b.amount} /></span>
                   </div>
-                  <div className="mt-1.5 flex items-center gap-2"><div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"><div className={cn("h-full rounded-full", methodColor[b.method])} style={{ width: `${share}%` }} /></div><span className="w-10 text-end text-[11px] text-muted-foreground num"><bdi>{formatPercent(Math.round(share), lang)}</bdi></span></div>
+                  <div className="mt-1.5 flex items-center gap-2"><div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"><div className={cn("h-full rounded-full", methodColor[b.method])} style={{ width: `${share}%` }} /></div><span className="w-10 text-end text-meta text-muted-foreground num"><bdi>{formatPercent(Math.round(share), lang)}</bdi></span></div>
                 </li>
               );
             })}
           </ul>
-          <dl className="mt-4 space-y-1.5 border-t pt-3 text-[13px]">
-            <div className="flex justify-between"><dt className="font-medium">{t("Total = gross collections")}</dt><dd className="font-semibold"><Money value={methodTotal} /></dd></div>
+          <dl className="mt-4 space-y-1.5 border-t pt-3 text-ui">
+            <div className="flex justify-between"><dt className="font-medium">{t("Total = gross collections")}</dt><dd className="font-medium"><Money value={methodTotal} /></dd></div>
             <div className="flex justify-between text-muted-foreground"><dt>− {t("Refunds")}</dt><dd><Money value={c.refunds} /></dd></div>
-            <div className="flex justify-between font-semibold text-positive"><dt>= {t("Net collections")}</dt><dd><Money value={c.netCollections} /></dd></div>
+            <div className="flex justify-between font-medium text-positive"><dt>= {t("Net collections")}</dt><dd><Money value={c.netCollections} /></dd></div>
           </dl>
         </Panel>
       </div>
@@ -140,7 +140,7 @@ function FinancePage() {
       <section className="surface mt-5 min-w-0 overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-4 pb-3">
           <div>
-            <h2 className="text-section-title font-semibold">{t("Transactions")} <span className="font-normal text-muted-foreground num">· {fmtNum(rows.length, lang)}</span></h2>
+            <h2 className="text-section-title font-medium">{t("Transactions")} <span className="font-normal text-muted-foreground num">· {fmtNum(rows.length, lang)}</span></h2>
             <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground"><Lock className="size-3" />{t("Append-only ledger: completed entries are corrected by reversal, never edited")}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -170,24 +170,24 @@ function FinancePage() {
               const [TIcon, tone] = typeMeta[x.type] ?? [Receipt, "neutral" as Tone];
               return (
                 <tr key={x.id} className={cn("hover:bg-muted/40", st === "Reversed" && "text-muted-foreground")}>
-                  <td className="whitespace-nowrap px-3"><div className="font-medium num" dir="ltr">{x.id}</div><div className="text-xs text-muted-foreground num">{shortDateL(x.date, lang)}</div></td>
+                  <td className="whitespace-nowrap px-3"><LedgerCode code={x.id} className="text-foreground" /><div className="text-xs text-muted-foreground num">{shortDateL(x.date, lang)}</div></td>
                   <td className="min-w-36 px-3">{studentMap.has(x.studentId) ? <Link to="/students/$id" params={{ id: x.studentId }} className="font-medium hover:text-brand"><bdi>{studentMap.get(x.studentId)?.name}</bdi></Link> : <bdi className="font-medium">{x.studentId}</bdi>}<div className="text-xs text-muted-foreground">{t(x.branch)}</div></td>
                   <td className="whitespace-nowrap px-3">
-                    <span className="inline-flex items-center gap-1.5"><span className={cn("grid size-6 place-items-center rounded-md", tone === "positive" ? "bg-positive-soft text-positive" : tone === "coral" ? "bg-tint-coral text-tint-coral-ink" : tone === "lavender" ? "bg-tint-lavender text-tint-lavender-ink" : tone === "teal" ? "bg-tint-teal text-tint-teal-ink" : "bg-muted text-muted-foreground")}><TIcon className="size-3.5" /></span>{t(typeLabel(x.type))}</span>
-                    {x.reversesId && <div className="mt-0.5 text-[11px] text-muted-foreground">{t("of {id}", { id: x.reversesId })}</div>}
-                    {x.replacesId && <div className="mt-0.5 text-[11px] text-muted-foreground">{t("replaces {id}", { id: x.replacesId })}</div>}
-                    {(x.reference || x.reason || x.note) && <div className="mt-0.5 max-w-44 truncate text-[11px] text-muted-foreground 2xl:hidden">{x.reference ? <bdi dir="ltr">{x.reference}</bdi> : noteText(x.reason ?? x.note, t, lang)}</div>}
+                    <span className="inline-flex items-center gap-1.5"><span className={cn("grid size-6 place-items-center rounded-md bg-muted", tone === "positive" ? "text-positive" : "text-muted-foreground")}><TIcon className="size-3.5" /></span>{t(typeLabel(x.type))}</span>
+                    {x.reversesId && <div className="mt-0.5 text-meta text-muted-foreground">{t("of {id}", { id: x.reversesId })}</div>}
+                    {x.replacesId && <div className="mt-0.5 text-meta text-muted-foreground">{t("replaces {id}", { id: x.replacesId })}</div>}
+                    {(x.reference || x.reason || x.note) && <div className="mt-0.5 max-w-44 truncate text-meta text-muted-foreground 2xl:hidden">{x.reference ? <bdi dir="ltr">{x.reference}</bdi> : noteText(x.reason ?? x.note, t, lang)}</div>}
                   </td>
                   <td className="whitespace-nowrap px-3">{x.method ? <span className="inline-flex items-center gap-1.5"><span className={cn("size-2 rounded-sm", methodColor[x.method])} />{t(x.method)}</span> : "—"}</td>
                   <td className="hidden max-w-52 px-3 2xl:table-cell"><div className="truncate text-xs" title={[x.reference, noteText(x.reason, t, lang), noteText(x.note, t, lang)].filter(Boolean).join(" · ")}>{x.reference ? <bdi dir="ltr">{x.reference}</bdi> : noteText(x.reason ?? x.note, t, lang) ?? "—"}</div></td>
                   <td className="hidden whitespace-nowrap px-3 text-xs 2xl:table-cell"><bdi>{t(x.enteredBy)}</bdi></td>
                   <td className="px-3"><Pill tone={st === "Completed" ? "positive" : st === "Pending" ? "warning" : "neutral"} dot>{t(st)}</Pill></td>
-                  <td className={cn("whitespace-nowrap px-3 text-end font-semibold num", x.type === "Payment" && st === "Completed" ? "text-positive" : "", st === "Reversed" && "line-through", x.type === "PackageUse" && "font-medium text-muted-foreground")}>{x.type === "PackageUse" ? t("1 session") : <bdi>{x.type === "Payment" ? "+" : "−"}<Money value={x.amount} /></bdi>}</td>
+                  <td className={cn("whitespace-nowrap px-3 text-end font-medium num", x.type === "Payment" && st === "Completed" ? "text-positive" : "", st === "Reversed" && "line-through", x.type === "PackageUse" && "font-medium text-muted-foreground")}>{x.type === "PackageUse" ? t("1 session") : <bdi>{x.type === "Payment" ? "+" : "−"}<Money value={x.amount} /></bdi>}</td>
                   <td className="w-12 px-2">
                     {canCorrect ? (
                       <DropdownMenu dir={dir}><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8" aria-label={t("Actions for {id}", { id: x.id })}><MoreHorizontal /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
-                          <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground">{t("Completed entries are never edited")}</DropdownMenuLabel>
+                          <DropdownMenuLabel className="text-meta font-normal text-muted-foreground">{t("Completed entries are never edited")}</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => setCorrecting(x)}><RotateCcw />{t("Correct or reverse…")}</DropdownMenuItem>
                         </DropdownMenuContent></DropdownMenu>
                     ) : <span className="grid size-8 place-items-center text-muted-foreground/50" title={t("No action available")}><Lock className="size-3.5" /></span>}
@@ -209,7 +209,7 @@ function FinancePage() {
                 <div className="mt-0.5 text-xs text-muted-foreground"><bdi dir="ltr">{x.id}</bdi> · {t(typeLabel(x.type))}{x.method ? ` · ${t(x.method)}` : ""} · {shortDateL(x.date, lang)}</div>
                 <div className="mt-1.5"><Pill tone={st === "Completed" ? "positive" : st === "Pending" ? "warning" : "neutral"} dot>{t(st)}</Pill></div>
               </div>
-              <div className={cn("shrink-0 text-sm font-semibold num", x.type === "Payment" && st === "Completed" && "text-positive", st === "Reversed" && "line-through")}>{x.type === "PackageUse" ? t("1 session") : <bdi>{x.type === "Payment" ? "+" : "−"}<Money value={x.amount} /></bdi>}</div>
+              <div className={cn("shrink-0 text-sm font-medium num", x.type === "Payment" && st === "Completed" && "text-positive", st === "Reversed" && "line-through")}>{x.type === "PackageUse" ? t("1 session") : <bdi>{x.type === "Payment" ? "+" : "−"}<Money value={x.amount} /></bdi>}</div>
               {canCorrect && <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={t("Actions for {id}", { id: x.id })} onClick={() => setCorrecting(x)}><MoreHorizontal /></Button>}
             </li>
           );
@@ -232,13 +232,12 @@ function FinancePage() {
   );
 }
 
-function FlowTile({ tone, label, value, hint, strong = false }: { tone: Tone; label: string; value: ReactNode; hint: string; strong?: boolean }) {
-  const bg: Record<string, string> = { positive: "bg-positive-soft", coral: "bg-tint-coral", brand: "bg-tint-blue" };
+function FlowTile({ label, value, hint, strong = false }: { tone: Tone; label: string; value: ReactNode; hint: string; strong?: boolean }) {
   return (
-    <div className={cn("min-w-0 rounded-xl px-4 py-3.5", bg[tone] ?? "bg-muted", strong && "ring-1 ring-primary/30")}>
-      <div className="text-[11px] font-medium text-muted-foreground">{label}</div>
-      <div className="mt-1 break-words font-display text-metric-sm font-bold tracking-tight num">{value}</div>
-      <div className="mt-0.5 text-[11px] text-muted-foreground">{hint}</div>
+    <div className={cn("min-w-0 rounded-xl border px-4 py-3.5", strong && "border-brand/40 bg-info-soft")}>
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className={cn("mt-1 break-words text-metric-sm font-medium num", strong && "text-brand")}>{value}</div>
+      <div className="mt-0.5 text-meta text-muted-foreground">{hint}</div>
     </div>
   );
 }

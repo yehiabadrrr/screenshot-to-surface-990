@@ -109,19 +109,19 @@ function AttendancePage() {
           </Select>
         }
       />
-      {actor.kind === "teacher" && <p className="-mt-3 mb-4 flex items-start gap-2 rounded-lg border border-info/20 bg-info-soft px-3 py-2 text-xs text-foreground"><Info className="mt-0.5 size-3.5 shrink-0 text-info" />{t("Teacher view shows only this teacher's classes. It is a demo preview, not access control: there are no real sign-ins yet.")}</p>}
+      {actor.kind === "teacher" && <p className="-mt-3 mb-4 flex items-start gap-2 rounded-lg border bg-muted/60 px-3 py-2 text-xs text-foreground"><Info className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />{t("Teacher view shows only this teacher's classes. It is a demo preview, not access control: there are no real sign-ins yet.")}</p>}
 
       {/* Session header */}
       <section className="surface mb-5 overflow-hidden">
         <div className="grid gap-3 border-b bg-muted/30 p-4 sm:grid-cols-[minmax(0,1fr)_12rem] sm:p-5">
           <Select value={cls.id} onValueChange={setPickedClass} dir={lang === "ar" ? "rtl" : "ltr"}>
-            <SelectTrigger className="h-12 bg-card text-[15px] font-semibold" aria-label={t("Class")}><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-12 bg-card text-section-title font-medium" aria-label={t("Class")}><SelectValue /></SelectTrigger>
             <SelectContent>{visible.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
           </Select>
           <Input type="date" className="h-12 bg-card" value={date} max={todayIso()} onChange={(e) => e.target.value && setDate(e.target.value)} aria-label={t("Date")} />
         </div>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 text-[13px] text-muted-foreground sm:px-5">
-          <span className="inline-flex items-center gap-1.5 font-semibold text-foreground"><CalendarDays className="size-4 text-brand" />{longDate(date, lang)}</span>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 text-ui text-muted-foreground sm:px-5">
+          <span className="inline-flex items-center gap-1.5 font-medium text-foreground"><CalendarDays className="size-4 text-brand" />{longDate(date, lang)}</span>
           <span className="inline-flex items-center gap-1.5"><Avatar name={teacherById(cls.teacherId).name} seed={cls.teacherId} size="xs" /><bdi className="font-medium text-foreground">{teacherById(cls.teacherId).name}</bdi></span>
           <span className="inline-flex items-center gap-1.5"><Clock3 className="size-4" />{localDays(cls.days, t)} · <bdi>{localTime(cls.time, lang)}</bdi></span>
           <span className="inline-flex items-center gap-1.5"><MapPin className="size-4" />{t(cls.branch)}</span>
@@ -142,7 +142,7 @@ function AttendancePage() {
             {([["Present", counts.Present, "positive", Check], ["Absent", counts.Absent, "negative", X], ["Excused", counts.Excused, "warning", Clock3], ["Unmarked", unmarked, unmarked ? "brand" : "neutral", CircleDashed]] as const).map(([label, n, tone, Icon]) => (
               <div key={label} className="flex items-center gap-3 rounded-xl border bg-card px-3.5 py-3">
                 <IconTile icon={Icon} tone={tone} className="size-9 [&_svg]:size-4" />
-                <div><div className="font-display text-xl font-bold leading-none num">{fmtNum(n, lang)}</div><div className="mt-1 text-[11px] font-medium text-muted-foreground">{t(label)}</div></div>
+                <div><div className="text-xl font-medium leading-none num">{fmtNum(n, lang)}</div><div className="mt-1 text-meta font-medium text-muted-foreground">{t(label)}</div></div>
               </div>
             ))}
           </div>
@@ -150,8 +150,8 @@ function AttendancePage() {
           <div className="surface overflow-hidden">
             <div className="flex flex-wrap items-center gap-3 border-b px-4 py-3 sm:px-5">
               <div className="min-w-0 flex-1">
-                <h2 className="text-section-title font-semibold">{t("Student roster")}</h2>
-                <div className="mt-1.5 flex items-center gap-2"><Meter className="w-32" value={roster.length ? (marked / roster.length) * 100 : 0} tone="teal" label={t("Marked")} /><span className="text-[11px] text-muted-foreground num">{t("{m} of {n} marked", { m: fmtNum(marked, lang), n: fmtNum(roster.length, lang) })}</span></div>
+                <h2 className="text-section-title font-medium">{t("Student roster")}</h2>
+                <div className="mt-1.5 flex items-center gap-2"><Meter className="w-32" value={roster.length ? (marked / roster.length) * 100 : 0} tone="brand" label={t("Marked")} /><span className="text-meta text-muted-foreground num">{t("{m} of {n} marked", { m: fmtNum(marked, lang), n: fmtNum(roster.length, lang) })}</span></div>
               </div>
               {!finalized && (
                 <Button size="sm" variant="outline" className="h-9" onClick={() => L.setMarks(cls.id, date, Object.fromEntries(roster.filter((s) => !marks[s.id]).map((s) => [s.id, "Present" as const])))} disabled={!unmarked}>
@@ -168,8 +168,8 @@ function AttendancePage() {
                       <Avatar name={s.name} seed={s.id} />
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <bdi className="truncate font-semibold">{s.name}</bdi>
-                          <span className={cn("rounded-md px-1.5 py-0.5 text-[10px] font-semibold", source === "enrollment" ? "bg-tint-blue text-tint-blue-ink" : "bg-muted text-muted-foreground")}>{ruleKindLabel(rule, t)}{source === "enrollment" ? ` · ${t("own rule")}` : ""}</span>
+                          <bdi className="truncate font-medium">{s.name}</bdi>
+                          <span className={cn("rounded-md px-1.5 py-0.5 text-meta font-medium", source === "enrollment" ? "bg-info-soft text-brand" : "bg-muted text-muted-foreground")}>{ruleKindLabel(rule, t)}{source === "enrollment" ? ` · ${t("own rule")}` : ""}</span>
                         </div>
                         <div className="mt-0.5 text-xs text-muted-foreground">
                           {rule.kind === "package" && <span className={cn("font-medium", remaining <= 1 && "text-warning")}>{t("{n} sessions left", { n: fmtNum(remaining, lang) })} · </span>}
@@ -182,7 +182,7 @@ function AttendancePage() {
                     <div role="group" aria-label={`${t("Attendance")} · ${s.name}`} className="grid grid-cols-3 gap-1.5 rounded-xl bg-muted/70 p-1 sm:w-auto sm:min-w-[19rem]">
                       {opts.map((o) => (
                         <button key={o.v} type="button" data-on={m === o.v} onClick={() => tap(s.id, o.v)} aria-pressed={m === o.v} aria-label={`${t(o.v)} · ${s.name}`}
-                          className={cn("flex h-12 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-muted-foreground transition-colors outline-none hover:bg-card hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring sm:h-10 sm:text-[13px] data-[on=true]:shadow-card", o.cls)}>
+                          className={cn("flex h-12 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-card hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring sm:h-10 sm:text-ui data-[on=true]:shadow-card", o.cls)}>
                           <o.icon className="size-5 sm:size-4" /><span>{t(o.v)}</span>
                         </button>
                       ))}
@@ -198,16 +198,16 @@ function AttendancePage() {
         {/* Billing preview and audit */}
         <aside className="space-y-5 lg:sticky lg:top-28 lg:self-start">
           <Panel title={t("Billing preview")} subtitle={t("How each status bills under this class's rule")} icon={Receipt}>
-            <div className="mb-3 flex items-start gap-3 rounded-lg bg-tint-blue px-3 py-2.5">
-              <Receipt className="mt-0.5 size-4 shrink-0 text-tint-blue-ink" />
-              <div className="min-w-0"><div className="text-[13px] font-semibold">{t("Class billing rule")}: {ruleKindLabel(L.classRule(cls.id), t)}</div><div className="text-xs text-muted-foreground">{ruleSummary(L.classRule(cls.id), t, lang)}</div></div>
+            <div className="mb-3 flex items-start gap-3 rounded-lg border bg-muted/60 px-3 py-2.5">
+              <Receipt className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+              <div className="min-w-0"><div className="text-ui font-medium">{t("Class billing rule")}: {ruleKindLabel(L.classRule(cls.id), t)}</div><div className="text-xs text-muted-foreground">{ruleSummary(L.classRule(cls.id), t, lang)}</div></div>
             </div>
             <RuleEffects rule={L.classRule(cls.id)} columns={2} />
             {overrides > 0 && <p className="mt-3 text-xs text-muted-foreground">{t("{n} students have their own billing rule, shown on their row.", { n: fmtNum(overrides, lang) })}</p>}
             {!finalized && (
               <div className="mt-4 grid grid-cols-2 gap-2 border-t pt-4">
-                <div className="rounded-lg border px-3 py-2"><div className="font-display text-lg font-bold num">{fmtNum(willCharge, lang)}</div><div className="text-[11px] text-muted-foreground">{t("Charges on finalize")}</div></div>
-                <div className="rounded-lg border px-3 py-2"><div className="font-display text-lg font-bold num">{fmtNum(willUse, lang)}</div><div className="text-[11px] text-muted-foreground">{t("Package sessions used")}</div></div>
+                <div className="rounded-lg border px-3 py-2"><div className="text-lg font-medium num">{fmtNum(willCharge, lang)}</div><div className="text-meta text-muted-foreground">{t("Charges on finalize")}</div></div>
+                <div className="rounded-lg border px-3 py-2"><div className="text-lg font-medium num">{fmtNum(willUse, lang)}</div><div className="text-meta text-muted-foreground">{t("Package sessions used")}</div></div>
               </div>
             )}
           </Panel>
@@ -217,7 +217,7 @@ function AttendancePage() {
               <ol className="space-y-3">
                 {[...rec.audit].reverse().map((a, i) => (
                   <li key={i} className="rounded-lg border-s-2 border-s-brand bg-muted/50 px-3 py-2 text-sm">
-                    <div><bdi className="font-semibold">{L.findStudent(a.studentId)?.name}</bdi>: {t(a.from ?? "Unmarked")} <span className="rtl:hidden">→</span><span className="ltr:hidden">←</span> {t(a.to ?? "Unmarked")}</div>
+                    <div><bdi className="font-medium">{L.findStudent(a.studentId)?.name}</bdi>: {t(a.from ?? "Unmarked")} <span className="rtl:hidden">→</span><span className="ltr:hidden">←</span> {t(a.to ?? "Unmarked")}</div>
                     <div className="mt-0.5 text-xs text-muted-foreground">{t("{by} · {at} · reason: {reason}", { by: a.by, at: timeOfDay(a.at, lang), reason: a.reason })}</div>
                     <div className="mt-0.5 text-xs font-medium text-brand">{a.reversalId || a.createdId ? [a.reversalId && t("reversed by {id}", { id: a.reversalId }), a.createdId && t("new entry {id}", { id: a.createdId })].filter(Boolean).join(" · ") : t("No billing change")}</div>
                   </li>
@@ -231,12 +231,12 @@ function AttendancePage() {
       <div className="attendance-dock fixed inset-x-0 z-20 border-t bg-card/95 px-4 py-3 shadow-pop backdrop-blur md:sticky md:mt-5 md:rounded-xl md:border lg:me-[23.25rem]">
         <div className="mx-auto flex items-center gap-3">
           <div className="min-w-0 flex-1 text-sm">
-            <div className="font-semibold num">{t("{m} marked · {u} unmarked", { m: fmtNum(marked, lang), u: fmtNum(unmarked, lang) })}</div>
+            <div className="font-medium num">{t("{m} marked · {u} unmarked", { m: fmtNum(marked, lang), u: fmtNum(unmarked, lang) })}</div>
             <div className="truncate text-xs text-muted-foreground">
               {finalized ? t("Finalized · demo data, not saved") : t("On finalize: {c} charges, {u} package sessions · demo only", { c: fmtNum(willCharge, lang), u: fmtNum(willUse, lang) })}
             </div>
           </div>
-          <Button size="lg" className="h-12 min-w-32 px-5 text-[15px]" disabled={!!finalized || marked === 0} onClick={() => (unmarked ? setConfirmOpen(true) : doFinalize())}>
+          <Button size="lg" className="h-12 min-w-32 px-5 text-section-title" disabled={!!finalized || marked === 0} onClick={() => (unmarked ? setConfirmOpen(true) : doFinalize())}>
             {finalized ? <><Lock />{t("Finalized")}</> : <><CheckCheck />{t("Finalize")}</>}
           </Button>
         </div>

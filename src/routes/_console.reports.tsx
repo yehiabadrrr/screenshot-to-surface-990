@@ -32,12 +32,12 @@ function Page() {
         </div>
       </Panel>
 
-      <div className="mb-3 flex items-center gap-2"><Construction className="size-4 text-muted-foreground" /><h2 className="text-section-title font-semibold">{t("Planned reports")}</h2><Pill tone="warning">{t("Not built yet")}</Pill></div>
+      <div className="mb-3 flex items-center gap-2"><Construction className="size-4 text-muted-foreground" /><h2 className="text-section-title font-medium">{t("Planned reports")}</h2><Pill tone="warning">{t("Not built yet")}</Pill></div>
       <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {planned.map((r) => (
           <li key={r.title} aria-disabled className="flex gap-3 rounded-xl border border-dashed bg-card/50 p-4">
             <IconTile icon={r.icon} tone={r.tone} className="opacity-70" />
-            <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="text-sm font-semibold">{t(r.title)}</span><Pill tone="neutral">{t("Planned")}</Pill></div><p className="mt-1 text-xs text-muted-foreground">{t(r.body)}</p></div>
+            <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="text-sm font-medium">{t(r.title)}</span><Pill tone="neutral">{t("Planned")}</Pill></div><p className="mt-1 text-xs text-muted-foreground">{t(r.body)}</p></div>
           </li>
         ))}
       </ul>
@@ -50,7 +50,7 @@ function ExportCard({ icon, tone, title, body, to }: { icon: typeof BarChart3; t
   return (
     <div className="flex items-start gap-3 rounded-xl border p-4">
       <IconTile icon={icon} tone={tone} />
-      <div className="min-w-0 flex-1"><div className="text-sm font-semibold">{title}</div><p className="mt-0.5 text-xs text-muted-foreground">{body}</p></div>
+      <div className="min-w-0 flex-1"><div className="text-sm font-medium">{title}</div><p className="mt-0.5 text-xs text-muted-foreground">{body}</p></div>
       <Button variant="outline" size="sm" asChild><Link to={to}>{t("Open")}<ArrowUpRight className="rtl:-scale-x-100" /></Link></Button>
     </div>
   );

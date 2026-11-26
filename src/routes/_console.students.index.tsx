@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Download, Search, MoreHorizontal, ArrowDown, ArrowUp, X, MessageCircle, UserRound, Wallet, ChevronLeft, ChevronRight, Users, SlidersHorizontal, IdCard, Database, FlaskConical, RotateCcw } from "lucide-react";
-import { Pill, EmptyState, Avatar, Meter, PageHeader, type Tone } from "@/components/app/ui";
+import { Pill, EmptyState, Avatar, Meter, PageHeader, LedgerCode, type Tone } from "@/components/app/ui";
 import { StudentBalance } from "@/components/app/student-balance";
 import { AddStudent, GRADES } from "@/components/app/add-student";
 import { RecordPaymentDialog } from "@/components/app/record-payment";
@@ -80,15 +80,15 @@ function StudentsPage() {
   };
   const classChips = (ids: string[]) => (
     <div className="flex min-w-0 flex-wrap gap-1">
-      {ids.slice(0, 2).map((id) => <span key={id} className="max-w-44 truncate rounded-md border bg-muted/50 px-1.5 py-0.5 text-[11px]" title={className(id)}><bdi>{className(id)}</bdi></span>)}
-      {ids.length > 2 && <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground" title={ids.slice(2).map(className).join(" · ")}>+{fmtNum(ids.length - 2, lang)}</span>}
-      {!ids.length && <span className="text-[11px] text-muted-foreground">—</span>}
+      {ids.slice(0, 2).map((id) => <span key={id} className="max-w-44 truncate rounded-md border bg-muted/50 px-1.5 py-0.5 text-meta" title={className(id)}><bdi>{className(id)}</bdi></span>)}
+      {ids.length > 2 && <span className="rounded-md bg-muted px-1.5 py-0.5 text-meta text-muted-foreground" title={ids.slice(2).map(className).join(" · ")}>+{fmtNum(ids.length - 2, lang)}</span>}
+      {!ids.length && <span className="text-meta text-muted-foreground">—</span>}
     </div>
   );
   const statusTone = (s: StudentRow["status"]): Tone => (s === "Active" ? "positive" : s === "Paused" ? "warning" : "neutral");
-  const demoTag = <span className="ms-1 rounded bg-warning-soft px-1 py-px text-[9px] font-bold uppercase text-warning">{t("Demo")}</span>;
-  const attendanceCell = (a: number | null) => a === null ? <span className="text-[13px] text-muted-foreground">—</span>
-    : <div className="flex items-center gap-2"><span className="w-10 shrink-0 text-[13px] font-medium num"><bdi>{pct(a, lang)}</bdi></span><Meter value={a} tone={a >= 90 ? "positive" : a >= 80 ? "teal" : "warning"} label={t("Attendance")} className="w-14" /></div>;
+  const demoTag = <span className="ms-1 rounded bg-warning-soft px-1 py-px text-meta font-medium text-warning">{t("Demo")}</span>;
+  const attendanceCell = (a: number | null) => a === null ? <span className="text-ui text-muted-foreground">—</span>
+    : <div className="flex items-center gap-2"><span className="w-10 shrink-0 text-ui font-medium num"><bdi>{pct(a, lang)}</bdi></span><Meter value={a} tone={a >= 90 ? "positive" : a >= 80 ? "neutral" : "warning"} label={t("Attendance")} className="w-14" /></div>;
 
   return (
     <div className="mx-auto max-w-[90rem]">
@@ -99,7 +99,7 @@ function StudentsPage() {
           {canEditStudents && <AddStudent />}
         </>} />
 
-      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border bg-card/60 px-3 py-2 text-[11px] text-muted-foreground">
+      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border bg-card/60 px-3 py-2 text-meta text-muted-foreground">
         <span className="inline-flex items-center gap-1.5"><Database className="size-3.5 text-positive" />{t("Student records are saved to your center's database.")}</span>
         <span className="inline-flex items-center gap-1.5"><FlaskConical className="size-3.5 text-warning" />{t("Balances and attendance come from demo ledger and attendance data.")}</span>
       </div>
@@ -110,9 +110,9 @@ function StudentsPage() {
           const dot = key === "Owing" ? "bg-destructive" : key === "Credit" ? "bg-positive" : key === "Settled" ? "bg-muted-foreground" : "bg-brand";
           return (
             <button key={key} role="tab" type="button" aria-selected={on} onClick={() => reset(setBal)(key)}
-              className={cn("flex shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2 text-[13px] font-medium transition-colors", on ? "border-primary bg-card text-foreground shadow-card ring-1 ring-primary" : "bg-card/60 text-muted-foreground hover:bg-card hover:text-foreground")}>
-              <span className={cn("size-2 rounded-full", dot)} />{t(key === "all" ? "All students" : key)}
-              <span className={cn("rounded-full px-1.5 text-[11px] font-semibold num", on ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>{fmtNum(segmentCounts[key], lang)}</span>
+              className={cn("flex shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-ui transition-colors", on ? "border-input bg-card font-medium text-foreground shadow-card" : "border-transparent text-muted-foreground hover:bg-card hover:text-foreground")}>
+              <span className={cn("size-1.5 rounded-full", dot)} />{t(key === "all" ? "All students" : key)}
+              <span className="font-mono text-meta text-muted-foreground">{fmtNum(segmentCounts[key], lang)}</span>
             </button>
           );
         })}
@@ -173,13 +173,13 @@ function StudentsPage() {
                         <div className="flex items-center gap-3">
                           <Avatar name={s.name} seed={s.id} />
                           <div className="min-w-0">
-                            <Link to="/students/$id" params={{ id: s.id }} className="block truncate font-semibold hover:text-brand"><bdi>{s.name}</bdi></Link>
-                            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground"><bdi dir="ltr">{s.id}</bdi><span>·</span><a href={`tel:${s.phone}`} className="hover:text-foreground"><bdi dir="ltr">{s.phone}</bdi></a></div>
+                            <Link to="/students/$id" params={{ id: s.id }} className="block truncate font-medium hover:text-brand"><bdi>{s.name}</bdi></Link>
+                            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground"><LedgerCode code={s.id} /><a href={`tel:${s.phone}`} className="hover:text-foreground"><bdi dir="ltr">{s.phone}</bdi></a></div>
                           </div>
                         </div>
                       </td>
-                      <td className="whitespace-nowrap px-3 text-[13px]">{t(s.grade)}</td>
-                      <td className="hidden whitespace-nowrap px-3 text-[13px] xl:table-cell"><bdi>{t(s.branch)}</bdi></td>
+                      <td className="whitespace-nowrap px-3 text-ui">{t(s.grade)}</td>
+                      <td className="hidden whitespace-nowrap px-3 text-ui xl:table-cell"><bdi>{t(s.branch)}</bdi></td>
                       <td className="min-w-40 max-w-64 px-3">{classChips(s.classIds)}</td>
                       <td className="w-32 px-3">{attendanceCell(s.attendance)}</td>
                       <td className="px-3"><StudentBalance value={s.balance} /></td>
@@ -196,7 +196,7 @@ function StudentsPage() {
                   <div className="flex items-start gap-3">
                     <Avatar name={s.name} seed={s.id} />
                     <div className="min-w-0 flex-1">
-                      <Link to="/students/$id" params={{ id: s.id }} className="block break-words font-semibold hover:text-brand"><bdi>{s.name}</bdi></Link>
+                      <Link to="/students/$id" params={{ id: s.id }} className="block break-words font-medium hover:text-brand"><bdi>{s.name}</bdi></Link>
                       <div className="mt-0.5 text-xs text-muted-foreground"><bdi dir="ltr">{s.id}</bdi> · {t(s.grade)} · <bdi>{t(s.branch)}</bdi></div>
                     </div>
                     <StudentBalance value={s.balance} />
@@ -204,7 +204,7 @@ function StudentsPage() {
                   <div className="mt-3">{classChips(s.classIds)}</div>
                   <div className="mt-3 flex items-center gap-2">
                     <Pill tone={statusTone(s.status)} dot>{t(s.status)}</Pill>
-                    <span className="text-xs text-muted-foreground">{t("Attendance")} <b className="font-semibold text-foreground num"><bdi>{s.attendance === null ? "—" : pct(s.attendance, lang)}</bdi></b></span>
+                    <span className="text-xs text-muted-foreground">{t("Attendance")} <b className="font-medium text-foreground num"><bdi>{s.attendance === null ? "—" : pct(s.attendance, lang)}</bdi></b></span>
                     <div className="ms-auto flex shrink-0 gap-1">
                       <RecordPaymentDialog studentId={s.id} trigger={<Button variant="outline" size="icon" className="size-9" aria-label={`${t("Record payment")} · ${s.name}`} title={t("Record payment")}><Wallet /></Button>} />
                       <StudentActions student={s} />

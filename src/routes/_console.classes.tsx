@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Pencil, BookOpen, Languages as LanguagesIcon, CalendarCheck, CalendarDays, Clock3, MapPin, MoreHorizontal, Info, Users, Layers, Receipt, Repeat, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
-import { PageHeader, Pill, Money, Avatar, Meter, MiniStat, EmptyState, tintClass, tintFor } from "@/components/app/ui";
+import { PageHeader, Pill, Money, Avatar, Meter, MiniStat, EmptyState, tintDot, tintFor } from "@/components/app/ui";
 import { RuleEditor, ruleIsValid } from "@/components/app/rule-editor";
 import { RuleEffects } from "@/components/app/rule-effects";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,7 @@ function ClassesPage() {
         <Tabs value={kind} onValueChange={setKind} dir={lang === "ar" ? "rtl" : "ltr"}>
           <TabsList className="h-10">
             {([["all", "All"], ["Tutoring", "Tutoring"], ["Language course", "Language courses"]] as const).map(([v, label]) => (
-              <TabsTrigger key={v} value={v} className="gap-1.5 px-3">{t(label)}<span className="rounded-full bg-muted px-1.5 text-[10px] font-semibold text-muted-foreground num">{fmtNum(counts[v], lang)}</span></TabsTrigger>
+              <TabsTrigger key={v} value={v} className="gap-1.5 px-3">{t(label)}<span className="rounded-full bg-muted px-1.5 text-meta font-medium text-muted-foreground num">{fmtNum(counts[v], lang)}</span></TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
@@ -116,13 +116,13 @@ function ClassCard({ c, rule, roster, onEdit }: { c: ClassItem; rule: BillingRul
   const KindIcon = c.kind === "Tutoring" ? BookOpen : LanguagesIcon;
   const RuleIcon = rule.kind === "monthly" ? CalendarDays : rule.kind === "per_session" ? CalendarCheck : PackageCheck;
   return (
-    <article className="surface group flex min-w-0 flex-col overflow-hidden transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-raised">
-      <div className={cn("relative flex items-start justify-between gap-3 px-4 pt-4 pb-3", tintClass[tint].split(" ")[0])}>
-        <span className={cn("grid size-12 shrink-0 place-items-center rounded-xl bg-card/80 shadow-card", tintClass[tint].split(" ")[1])}><KindIcon className="size-6" /></span>
+    <article className="surface group flex min-w-0 flex-col overflow-hidden transition-colors hover:border-input">
+      <div className="relative flex items-start justify-between gap-3 px-4 pt-4 pb-1">
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground"><KindIcon className="size-4" /></span>
         <div className="flex items-center gap-1">
-          <Pill tone="positive" dot className="bg-card/80">{t("Active")}</Pill>
+          <Pill tone="positive" dot>{t("Active")}</Pill>
           <DropdownMenu dir={lang === "ar" ? "rtl" : "ltr"}>
-            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:bg-card/70" aria-label={`${t("Class actions")} · ${c.name}`}><MoreHorizontal /></Button></DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8 text-muted-foreground " aria-label={`${t("Class actions")} · ${c.name}`}><MoreHorizontal /></Button></DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuItem onSelect={onEdit}><Pencil />{t("Edit billing rule")}</DropdownMenuItem>
               <DropdownMenuItem asChild><Link to="/attendance" search={{ classId: c.id }}><CalendarCheck />{t("Take attendance")}</Link></DropdownMenuItem>
@@ -132,15 +132,15 @@ function ClassCard({ c, rule, roster, onEdit }: { c: ClassItem; rule: BillingRul
       </div>
 
       <div className="flex flex-1 flex-col p-4 pt-3">
-        <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground"><span>{t(teacher.subject)}</span>{level && <><span>·</span><span>{t(level)}</span></>}<span>·</span><span>{t(c.kind)}</span></div>
-        <h2 className="mt-1 line-clamp-2 min-h-11 break-words font-display text-[15px] font-bold leading-snug tracking-tight"><bdi>{c.name}</bdi></h2>
+        <div className="flex items-center gap-1.5 text-meta font-medium text-muted-foreground"><span className={cn("size-1.5 shrink-0 rounded-full", tintDot[tint])} /><span>{t(teacher.subject)}</span>{level && <><span>·</span><span>{t(level)}</span></>}<span>·</span><span>{t(c.kind)}</span></div>
+        <h2 className="mt-1 line-clamp-2 min-h-11 break-words text-section-title font-medium leading-snug"><bdi>{c.name}</bdi></h2>
 
         <div className="mt-3 flex items-center gap-2.5">
           <Avatar name={teacher.name} seed={teacher.id} size="sm" />
-          <div className="min-w-0"><bdi className="block truncate text-[13px] font-medium">{teacher.name}</bdi><div className="text-[11px] text-muted-foreground">{t("Teacher")}</div></div>
+          <div className="min-w-0"><bdi className="block truncate text-ui font-medium">{teacher.name}</bdi><div className="text-meta text-muted-foreground">{t("Teacher")}</div></div>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
+        <div className="mt-3 flex flex-wrap gap-1.5 text-meta">
           <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1"><CalendarDays className="size-3.5 text-muted-foreground" />{localDays(c.days, t)}</span>
           <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1"><Clock3 className="size-3.5 text-muted-foreground" /><bdi>{localTime(c.time, lang)}</bdi></span>
           <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1"><MapPin className="size-3.5 text-muted-foreground" />{t(c.branch)}</span>
@@ -148,22 +148,22 @@ function ClassCard({ c, rule, roster, onEdit }: { c: ClassItem; rule: BillingRul
 
         <button type="button" onClick={onEdit} className="mt-3 flex items-start gap-2.5 rounded-lg border border-dashed px-3 py-2.5 text-start transition-colors hover:border-primary/50 hover:bg-accent/50" aria-label={`${t("Edit billing rule")} · ${c.name}`}>
           <RuleIcon className="mt-0.5 size-4 shrink-0 text-brand" />
-          <span className="min-w-0 flex-1"><span className="block text-[13px] font-semibold">{ruleKindLabel(rule, t)}</span><span className="block text-[11px] text-muted-foreground">{ruleSummary(rule, t, lang)}</span></span>
+          <span className="min-w-0 flex-1"><span className="block text-ui font-medium">{ruleKindLabel(rule, t)}</span><span className="block text-meta text-muted-foreground">{ruleSummary(rule, t, lang)}</span></span>
           <Pencil className="mt-0.5 size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
         </button>
 
         <div className="mt-auto pt-4">
           <div className="flex items-end justify-between gap-2">
             <div>
-              <div className="text-[11px] font-medium text-muted-foreground">{t("Enrolled students")}</div>
-              <div className="mt-0.5 font-display text-base font-bold num"><bdi>{fmtNum(n, lang)}<span className="text-xs font-medium text-muted-foreground"> / {fmtNum(c.capacity, lang)}</span></bdi></div>
+              <div className="text-meta font-medium text-muted-foreground">{t("Enrolled students")}</div>
+              <div className="mt-0.5 text-base font-medium num"><bdi>{fmtNum(n, lang)}<span className="text-xs font-medium text-muted-foreground"> / {fmtNum(c.capacity, lang)}</span></bdi></div>
             </div>
             <div className="flex -space-x-2 rtl:space-x-reverse" aria-label={t("{n} students", { n: fmtNum(n, lang) })}>
               {roster.slice(0, 3).map((s) => <Avatar key={s.id} name={s.name} seed={s.id} size="sm" className="ring-2 ring-card" />)}
-              {n > 3 && <span className="grid size-8 place-items-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground ring-2 ring-card num">+{fmtNum(n - 3, lang)}</span>}
+              {n > 3 && <span className="grid size-8 place-items-center rounded-full bg-muted text-meta font-medium text-muted-foreground ring-2 ring-card num">+{fmtNum(n - 3, lang)}</span>}
             </div>
           </div>
-          <Meter className="mt-2" value={fill} tone={fill >= 90 ? "warning" : "teal"} label={t("Capacity")} />
+          <Meter className="mt-2" value={fill} tone={fill >= 90 ? "warning" : "brand"} label={t("Capacity")} />
           <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t pt-3">
             <Button variant="outline" size="sm" asChild><Link to="/attendance" search={{ classId: c.id }}><CalendarCheck />{t("Attendance")}</Link></Button>
             <Button variant="ghost" size="sm" title={t("Edit billing rule")} aria-label={`${t("Edit billing rule")} · ${c.name}`} onClick={onEdit}><Pencil />{t("Rule")}</Button>

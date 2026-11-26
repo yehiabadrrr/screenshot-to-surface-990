@@ -476,4 +476,10 @@ export const arUi: Record<string, string> = {
   "Could not create the center.": "تعذّر إنشاء المركز.",
   "You are not signed in.": "لم تسجّل الدخول.",
   "Your session has expired. Sign in again.": "انتهت جلستك. سجّل الدخول مرة أخرى.",
+  // Unslop pass
+  "Today's register": "سجل اليوم",
+  "vs {month}": "مقارنة بـ{month}",
+  "{a} active of {n} students": "{a} نشط من {n} طالب",
+  "Omar Hassan": "عمر حسن",
+  "Sign in to Markazly": "تسجيل الدخول إلى مركزلي",
 };

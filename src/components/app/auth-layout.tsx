@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useI18n } from "@/lib/i18n";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { cn } from "@/lib/utils";
+import { formatMoney } from "@/lib/format";
 
 /** Two-column layout shared by sign-in, registration, password recovery and onboarding. */
 export function AuthLayout({ title, subtitle, children, footer }: { title: string; subtitle?: string | undefined; children: ReactNode; footer?: ReactNode | undefined }) {
@@ -15,13 +16,13 @@ export function AuthLayout({ title, subtitle, children, footer }: { title: strin
     <div className="grid min-h-screen bg-background lg:grid-cols-[1fr_1.05fr]">
       <div className="flex flex-col px-6 py-8 sm:px-12">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5"><Logo className="size-9" /><span className="font-display text-lg font-extrabold tracking-tight">Markazly</span></div>
+          <div className="flex items-center gap-2.5"><Logo className="size-8" /><span className="text-base font-medium">Markazly</span></div>
           <Button variant="ghost" onClick={() => setLang(lang === "en" ? "ar" : "en")} className="gap-1.5 text-sm text-muted-foreground hover:text-foreground">
             <Languages className="size-4" />{lang === "en" ? "العربية" : "English"}
           </Button>
         </div>
         <div className="mx-auto my-auto w-full max-w-sm py-12">
-          <h1 className="font-display text-2xl font-bold tracking-tight">{title}</h1>
+          <h1 className="text-2xl font-medium">{title}</h1>
           {subtitle && <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>}
           {!isSupabaseConfigured ? (
             <p role="alert" className="mt-6 rounded-lg border border-warning/40 bg-warning-soft px-3 py-2.5 text-sm text-foreground">
@@ -31,17 +32,32 @@ export function AuthLayout({ title, subtitle, children, footer }: { title: strin
           {footer && <div className="mt-6 text-center text-sm text-muted-foreground">{footer}</div>}
         </div>
       </div>
-      <div className="bg-hero relative hidden overflow-hidden p-12 text-welcome-foreground lg:flex lg:flex-col lg:justify-between">
-        <div aria-hidden className="absolute -end-32 -top-32 size-[28rem] rounded-full border border-white/10" />
-        <div aria-hidden className="absolute -end-12 -top-12 size-[18rem] rounded-full border border-white/10" />
-        <div className="relative max-w-md font-display text-3xl font-bold leading-tight tracking-tight">
-          {t("Every pound, every session, every student — in one place.")}
+      <div className="hidden border-s bg-muted/60 p-12 lg:flex lg:flex-col lg:justify-center">
+        <div className="mx-auto w-full max-w-md">
+          <p className="text-3xl font-medium leading-tight text-foreground">{t("Every pound, every session, every student — in one place.")}</p>
+          <ReceiptPreview />
+          <ul className="mt-10 space-y-3 text-sm text-muted-foreground">
+            {([[Users, "Students and guardians in one directory"], [Wallet, "Payments, balances and collections"], [ShieldCheck, "Each center's data is private to its team"]] as const).map(([Icon, text]) => (
+              <li key={text} className="flex items-center gap-2.5"><Icon className="size-4 shrink-0" />{t(text)}</li>
+            ))}
+          </ul>
         </div>
-        <ul className="relative space-y-3 text-sm text-welcome-muted">
-          {([[Users, "Students and guardians in one directory"], [Wallet, "Payments, balances and collections"], [ShieldCheck, "Each center's data is private to its team"]] as const).map(([Icon, text]) => (
-            <li key={text} className="flex items-center gap-3"><span className="grid size-8 place-items-center rounded-lg bg-white/10 text-white"><Icon className="size-4" /></span>{t(text)}</li>
-          ))}
-        </ul>
+      </div>
+    </div>
+  );
+}
+
+/** Illustration only (aria-hidden): what a recorded payment looks like in Markazly. Not account data. */
+function ReceiptPreview() {
+  const { t, lang } = useI18n();
+  return (
+    <div aria-hidden className="mt-10 max-w-sm rotate-[-1.5deg] rounded-xl border bg-card p-5 shadow-pop rtl:rotate-[1.5deg]">
+      <div className="flex items-center justify-between text-xs text-muted-foreground"><span>{t("Payment received")}</span><span className="ledger-code" dir="ltr">PAY-0193</span></div>
+      <div className="mt-3 text-metric font-medium text-foreground num"><bdi>{formatMoney(850, lang)}</bdi></div>
+      <div className="mt-4 space-y-2 border-t border-dashed pt-4 text-xs">
+        <div className="flex justify-between gap-3"><span className="text-muted-foreground">{t("Student")}</span><span className="flex items-center gap-1.5"><span className="ledger-code" dir="ltr">S-1042</span>{t("Omar Hassan")}</span></div>
+        <div className="flex justify-between gap-3"><span className="text-muted-foreground">{t("Method")}</span><span>{t("Cash")}</span></div>
+        <div className="flex justify-between gap-3"><span className="text-muted-foreground">{t("Balance")}</span><span className="text-positive">{t("Settled")}</span></div>
       </div>
     </div>
   );

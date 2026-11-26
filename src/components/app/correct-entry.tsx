@@ -25,7 +25,7 @@ export function CorrectEntryDialog({ entry, onClose }: { entry: LedgerEntry | nu
   const close = () => { setReason(""); setAmount(""); setError(""); setMode("reverse"); onClose(); };
   const option = (value: "reverse" | "adjust", title: string, hint: string) => (
     <label className={cn("flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 text-sm transition-colors", mode === value ? "border-primary bg-accent" : "hover:bg-muted/50")}>
-      <RadioGroupItem value={value} className="mt-0.5" /><span><b className="font-semibold">{title}</b><br /><span className="text-xs text-muted-foreground">{hint}</span></span>
+      <RadioGroupItem value={value} className="mt-0.5" /><span><b className="font-medium">{title}</b><br /><span className="text-xs text-muted-foreground">{hint}</span></span>
     </label>
   );
   return (
@@ -49,14 +49,14 @@ export function CorrectEntryDialog({ entry, onClose }: { entry: LedgerEntry | nu
             } catch (err) { setError(err instanceof Error ? t(err.message) : t("Could not correct")); }
           }}>
             <div className="rounded-lg border bg-muted/40 p-3 text-sm">
-              <div className="font-semibold">{t(entry.type)} · <bdi className="num">{egp(entry.amount, lang)}</bdi> · {entry.method ? t(entry.method) : "—"}</div>
+              <div className="font-medium">{t(entry.type)} · <bdi className="num">{egp(entry.amount, lang)}</bdi> · {entry.method ? t(entry.method) : "—"}</div>
               <div className="mt-0.5 text-xs text-muted-foreground"><bdi>{students.find((s) => s.id === entry.studentId)?.name ?? entry.studentId}</bdi> · {shortDateL(entry.date, lang)} · {t("entered by {name}", { name: t(entry.enteredBy) })}</div>
             </div>
             <RadioGroup value={mode} onValueChange={(v) => setMode(v as "reverse" | "adjust")} className="gap-2" dir={lang === "ar" ? "rtl" : "ltr"}>
               {option("reverse", t("Reverse only"), t("e.g. bounced transfer, duplicate entry"))}
               {entry.type === "Payment" && option("adjust", t("Reverse and re-enter the correct amount"), t("Keeps the date, student, method and reference"))}
             </RadioGroup>
-            {mode === "adjust" && <div className="space-y-1.5"><Label htmlFor="corr-amount">{t("Correct amount (EGP)")}</Label><Input id="corr-amount" dir="ltr" className="font-semibold num" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))} /></div>}
+            {mode === "adjust" && <div className="space-y-1.5"><Label htmlFor="corr-amount">{t("Correct amount (EGP)")}</Label><Input id="corr-amount" dir="ltr" className="font-medium num" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))} /></div>}
             <div className="space-y-1.5"><Label htmlFor="corr-reason">{t("Reason")}</Label><Textarea id="corr-reason" rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("Typed 1,500 instead of 1,050")} maxLength={200} /></div>
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Info className="size-3.5" />{t("Recorded by {by}.", { by: CURRENT_USER.name })}</p>
             {error && <p role="alert" className="text-sm text-destructive">{error}</p>}

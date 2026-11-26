@@ -50,7 +50,7 @@ function SignIn() {
   };
 
   return (
-    <AuthLayout title={t("Welcome back")} subtitle={t("Sign in to manage your center.")}
+    <AuthLayout title={t("Sign in to Markazly")} subtitle={t("Sign in to manage your center.")}
       footer={<>{t("New to Markazly?")} <Link to="/signup" className="font-medium text-brand hover:underline">{t("Create an account")}</Link></>}>
       <form className="space-y-4" onSubmit={submit} noValidate>
         <Field id="email" label={t("Email")} type="email" autoComplete="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} required />

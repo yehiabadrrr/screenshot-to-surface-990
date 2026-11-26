@@ -26,21 +26,21 @@ function Page() {
       <div className="space-y-5">
         <Section icon={Building2} title={t("Center profile")} hint={t("Shown across Markazly. Editing needs saved data, which isn't set up yet.")} locked>
           <div className="mb-5 flex items-center gap-4">
-            <span className="grid size-14 place-items-center rounded-xl bg-tint-teal font-display text-lg font-bold text-tint-teal-ink">{initials(center.name)}</span>
-            <div><bdi className="block font-display text-lg font-bold">{center.name}</bdi><div className="text-xs text-muted-foreground">{t("{n} branches", { n: branchNames.length })}</div></div>
+            <span className="grid size-14 place-items-center rounded-xl border bg-muted text-lg font-medium text-muted-foreground">{initials(center.name)}</span>
+            <div><bdi className="block text-lg font-medium">{center.name}</bdi><div className="text-xs text-muted-foreground">{t("{n} branches", { n: branchNames.length })}</div></div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <ReadOnly id="center-name" label={t("Center name")} value={center.name} />
             <div className="space-y-1.5">
               <Label htmlFor="current-user">{t("Current user")}</Label>
-              <div className="flex items-center gap-2.5 rounded-md border bg-muted/40 px-3 py-1.5"><Avatar name={user.name} size="sm" /><div className="min-w-0"><bdi id="current-user" className="block truncate text-sm font-medium">{user.name}</bdi><div className="text-[11px] text-muted-foreground">{t(roleLabel[role])}</div></div></div>
+              <div className="flex items-center gap-2.5 rounded-md border bg-muted/40 px-3 py-1.5"><Avatar name={user.name} size="sm" /><div className="min-w-0"><bdi id="current-user" className="block truncate text-sm font-medium">{user.name}</bdi><div className="text-meta text-muted-foreground">{t(roleLabel[role])}</div></div></div>
             </div>
           </div>
         </Section>
 
         <Section icon={MapPin} title={t("Branches")} hint={t("Every financial figure can be filtered by branch.")} locked>
           <ul className="grid gap-3 sm:grid-cols-3">
-            {branchNames.map((b) => <li key={b} className="flex items-center gap-2.5 rounded-lg border px-3 py-2.5"><span className="grid size-8 place-items-center rounded-md bg-tint-blue text-tint-blue-ink"><MapPin className="size-4" /></span><bdi className="text-sm font-medium">{t(b)}</bdi></li>)}
+            {branchNames.map((b) => <li key={b} className="flex items-center gap-2.5 rounded-lg border px-3 py-2.5"><MapPin className="size-4 text-muted-foreground" /><bdi className="text-sm font-medium">{t(b)}</bdi></li>)}
           </ul>
         </Section>
 
@@ -61,7 +61,7 @@ function Page() {
         </Section>
 
         <Section icon={Database} title={t("Data")}>
-          <div className="flex items-start gap-3 rounded-lg bg-warning-soft px-4 py-3 text-sm"><span className="mt-1.5 size-2 shrink-0 rounded-full bg-warning" /><div><div className="font-semibold">{t("Demo data")}</div><p className="mt-0.5 text-[13px] text-muted-foreground">{t("Sample data resets on refresh. Nothing is saved.")}</p></div></div>
+          <div className="flex items-start gap-3 rounded-lg bg-warning-soft px-4 py-3 text-sm"><span className="mt-1.5 size-2 shrink-0 rounded-full bg-warning" /><div><div className="font-medium">{t("Demo data")}</div><p className="mt-0.5 text-ui text-muted-foreground">{t("Sample data resets on refresh. Nothing is saved.")}</p></div></div>
         </Section>
       </div>
     </div>
@@ -73,7 +73,7 @@ function Section({ icon: SIcon, title, hint, locked = false, children }: { icon:
   return (
     <section className="surface grid gap-5 p-5 md:grid-cols-[15rem_minmax(0,1fr)] md:p-6">
       <div>
-        <div className="flex items-center gap-2"><SIcon className="size-4 text-muted-foreground" /><h2 className="text-section-title font-semibold">{title}</h2></div>
+        <div className="flex items-center gap-2"><SIcon className="size-4 text-muted-foreground" /><h2 className="text-section-title font-medium">{title}</h2></div>
         {hint && <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>}
         {locked && <Pill tone="neutral" className="mt-2"><Lock className="size-3" />{t("Read-only")}</Pill>}
       </div>
@@ -91,7 +91,7 @@ function Choice({ selected, onSelect, title, hint, icon }: { selected: boolean; 
     <button type="button" role="radio" aria-checked={selected} onClick={onSelect}
       className={cn("flex items-center gap-3 rounded-lg border px-4 py-3 text-start transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring", selected ? "border-primary bg-accent ring-1 ring-primary" : "hover:bg-muted/50")}>
       {icon && <span className="grid size-8 place-items-center rounded-md bg-muted">{icon}</span>}
-      <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{title}</span>{hint && <span className="block text-xs text-muted-foreground">{hint}</span>}</span>
+      <span className="min-w-0 flex-1"><span className="block text-sm font-medium">{title}</span>{hint && <span className="block text-xs text-muted-foreground">{hint}</span>}</span>
       <span className={cn("grid size-5 place-items-center rounded-full border", selected && "border-primary bg-primary text-primary-foreground")}>{selected && <Check className="size-3" />}</span>
     </button>
   );

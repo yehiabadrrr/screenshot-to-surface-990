@@ -11,7 +11,7 @@ export function RuleEffects({ rule, columns = 4 }: { rule: BillingRule; columns?
     <dl className={cn("grid grid-cols-2 gap-2 text-xs", columns === 4 && "sm:grid-cols-4")}>
       {rows.map(([label, m, dot]) => (
         <div key={label} className="rounded-lg border bg-muted/40 px-2.5 py-2">
-          <dt className="flex items-center gap-1.5 font-semibold text-foreground"><span className={cn("size-1.5 rounded-full", dot)} />{t(label)}</dt>
+          <dt className="flex items-center gap-1.5 font-medium text-foreground"><span className={cn("size-1.5 rounded-full", dot)} />{t(label)}</dt>
           <dd className="mt-0.5 text-muted-foreground">{outcomeText(sessionOutcome(rule, m, 1), t, lang)}</dd>
         </div>
       ))}

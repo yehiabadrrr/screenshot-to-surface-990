@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { GraduationCap, Phone, MapPin, BookOpen, Users, Info, Construction } from "lucide-react";
-import { PageHeader, Pill, Avatar, MiniStat, EmptyState, tintClass, tintFor } from "@/components/app/ui";
+import { PageHeader, Pill, Avatar, MiniStat, EmptyState, tintDot, tintFor } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { useLedger } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
@@ -43,9 +43,9 @@ function Page() {
     <div className="mx-auto max-w-[90rem]">
       <PageHeader subtitle={t("{n} teachers · {s} subjects", { n: fmtNum(scoped.length, lang), s: fmtNum(subjects, lang) })} />
 
-      <div className="mb-5 flex items-start gap-3 rounded-xl border border-info/20 bg-info-soft px-4 py-3 text-sm">
-        <Construction className="mt-0.5 size-4 shrink-0 text-info" />
-        <div><div className="font-semibold">{t("Teacher management is next in line")}</div><p className="mt-0.5 text-[13px] text-muted-foreground">{t("This roster is read-only and comes from the class catalog. Adding teachers, payout settlement and payslips are not built yet. Accrued payables appear on Finance.")}</p></div>
+      <div className="mb-5 flex items-start gap-3 rounded-xl border bg-muted/60 px-4 py-3 text-sm">
+        <Construction className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+        <div><div className="font-medium">{t("Teacher management is next in line")}</div><p className="mt-0.5 text-ui text-muted-foreground">{t("This roster is read-only and comes from the class catalog. Adding teachers, payout settlement and payslips are not built yet. Accrued payables appear on Finance.")}</p></div>
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -63,24 +63,23 @@ function Page() {
             const tint = tintFor(x.subject);
             return (
               <article key={x.id} className="surface flex min-w-0 flex-col overflow-hidden">
-                <div className={cn("h-1.5", tintClass[tint].split(" ")[0])} />
                 <div className="flex flex-1 flex-col p-5">
                   <div className="flex items-start gap-3">
                     <Avatar name={x.name} seed={x.id} size="lg" />
                     <div className="min-w-0 flex-1">
-                      <bdi className="block truncate font-display text-base font-bold tracking-tight">{x.name}</bdi>
-                      <div className="mt-1 flex flex-wrap items-center gap-1.5"><span className={cn("rounded-md px-1.5 py-0.5 text-[11px] font-semibold", tintClass[tint])}>{t(x.subject)}</span><span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"><MapPin className="size-3" />{t(x.branch)}</span></div>
+                      <bdi className="block truncate text-base font-medium">{x.name}</bdi>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5"><span className="inline-flex items-center gap-1.5 text-meta font-medium text-muted-foreground"><span className={cn("size-1.5 rounded-full", tintDot[tint])} />{t(x.subject)}</span><span className="inline-flex items-center gap-1 text-meta text-muted-foreground"><MapPin className="size-3" />{t(x.branch)}</span></div>
                     </div>
                     <Button variant="ghost" size="icon" className="size-8 shrink-0" asChild><a href={`tel:${x.phone}`} aria-label={`${t("Call")} · ${x.name}`} title={t("Call")}><Phone className="size-4" /></a></Button>
                   </div>
 
                   <div className="mt-4 rounded-lg border border-dashed px-3 py-2.5">
-                    <div className="text-[11px] font-medium text-muted-foreground">{t("Pay model")}</div>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-2"><Pill tone="neutral">{t(modelLabel[x.model.type])}</Pill><span className="text-[13px] font-medium"><bdi>{modelText(x.model, t, lang)}</bdi></span></div>
+                    <div className="text-meta font-medium text-muted-foreground">{t("Pay model")}</div>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-2"><Pill tone="neutral">{t(modelLabel[x.model.type])}</Pill><span className="text-ui font-medium"><bdi>{modelText(x.model, t, lang)}</bdi></span></div>
                   </div>
 
                   <div className="mt-4">
-                    <div className="mb-2 flex items-center justify-between text-[11px] font-medium text-muted-foreground"><span>{t("Assigned classes")}</span><span className="num">{t("{n} students", { n: fmtNum(enrolled, lang) })}</span></div>
+                    <div className="mb-2 flex items-center justify-between text-meta font-medium text-muted-foreground"><span>{t("Assigned classes")}</span><span className="num">{t("{n} students", { n: fmtNum(enrolled, lang) })}</span></div>
                     <ul className="space-y-1.5">
                       {own.map((c) => (
                         <li key={c.id}>

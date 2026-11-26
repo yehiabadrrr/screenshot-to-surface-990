@@ -65,9 +65,9 @@ function BranchMenu({ variant }: { variant: "sidebar" | "header" }) {
     <DropdownMenu dir={lang === "ar" ? "rtl" : "ltr"}>
       <DropdownMenuTrigger asChild>
         {variant === "sidebar" ? (
-          <button type="button" className="flex w-full items-center gap-2.5 rounded-lg border border-sidebar-border bg-sidebar-accent px-2.5 py-2 text-start text-sidebar-accent-foreground outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-sidebar-ring">
-            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-teal-bright/20 text-xs font-bold text-teal-bright">{initials(center.name)}</span>
-            <span className="min-w-0 flex-1"><bdi className="block truncate text-[13px] font-semibold">{center.name}</bdi><span className="flex items-center gap-1 truncate text-[11px] text-sidebar-muted"><MapPin className="size-3 shrink-0" />{label}</span></span>
+          <button type="button" className="flex w-full items-center gap-2.5 rounded-lg border border-sidebar-border bg-sidebar-primary px-2.5 py-2 text-start text-sidebar-accent-foreground shadow-raised outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring">
+            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-muted text-xs font-medium text-muted-foreground">{initials(center.name)}</span>
+            <span className="min-w-0 flex-1"><bdi className="block truncate text-ui font-medium">{center.name}</bdi><span className="flex items-center gap-1 truncate text-meta text-sidebar-muted"><MapPin className="size-3 shrink-0" />{label}</span></span>
             <ChevronsUpDown className="size-4 shrink-0 text-sidebar-muted" />
           </button>
         ) : (
@@ -102,16 +102,16 @@ function SidebarBody({ collapsed, onNav }: { collapsed: boolean; onNav?: () => v
   const { user, role } = useCenter();
   const path = useRouterState({ select: (r) => r.location.pathname });
   return (
-    <div className="bg-sidebar-gradient flex h-full flex-col text-sidebar-foreground">
-      <div className={cn("flex h-16 shrink-0 items-center gap-3 px-5", collapsed && "justify-center px-0")}>
-        <Logo className="size-9 shrink-0" />
-        {!collapsed && <div className="min-w-0"><div className="font-display text-lg font-extrabold leading-tight tracking-tight text-white">Markazly</div><div className="text-[10px] font-medium uppercase text-sidebar-muted">{t("Center management")}</div></div>}
+    <div className="flex h-full flex-col border-e border-sidebar-border bg-sidebar text-sidebar-foreground">
+      <div className={cn("flex h-16 shrink-0 items-center gap-2.5 px-5", collapsed && "justify-center px-0")}>
+        <Logo className="size-7 shrink-0" />
+        {!collapsed && <div className="min-w-0"><div className="text-base font-medium leading-tight text-sidebar-accent-foreground">Markazly</div><div className="text-meta text-sidebar-muted">{t("Center management")}</div></div>}
       </div>
       {!collapsed && <div className="px-3 pb-4"><BranchMenu variant="sidebar" /></div>}
       <nav aria-label={t("Main navigation")} className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
-        {groups.map((group) => (
-          <div key={group} className="mb-4">
-            {collapsed ? <div className="mx-auto mb-2 h-px w-6 bg-sidebar-border" /> : <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase text-sidebar-muted">{t(group)}</div>}
+        {groups.map((group, gi) => (
+          <div key={group} className={gi ? "mt-6" : undefined}>
+            {collapsed ? <div className="mx-auto mb-2 h-px w-6 bg-sidebar-border" /> : <div className="px-2.5 pb-2 text-xs text-sidebar-muted">{t(group)}</div>}
             <ul className="space-y-0.5">
               {nav.filter((item) => item.group === group).map((item) => {
                 const active = isActive(path, item.to);
@@ -119,13 +119,12 @@ function SidebarBody({ collapsed, onNav }: { collapsed: boolean; onNav?: () => v
                   <li key={item.to}>
                     <Link to={item.to} onClick={onNav} aria-current={active ? "page" : undefined} title={collapsed ? t(item.label) : undefined}
                       className={cn(
-                        "group relative flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-                        active ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_6px_16px_-6px_oklch(0.498_0.122_253/0.7)]" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white",
+                        "group relative flex h-9 items-center gap-2.5 rounded-lg border border-transparent px-2.5 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+                        active ? "border-sidebar-border bg-sidebar-primary font-medium text-sidebar-primary-foreground shadow-raised" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                         collapsed && "justify-center px-0",
                       )}>
-                      <item.icon className={cn("size-[18px] shrink-0", active ? "text-white" : "text-sidebar-muted group-hover:text-white")} />
+                      <item.icon className={cn("size-4 shrink-0", active ? "text-brand" : "text-sidebar-muted group-hover:text-sidebar-accent-foreground")} />
                       {!collapsed && <span className="truncate">{t(item.label)}</span>}
-                      {active && !collapsed && <span className="ms-auto size-1.5 rounded-full bg-teal-bright" />}
                     </Link>
                   </li>
                 );
@@ -135,8 +134,8 @@ function SidebarBody({ collapsed, onNav }: { collapsed: boolean; onNav?: () => v
         ))}
       </nav>
       <div className={cn("flex shrink-0 items-center gap-2.5 border-t border-sidebar-border p-4", collapsed && "justify-center px-0")}>
-        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white/12 text-xs font-semibold text-white ring-2 ring-white/10">{initials(user.name)}</span>
-        {!collapsed && <div className="min-w-0"><bdi className="block truncate text-[13px] font-semibold text-white">{user.name}</bdi><div className="truncate text-[11px] text-sidebar-muted">{t(roleLabel[role])}</div></div>}
+        <Avatar name={user.name} size="md" />
+        {!collapsed && <div className="min-w-0"><bdi className="block truncate text-ui font-medium text-sidebar-accent-foreground">{user.name}</bdi><div className="truncate text-meta text-sidebar-muted">{t(roleLabel[role])}</div></div>}
       </div>
     </div>
   );
@@ -161,7 +160,7 @@ function Notifications() {
   const rows: { key: string; icon: typeof Bell; tone: string; title: ReactNode; detail: ReactNode; link: ReactNode }[] = [];
   for (const c of a.unfinalized.slice(0, 3)) rows.push({ key: `att-${c.id}`, icon: CalendarCheck, tone: "bg-warning-soft text-warning", title: <bdi>{c.name}</bdi>, detail: t("Started today · attendance not finalized"), link: <Link to="/attendance" search={{ classId: c.id, date: a.today }} className="absolute inset-0" aria-label={t("Open attendance")} /> });
   if (a.pending.count > 0) rows.push({ key: "pending", icon: Hourglass, tone: "bg-warning-soft text-warning", title: t("{n} payments awaiting confirmation", { n: fmtNum(a.pending.count, lang) }), detail: <>{t("Not counted as collected")} · <bdi className="num">{formatMoney(a.pending.amount, lang)}</bdi></>, link: <Link to="/finance" className="absolute inset-0" aria-label={t("Open finance")} /> });
-  for (const p of a.lowPackages.slice(0, 2)) rows.push({ key: `pkg-${p.studentId}-${p.classId}`, icon: PackageOpen, tone: "bg-tint-lavender text-tint-lavender-ink", title: <bdi>{findStudent(p.studentId)?.name ?? p.studentId}</bdi>, detail: <>{t(p.remaining === 0 ? "Package used up" : "{n} package session left", { n: fmtNum(p.remaining, lang) })} · <bdi>{className(p.classId)}</bdi></>, link: <Link to="/students/$id" params={{ id: p.studentId }} search={{ tab: "enroll" }} className="absolute inset-0" aria-label={t("Open profile")} /> });
+  for (const p of a.lowPackages.slice(0, 2)) rows.push({ key: `pkg-${p.studentId}-${p.classId}`, icon: PackageOpen, tone: "bg-muted text-muted-foreground", title: <bdi>{findStudent(p.studentId)?.name ?? p.studentId}</bdi>, detail: <>{t(p.remaining === 0 ? "Package used up" : "{n} package session left", { n: fmtNum(p.remaining, lang) })} · <bdi>{className(p.classId)}</bdi></>, link: <Link to="/students/$id" params={{ id: p.studentId }} search={{ tab: "enroll" }} className="absolute inset-0" aria-label={t("Open profile")} /> });
   if (a.owing.length > 0) rows.push({ key: "owing", icon: CircleAlert, tone: "bg-negative-soft text-destructive", title: t("{n} students have an outstanding balance", { n: fmtNum(a.owing.length, lang) }), detail: t("As of the end of the selected period"), link: <Link to="/students" className="absolute inset-0" aria-label={t("Open students")} /> });
   const badge = a.ready ? a.count : 0;
   return (
@@ -169,17 +168,17 @@ function Notifications() {
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative size-9 text-muted-foreground" aria-label={badge ? t("Notifications · {n} items need attention", { n: fmtNum(badge, lang) }) : t("Notifications")}>
           <Bell />
-          {badge > 0 && <span className="absolute end-1 top-1 grid min-w-4 place-items-center rounded-full bg-destructive px-1 text-[9px] font-bold leading-4 text-white ring-2 ring-card num">{badge > 9 ? "9+" : badge}</span>}
+          {badge > 0 && <span className="absolute end-1 top-1 grid min-w-4 place-items-center rounded-full bg-destructive px-1 text-meta font-medium leading-4 text-destructive-foreground ring-2 ring-card num">{badge > 9 ? "9+" : badge}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0" dir={lang === "ar" ? "rtl" : "ltr"}>
-        <div className="flex items-center justify-between border-b px-4 py-3"><div className="text-sm font-semibold">{t("Needs attention")}</div><span className="text-[11px] text-muted-foreground">{t("From live sample data")}</span></div>
+        <div className="flex items-center justify-between border-b px-4 py-3"><div className="text-sm font-medium">{t("Needs attention")}</div><span className="text-meta text-muted-foreground">{t("From live sample data")}</span></div>
         {rows.length ? (
           <ul className="max-h-96 divide-y overflow-y-auto">
             {rows.map((r) => (
               <li key={r.key} className="relative flex gap-3 px-4 py-3 hover:bg-muted/60">
                 <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg", r.tone)}><r.icon className="size-4" /></span>
-                <div className="min-w-0"><div className="truncate text-[13px] font-medium">{r.title}</div><div className="mt-0.5 text-xs text-muted-foreground">{r.detail}</div></div>
+                <div className="min-w-0"><div className="truncate text-ui font-medium">{r.title}</div><div className="mt-0.5 text-xs text-muted-foreground">{r.detail}</div></div>
                 {r.link}
               </li>
             ))}
@@ -207,12 +206,12 @@ function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-10 gap-2 px-1.5 lg:pe-2.5" aria-label={t("Account menu")}>
           <Avatar name={user.name} size="sm" />
-          <span className="hidden min-w-0 text-start lg:block"><bdi className="block max-w-32 truncate text-[13px] font-semibold leading-tight">{user.name}</bdi><span className="block text-[11px] leading-tight text-muted-foreground">{t(roleLabel[role])}</span></span>
+          <span className="hidden min-w-0 text-start lg:block"><bdi className="block max-w-32 truncate text-ui font-medium leading-tight">{user.name}</bdi><span className="block text-meta leading-tight text-muted-foreground">{t(roleLabel[role])}</span></span>
           <ChevronDown className="hidden size-3.5 text-muted-foreground lg:block" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
-        <DropdownMenuLabel className="font-normal"><bdi className="block text-sm font-semibold">{user.name}</bdi><bdi className="block truncate text-xs text-muted-foreground" dir="ltr">{user.email}</bdi><span className="text-xs text-muted-foreground">{t(roleLabel[role])} · <bdi>{center.name}</bdi></span></DropdownMenuLabel>
+        <DropdownMenuLabel className="font-normal"><bdi className="block text-sm font-medium">{user.name}</bdi><bdi className="block truncate text-xs text-muted-foreground" dir="ltr">{user.email}</bdi><span className="text-xs text-muted-foreground">{t(roleLabel[role])} · <bdi>{center.name}</bdi></span></DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild><Link to="/settings"><Settings />{t("Settings")}</Link></DropdownMenuItem>
         <DropdownMenuItem onClick={() => setLang(lang === "en" ? "ar" : "en")}><Languages />{lang === "en" ? "العربية" : "English"}</DropdownMenuItem>
@@ -255,14 +254,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <SidebarBody collapsed={collapsed} />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 border-b bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+        <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/85">
           <div className="flex min-h-16 items-center gap-2 px-page-mobile md:gap-3 md:px-6 lg:px-8">
             <Button variant="ghost" size="icon" aria-label={t("Toggle sidebar")} title={t("Toggle sidebar")} aria-expanded={!collapsed} className="hidden size-9 text-muted-foreground lg:inline-flex" onClick={toggle}>
               {collapsed ? <PanelLeftOpen className="rtl:-scale-x-100" /> : <PanelLeftClose className="rtl:-scale-x-100" />}
             </Button>
             <Button variant="ghost" size="icon" aria-label={t("Main navigation")} className="size-9 md:hidden" onClick={() => setMore(true)}><Menu /></Button>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate font-display text-lg font-bold leading-tight tracking-tight text-foreground sm:text-page-title">{t(meta.title)}</h1>
+              <h1 className="truncate text-lg font-medium leading-tight text-foreground sm:text-page-title">{t(meta.title)}</h1>
               <p className="hidden truncate text-xs text-muted-foreground sm:block">{t(meta.subtitle)}</p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
@@ -270,7 +269,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {PERIOD_ROUTES.includes(path) && <div className="hidden xl:block"><PeriodSelect /></div>}
               <div className="hidden md:block"><BranchMenu variant="header" /></div>
               <Button variant="ghost" size="sm" onClick={() => setLang(lang === "en" ? "ar" : "en")} className="hidden h-9 gap-1.5 px-2.5 text-muted-foreground sm:inline-flex" aria-label={lang === "en" ? "التبديل إلى العربية" : "Switch to English"}>
-                <Languages /><span className="hidden text-[13px] lg:inline">{lang === "en" ? "العربية" : "EN"}</span>
+                <Languages /><span className="hidden text-ui lg:inline">{lang === "en" ? "العربية" : "EN"}</span>
               </Button>
               <Button variant="ghost" size="icon" onClick={toggleTheme} className="hidden size-9 text-muted-foreground sm:inline-flex" aria-label={t(theme === "dark" ? "Light mode" : "Dark mode")} title={t(theme === "dark" ? "Light mode" : "Dark mode")}>
                 {theme === "dark" ? <Sun /> : <Moon />}
@@ -281,8 +280,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           {/* Students persist; classes, ledger and attendance are still demo data in Phase 1. */}
-          <div className="flex items-center justify-center gap-1.5 border-t border-warning/25 bg-warning-soft px-4 py-1 text-[11px] text-foreground" title={t("Classes, payments and attendance are demo data and reset on refresh. Student records are saved.")}>
-            <span className="size-1.5 shrink-0 rounded-full bg-warning" /><span className="font-semibold">{t(demo ? "Demo Center" : "Demo data")}</span><span className="hidden text-muted-foreground sm:inline">· {t("Classes, payments and attendance are demo data and reset on refresh. Student records are saved.")}</span>
+          <div className="flex items-center justify-center gap-1.5 border-t bg-warning-soft px-4 py-1 text-meta text-foreground" title={t("Classes, payments and attendance are demo data and reset on refresh. Student records are saved.")}>
+            <span className="size-1.5 shrink-0 rounded-full bg-warning" /><span className="font-medium">{t(demo ? "Demo Center" : "Demo data")}</span><span className="hidden text-muted-foreground sm:inline">· {t("Classes, payments and attendance are demo data and reset on refresh. Student records are saved.")}</span>
           </div>
         </header>
         <main className="min-w-0 flex-1 px-page-mobile pt-5 pb-28 md:px-6 md:pt-7 md:pb-10 lg:px-8">{children}</main>
@@ -291,17 +290,17 @@ export function AppShell({ children }: { children: ReactNode }) {
             const active = isActive(path, item.to);
             const label = item.to === "/finance" ? "Payments" : item.label;
             return (
-              <Link key={item.to} to={item.to} aria-current={active ? "page" : undefined} className={cn("relative flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[11px] font-medium", active ? "text-brand" : "text-muted-foreground")}>
+              <Link key={item.to} to={item.to} aria-current={active ? "page" : undefined} className={cn("relative flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-meta font-medium", active ? "text-brand" : "text-muted-foreground")}>
                 {active && <span className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-brand" />}
                 <item.icon className="size-5 shrink-0" /><span className="max-w-full truncate">{t(label)}</span>
               </Link>
             );
           })}
-          <button type="button" aria-expanded={more} onClick={() => setMore(true)} className="flex min-h-16 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium text-muted-foreground"><MoreHorizontal className="size-5" />{t("More")}</button>
+          <button type="button" aria-expanded={more} onClick={() => setMore(true)} className="flex min-h-16 flex-col items-center justify-center gap-1 px-1 py-2 text-meta font-medium text-muted-foreground"><MoreHorizontal className="size-5" />{t("More")}</button>
         </nav>
       </div>
       <Sheet open={more} onOpenChange={setMore}>
-        <SheetContent side={lang === "ar" ? "right" : "left"} dir={lang === "ar" ? "rtl" : "ltr"} className="w-72 border-0 bg-sidebar p-0 [&>button]:text-sidebar-foreground">
+        <SheetContent side={lang === "ar" ? "right" : "left"} dir={lang === "ar" ? "rtl" : "ltr"} className="w-72 border-0 bg-sidebar p-0 [&>button]:text-sidebar-muted">
           <SheetTitle className="sr-only">{t("More")}</SheetTitle><SheetDescription className="sr-only">{t("Main navigation")}</SheetDescription>
           <SidebarBody collapsed={false} onNav={() => setMore(false)} />
         </SheetContent>

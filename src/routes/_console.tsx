@@ -43,7 +43,7 @@ function ConsoleError({ message, retry }: { message: string; retry: () => void }
     <div className="grid min-h-screen place-items-center bg-background px-4">
       <div className="surface max-w-sm p-6 text-center">
         <Logo className="mx-auto size-10" />
-        <h1 className="mt-4 font-semibold">{t("Markazly could not load your data")}</h1>
+        <h1 className="mt-4 font-medium">{t("Markazly could not load your data")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t(message)}</p>
         <Button className="mt-4" onClick={retry}><RotateCcw />{t("Try again")}</Button>
       </div>

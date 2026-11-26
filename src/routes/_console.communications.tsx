@@ -30,15 +30,15 @@ function Page() {
               {owing.map(({ s, id, value }) => s && (
                 <li key={id} className="flex items-center gap-3 px-5 py-3">
                   <Avatar name={s.name} seed={id} />
-                  <div className="min-w-0 flex-1"><Link to="/students/$id" params={{ id }} className="block truncate text-sm font-semibold hover:text-brand"><bdi>{s.name}</bdi></Link><div className="truncate text-xs text-muted-foreground">{t("Guardian")}: <bdi>{s.guardian}</bdi> · <bdi dir="ltr">{s.guardianPhone}</bdi></div></div>
-                  <span className="hidden shrink-0 text-sm font-semibold text-destructive sm:block"><Money value={value} /></span>
+                  <div className="min-w-0 flex-1"><Link to="/students/$id" params={{ id }} className="block truncate text-sm font-medium hover:text-brand"><bdi>{s.name}</bdi></Link><div className="truncate text-xs text-muted-foreground">{t("Guardian")}: <bdi>{s.guardian}</bdi> · <bdi dir="ltr">{s.guardianPhone}</bdi></div></div>
+                  <span className="hidden shrink-0 text-sm font-medium text-destructive sm:block"><Money value={value} /></span>
                   <Button asChild size="sm" variant="outline" className="shrink-0"><a href={`https://wa.me/2${s.guardianPhone}`} target="_blank" rel="noreferrer"><MessageCircle className="text-positive" />{t("WhatsApp")}</a></Button>
                 </li>
               ))}
             </ul>
           ) : <EmptyState icon={CheckCircle2} title={t("No outstanding balances")} compact />}
           {a.owing.length > owing.length && <p className="border-t px-5 py-2.5 text-xs text-muted-foreground">{t("{n} more students with a balance", { n: fmtNum(a.owing.length - owing.length, lang) })} · <Link to="/students" className="font-medium text-brand hover:underline">{t("Open students")}</Link></p>}
-          <p className="border-t px-5 py-2.5 text-[11px] text-muted-foreground">{t("Opens WhatsApp with the guardian's number. Nothing is sent from Markazly and nothing is logged.")}</p>
+          <p className="border-t px-5 py-2.5 text-meta text-muted-foreground">{t("Opens WhatsApp with the guardian's number. Nothing is sent from Markazly and nothing is logged.")}</p>
         </Panel>
 
         <div className="space-y-5">

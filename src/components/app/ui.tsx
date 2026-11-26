@@ -1,6 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
 import { ArrowDownRight, ArrowUpRight, Inbox } from "lucide-react";
-import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney, formatPercent } from "@/lib/format";
@@ -24,17 +23,14 @@ export function PageHeader({ title, subtitle, actions }: { title?: string | unde
   );
 }
 
-export function Panel({ title, subtitle, action, children, className, bodyClass, icon: PanelIcon }: { title?: ReactNode | undefined; subtitle?: ReactNode | undefined; action?: ReactNode | undefined; children: ReactNode; className?: string | undefined; bodyClass?: string | undefined; icon?: Icon }) {
+export function Panel({ title, subtitle, action, children, className, bodyClass }: { title?: ReactNode | undefined; subtitle?: ReactNode | undefined; action?: ReactNode | undefined; children: ReactNode; className?: string | undefined; bodyClass?: string | undefined; icon?: Icon }) {
   return (
     <section className={cn("surface min-w-0 overflow-hidden", className)}>
       {(title || action) && (
         <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 px-5 pt-4 pb-3">
-          <div className="flex min-w-0 flex-1 basis-48 items-start gap-2.5">
-            {PanelIcon && <PanelIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />}
-            <div className="min-w-0">
-              {title && <h2 className="text-section-title font-semibold text-foreground">{title}</h2>}
-              {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
-            </div>
+          <div className="min-w-0 flex-1 basis-48">
+            {title && <h2 className="text-section-title font-medium text-foreground">{title}</h2>}
+            {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>
@@ -45,24 +41,19 @@ export function Panel({ title, subtitle, action, children, className, bodyClass,
 }
 
 export type Tone = "brand" | "teal" | "positive" | "negative" | "warning" | "info" | "lavender" | "coral" | "neutral";
-const tileTones: Record<Tone, string> = {
-  brand: "bg-tint-blue text-tint-blue-ink",
-  teal: "bg-tint-teal text-tint-teal-ink",
-  positive: "bg-positive-soft text-positive",
-  negative: "bg-negative-soft text-destructive",
-  warning: "bg-warning-soft text-warning",
-  info: "bg-info-soft text-info",
-  lavender: "bg-tint-lavender text-tint-lavender-ink",
-  coral: "bg-tint-coral text-tint-coral-ink",
-  neutral: "bg-muted text-muted-foreground",
+/** Icons stay in the text roles; only semantic tones keep their meaning color. */
+const iconInk: Record<Tone, string> = {
+  brand: "text-muted-foreground", teal: "text-muted-foreground", lavender: "text-muted-foreground", coral: "text-muted-foreground",
+  info: "text-muted-foreground", neutral: "text-muted-foreground",
+  positive: "text-positive", negative: "text-destructive", warning: "text-warning",
 };
 const barTones: Record<Tone, string> = {
-  brand: "bg-brand", teal: "bg-teal-bright", positive: "bg-positive", negative: "bg-destructive", warning: "bg-warning",
-  info: "bg-info", lavender: "bg-tint-lavender-ink", coral: "bg-tint-coral-ink", neutral: "bg-muted-foreground",
+  brand: "bg-brand", teal: "bg-brand", positive: "bg-positive", negative: "bg-destructive", warning: "bg-warning",
+  info: "bg-brand", lavender: "bg-muted-foreground", coral: "bg-muted-foreground", neutral: "bg-muted-foreground",
 };
 
 export function IconTile({ icon: TileIcon, tone = "brand", className }: { icon: Icon; tone?: Tone; className?: string | undefined }) {
-  return <span className={cn("grid size-10 shrink-0 place-items-center rounded-lg", tileTones[tone], className)}><TileIcon className="size-[18px]" /></span>;
+  return <span className={cn("grid size-9 shrink-0 place-items-center rounded-lg bg-muted", iconInk[tone], className)}><TileIcon className="size-4" /></span>;
 }
 
 /** Horizontal meter. `value` is 0–100 and is clamped; callers pass real ratios only. */
@@ -75,79 +66,53 @@ export function Meter({ value, tone = "brand", label, className }: { value: numb
   );
 }
 
-export function Delta({ value, invert = false, suffix = "%" }: { value: number; invert?: boolean | undefined; suffix?: string }) {
+/** A change, said in words: arrow, size and (optionally) what it compares to. */
+export function Delta({ value, invert = false, suffix = "%", vs }: { value: number; invert?: boolean | undefined; suffix?: string; vs?: string | undefined }) {
   const good = invert ? value <= 0 : value >= 0;
   const DeltaIcon = value >= 0 ? ArrowUpRight : ArrowDownRight;
   return (
-    <span className={cn("inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold num", good ? "bg-positive-soft text-positive" : "bg-negative-soft text-destructive")}>
-      <DeltaIcon className="size-3 rtl:-scale-x-100" /><bdi>{Math.abs(value)}{suffix}</bdi>
+    <span className="inline-flex flex-wrap items-center gap-x-1 text-xs">
+      <span className={cn("inline-flex items-center gap-0.5 font-medium num", good ? "text-positive" : "text-destructive")}><DeltaIcon className="size-3.5 rtl:-scale-x-100" /><bdi>{Math.abs(value)}{suffix}</bdi></span>
+      {vs && <span className="text-muted-foreground">{vs}</span>}
     </span>
   );
 }
 
 /**
- * Metric card: icon tile, optional delta chip, a prominent value, label, supporting line and an
- * optional real-ratio meter. Every number passed in must come from application state.
+ * Metric card: a label, a figure, then its change and one supporting line. Numbers only: no icon tile,
+ * no sparkline. `meter` is shown as its caption and percentage. Every number must come from application state.
  */
-export function StatCard({ icon, tone = "brand", label, value, hint, delta, meter, footer, className }: {
-  icon: Icon; tone?: Tone; label: string; value: ReactNode; hint?: ReactNode | undefined;
+export function StatCard({ label, value, hint, delta, meter, footer, className }: {
+  icon?: Icon; tone?: Tone; label: string; value: ReactNode; hint?: ReactNode | undefined;
   delta?: ReactNode | undefined; meter?: { value: number; label: string; caption?: ReactNode; tone?: Tone } | undefined; footer?: ReactNode | undefined; className?: string | undefined;
 }) {
   return (
-    <div className={cn("surface flex min-w-0 flex-col p-4 sm:p-5", className)}>
-      <div className="flex items-start justify-between gap-2">
-        <IconTile icon={icon} tone={tone} />
-        {delta}
-      </div>
-      <div className="mt-4 min-w-0 break-words font-display text-metric font-bold tracking-tight text-foreground num">{value}</div>
-      <div className="mt-0.5 text-sm font-medium text-foreground">{label}</div>
-      {hint && <div className="mt-0.5 text-xs text-muted-foreground">{hint}</div>}
-      {meter && (
-        <div className="mt-auto pt-4">
-          <div className="mb-1.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground"><span className="min-w-0 truncate">{meter.caption ?? meter.label}</span><span className="shrink-0 font-semibold text-foreground num"><bdi>{formatPercent(Math.round(meter.value))}</bdi></span></div>
-          <Meter value={meter.value} tone={meter.tone ?? tone} label={meter.label} />
-        </div>
-      )}
-      {footer && <div className="mt-auto pt-3 text-[11px] text-muted-foreground">{footer}</div>}
+    <div className={cn("surface flex min-w-0 flex-col p-5", className)}>
+      <div className="text-sm text-muted-foreground">{label}</div>
+      <div className="mt-2 min-w-0 break-words text-metric font-medium text-foreground num">{value}</div>
+      {delta && <div className="mt-1">{delta}</div>}
+      {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
+      {meter && <div className="mt-1 text-xs text-muted-foreground">{meter.caption ?? meter.label} · <bdi className="font-medium text-foreground num">{formatPercent(Math.round(meter.value))}</bdi></div>}
+      {footer && <div className="mt-auto pt-3 text-xs text-muted-foreground">{footer}</div>}
     </div>
   );
 }
 
-/** Compact tinted figure, used under charts and in finance breakdowns. */
-export function MiniStat({ label, value, hint, tone = "neutral", icon: MiniIcon }: { label: string; value: ReactNode; hint?: ReactNode | undefined; tone?: Tone; icon?: Icon }) {
+/** Compact figure, used under charts and in breakdowns: label, value, one quiet line. */
+export function MiniStat({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode | undefined; tone?: Tone; icon?: Icon }) {
   return (
-    <div className={cn("min-w-0 rounded-lg px-3.5 py-3", tileTones[tone].split(" ")[0])}>
-      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">{MiniIcon && <MiniIcon className={cn("size-3.5", tileTones[tone].split(" ")[1])} />}<span className="min-w-0 truncate">{label}</span></div>
-      <div className="mt-1 break-words font-display text-metric-sm font-bold tracking-tight text-foreground num">{value}</div>
-      {hint && <div className="mt-0.5 text-[11px] text-muted-foreground">{hint}</div>}
+    <div className="min-w-0">
+      <div className="truncate text-xs text-muted-foreground">{label}</div>
+      <div className="mt-1 break-words text-metric-sm font-medium text-foreground num">{value}</div>
+      {hint && <div className="mt-0.5 text-meta text-muted-foreground">{hint}</div>}
     </div>
   );
 }
 
 /** Kept for compatibility with existing imports. */
-export function KpiCard({ label, value, delta, invert, spark, hint }: { label: string; value: string; delta: number; invert?: boolean | undefined; spark?: number[]; hint?: ReactNode | undefined }) {
+export function KpiCard({ label, value, delta, invert, hint }: { label: string; value: string; delta: number; invert?: boolean | undefined; spark?: number[]; hint?: ReactNode | undefined }) {
   const { t } = useI18n();
-  const good = invert ? delta <= 0 : delta >= 0;
-  const color = good ? "var(--positive)" : "var(--destructive)";
-  return (
-    <div className="surface flex flex-col p-4">
-      <div className="text-[13px] text-muted-foreground">{t(label)}</div>
-      <div className="mt-1.5 break-words text-metric font-semibold text-foreground num">{value}</div>
-      {hint && <div className="mt-0.5 text-xs text-muted-foreground num">{hint}</div>}
-      <div className="mt-2 flex items-end justify-between gap-2">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Delta value={delta} invert={invert} /> <span className="hidden xl:inline">{t("vs last month")}</span></div>
-        {spark && (
-          <div className="h-8 w-20">
-            <ResponsiveContainer>
-              <AreaChart data={spark.map((v) => ({ v }))}>
-                <Area dataKey="v" stroke={color} strokeWidth={1.5} fill="none" isAnimationActive={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  return <StatCard label={t(label)} value={value} hint={hint} delta={<Delta value={delta} invert={invert} vs={t("vs last month")} />} />;
 }
 
 const pillTones: Record<Tone, string> = {
@@ -155,19 +120,24 @@ const pillTones: Record<Tone, string> = {
   negative: "bg-negative-soft text-destructive",
   warning: "bg-warning-soft text-warning",
   neutral: "bg-muted text-muted-foreground",
-  brand: "bg-tint-blue text-tint-blue-ink",
-  teal: "bg-tint-teal text-tint-teal-ink",
-  info: "bg-info-soft text-info",
-  lavender: "bg-tint-lavender text-tint-lavender-ink",
-  coral: "bg-tint-coral text-tint-coral-ink",
+  brand: "bg-info-soft text-brand",
+  info: "bg-info-soft text-brand",
+  teal: "bg-muted text-muted-foreground",
+  lavender: "bg-muted text-muted-foreground",
+  coral: "bg-muted text-muted-foreground",
 };
 export function Pill({ tone = "neutral", dot = false, children, className }: { tone?: Tone; dot?: boolean; children: ReactNode; className?: string | undefined }) {
   return (
-    <span className={cn("inline-flex max-w-full items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold", pillTones[tone], className)}>
+    <span className={cn("inline-flex max-w-full items-center gap-1.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-meta font-medium", pillTones[tone], className)}>
       {dot && <span className={cn("size-1.5 shrink-0 rounded-full", barTones[tone])} />}
       {children}
     </span>
   );
+}
+
+/** Signature: a student or ledger code, stamped like a register number. */
+export function LedgerCode({ code, className }: { code: string; className?: string | undefined }) {
+  return <bdi dir="ltr" className={cn("ledger-code", className)}>{code}</bdi>;
 }
 
 export function Money({ value, signed }: { value: number; signed?: boolean }) {
@@ -178,15 +148,15 @@ export function Money({ value, signed }: { value: number; signed?: boolean }) {
 export function EmptyState({ title, hint, icon: EmptyIcon = Inbox, action, compact = false }: { title: string; hint?: string | undefined; icon?: Icon; action?: ReactNode | undefined; compact?: boolean }) {
   return (
     <div className={cn("flex flex-col items-center text-center", compact ? "py-8" : "py-12")}>
-      <span className="mb-3 grid size-11 place-items-center rounded-full bg-muted text-muted-foreground"><EmptyIcon className="size-5" /></span>
-      <div className="text-sm font-semibold text-foreground">{title}</div>
+      <span className="mb-3 grid size-10 place-items-center rounded-lg bg-muted text-muted-foreground"><EmptyIcon className="size-[18px]" /></span>
+      <div className="text-sm font-medium text-foreground">{title}</div>
       {hint && <div className="mt-1 max-w-sm text-sm text-muted-foreground">{hint}</div>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
 }
 
-/** Deterministic pastel per name, so a person or class keeps the same color everywhere. */
+/** Deterministic category hue per key (a subject keeps its color). Shown only as a small dot (tintDot). */
 export const TINTS = ["blue", "teal", "lavender", "amber", "coral", "rose"] as const;
 export type Tint = (typeof TINTS)[number];
 export const tintFor = (key: string): Tint => {
@@ -203,13 +173,18 @@ export const tintClass: Record<Tint, string> = {
   rose: "bg-tint-rose text-tint-rose-ink",
 };
 
-export function Avatar({ name, seed, size = "md", className }: { name: string; seed?: string; size?: "xs" | "sm" | "md" | "lg" | "xl"; className?: string | undefined }) {
-  const sizes = { xs: "size-6 text-[10px]", sm: "size-8 text-[11px]", md: "size-9 text-xs", lg: "size-12 text-sm", xl: "size-16 text-lg" };
-  return <span aria-hidden className={cn("grid shrink-0 place-items-center rounded-full font-semibold", sizes[size], tintClass[tintFor(seed ?? name)], className)}>{initials(name)}</span>;
+export const tintDot: Record<Tint, string> = {
+  blue: "bg-tint-blue-ink", teal: "bg-tint-teal-ink", lavender: "bg-tint-lavender-ink", amber: "bg-tint-amber-ink", coral: "bg-tint-coral-ink", rose: "bg-tint-rose-ink",
+};
+
+/** Initials on a neutral disc. `seed` is kept for compatibility. */
+export function Avatar({ name, size = "md", className }: { name: string; seed?: string; size?: "xs" | "sm" | "md" | "lg" | "xl"; className?: string | undefined }) {
+  const sizes = { xs: "size-6 text-meta", sm: "size-8 text-meta", md: "size-9 text-xs", lg: "size-12 text-sm", xl: "size-16 text-lg" };
+  return <span aria-hidden className={cn("grid shrink-0 place-items-center rounded-full bg-muted font-medium text-muted-foreground ring-1 ring-border ring-inset", sizes[size], className)}>{initials(name)}</span>;
 }
 
-export const chartAxis = { stroke: "var(--muted-foreground)", fontSize: 11, tickLine: false, axisLine: false } as const;
+export const chartAxis = { stroke: "var(--muted-foreground)", fontSize: 11, fontFamily: "var(--font-mono)", tickLine: false, axisLine: false } as const;
 export const tooltipStyle = {
-  contentStyle: { borderRadius: 10, border: "1px solid var(--border)", boxShadow: "var(--shadow-pop)", fontSize: 12, background: "var(--popover)", color: "var(--popover-foreground)" },
+  contentStyle: { borderRadius: 8, border: "1px solid var(--border)", boxShadow: "var(--shadow-pop)", fontSize: 12, background: "var(--popover)", color: "var(--popover-foreground)" },
   labelStyle: { color: "var(--muted-foreground)", fontWeight: 500 },
 };

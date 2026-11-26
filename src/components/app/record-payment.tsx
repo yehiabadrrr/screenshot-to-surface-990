@@ -89,7 +89,7 @@ export function RecordPaymentDialog({ trigger, studentId, controlledOpen, onOpen
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="pay-amount">{t("Amount")} ({t("EGP")})</Label>
-            <Input id="pay-amount" inputMode="numeric" dir="ltr" className="font-semibold num" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))} placeholder={balance > 0 ? String(balance) : "0"} />
+            <Input id="pay-amount" inputMode="numeric" dir="ltr" className="font-medium num" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))} placeholder={balance > 0 ? String(balance) : "0"} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="pay-date">{t("Date")}</Label>
