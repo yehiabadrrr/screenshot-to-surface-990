@@ -1,0 +1,108 @@
+<template>
+  <style>
+    @font-face { font-family: "Manrope"; src: url("assets/fonts/manrope.woff2") format("woff2"); font-weight: 200 800; }
+    @font-face { font-family: "Inter"; src: url("assets/fonts/inter.woff2") format("woff2"); font-weight: 100 900; }
+    @font-face { font-family: "Plex Arabic"; src: url("assets/fonts/plex-arabic-600.woff2") format("woff2"); font-weight: 600; }
+    @font-face { font-family: "Plex Arabic"; src: url("assets/fonts/plex-arabic-700.woff2") format("woff2"); font-weight: 700; }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #e6ebf1; font-family: "Inter", sans-serif; color: #142b4a; }
+    [data-composition-id="record"][data-lang="en"] .ar, [data-composition-id="record"][data-lang="ar"] .en { display: none; }
+    .r-view { position: absolute; inset: 0; overflow: hidden; background: #f4f6fa; }
+    .r-cam { position: absolute; left: 0; top: 0; width: 1080px; height: 4431px; }
+    .r-cam img { position: absolute; left: 0; top: 0; width: 1080px; height: 4431px; opacity: 0; }
+    #r-en1, #r-ar1 { opacity: 1; }
+    .r-line { position: absolute; left: 120px; top: 296px; width: 768px; font: 800 104px/1.04 "Manrope", sans-serif; letter-spacing: -0.02em; }
+    .r-line.ar { font-family: "Plex Arabic", sans-serif; font-weight: 700; line-height: 1.28; direction: rtl; text-align: right; letter-spacing: 0; }
+    .r-call { position: absolute; left: 120px; top: 320px; max-width: 768px; padding: 24px 32px; border-radius: 20px; background: #142b4a; color: #fff; font: 600 44px/1.2 "Inter", sans-serif; box-shadow: 0 24px 60px rgba(20, 43, 74, 0.22); opacity: 0; }
+    .r-call.ar { left: auto; right: 192px; direction: rtl; font-family: "Plex Arabic", sans-serif; font-weight: 600; }
+    .r-call b { color: #5fd3cc; font-weight: 700; }
+    .r-finger { position: absolute; left: 0; top: 0; width: 76px; height: 76px; margin: -38px 0 0 -38px; border-radius: 50%; background: rgba(255, 255, 255, 0.22); border: 3px solid #142b4a; box-shadow: 0 6px 16px rgba(20, 43, 74, 0.25); opacity: 0; }
+    #r-receipt { position: absolute; left: 198px; top: 785px; width: 684px; height: 300px; padding: 30px 34px; background: #fff; border: 2px solid #e1e7ef; border-radius: 22px; box-shadow: 0 24px 60px rgba(20, 43, 74, 0.22); }
+    .r-rhead { display: flex; align-items: center; gap: 18px; font: 600 34px/1 "Inter", sans-serif; }
+    .r-ok { width: 56px; height: 56px; border-radius: 50%; background: #e3f4ea; display: grid; place-items: center; }
+    .r-amt { font: 800 96px/1 "Manrope", sans-serif; letter-spacing: -0.02em; margin-top: 24px; }
+    .r-ref { font: 500 32px/1 "Inter", sans-serif; color: #5b6b82; margin-top: 22px; }
+  </style>
+  <div id="root" data-composition-id="record" data-width="1080" data-height="1920"
+    data-composition-variables='[{"id":"lang","type":"enum","label":"Language","default":"en","options":[{"value":"en","label":"English"},{"value":"ar","label":"Arabic"}]}]'>
+
+    <!-- The real Record payment form, captured state by state (assets/cap/*/pay-*.jpg). -->
+    <div id="r-view" class="r-view" data-layout-ignore>
+      <div id="r-cam" class="r-cam">
+        <img id="r-en1" class="en" src="assets/cap/en/pay-1-student.jpg" alt="" />
+        <img id="r-en2" class="en" src="assets/cap/en/pay-2-amount.jpg" alt="" />
+        <img id="r-en3" class="en" src="assets/cap/en/pay-3-method.jpg" alt="" />
+        <img id="r-en4" class="en" src="assets/cap/en/pay-4-ref.jpg" alt="" />
+        <img id="r-en5" class="en" src="assets/cap/en/pay-5-pending.jpg" alt="" />
+        <img id="r-ar1" class="ar" src="assets/cap/ar/pay-1-student.jpg" alt="" />
+        <img id="r-ar2" class="ar" src="assets/cap/ar/pay-2-amount.jpg" alt="" />
+        <img id="r-ar3" class="ar" src="assets/cap/ar/pay-3-method.jpg" alt="" />
+        <img id="r-ar4" class="ar" src="assets/cap/ar/pay-4-ref.jpg" alt="" />
+        <img id="r-ar5" class="ar" src="assets/cap/ar/pay-5-pending.jpg" alt="" />
+      </div>
+    </div>
+
+    <!-- The receipt from the chat, opening into the form. -->
+    <div id="r-receipt">
+      <div class="r-rhead"><span class="r-ok"><svg width="30" height="30" viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="#1f9d55" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="en">Transfer receipt</span><span class="ar">إيصال تحويل</span></div>
+      <div class="r-amt">EGP 800</div>
+      <div class="r-ref">Ref IP2611784403 · Nile Academy</div>
+    </div>
+
+    <h1 id="r-title-en" class="r-line en">Record it in Markezly</h1>
+    <h1 id="r-title-ar" class="r-line ar">سجّله على مركزلي</h1>
+
+    <div id="r-c1-en" class="r-call en">Matches the <b>800</b> due</div>
+    <div id="r-c1-ar" class="r-call ar">نفس الـ<b>800</b> المستحقة</div>
+    <div id="r-c2-en" class="r-call en">Reference kept</div>
+    <div id="r-c2-ar" class="r-call ar">رقم العملية محفوظ</div>
+
+    <div id="r-finger" class="r-finger"></div>
+  </div>
+  <script>
+    (() => {
+      const lang = (window.__hyperframes?.getVariables?.() ?? {}).lang === "ar" ? "ar" : "en";
+      document.querySelector('[data-composition-id="record"]').dataset.lang = lang;
+      const tl = gsap.timeline({ paused: true });
+      const K = 1080 / 390; // capture CSS px -> film px at full bleed
+      const cam = (fx, fy, z, X = 540, Y = 760) => ({ x: X - fx * K * z, y: Y - fy * K * z, scale: z });
+      const img = (n) => "#r-" + lang + n;
+      const show = (n, at) => { tl.set(img(n), { opacity: 1 }, at); for (let i = 1; i <= 5; i++) if (i !== n) tl.set(img(i), { opacity: 0 }, at); };
+      // Finger x per field: on the empty side of the field, never over the value (amount and reference are LTR inputs).
+      const FX = lang === "ar" ? { start: 820, amount: 820, method: 260, ref: 820, status: 260, save: 300 } : { start: 820, amount: 820, method: 820, ref: 820, status: 820, save: 820 };
+      const fingerX = FX.start;
+
+      // The form as an object on the chat ground (clip = the dialog's own rectangle), framed under the title.
+      gsap.set("#r-cam", { transformOrigin: "0 0" });
+      gsap.set("#r-cam", cam(195, 275, 0.48, 540, 520));
+      // Morph: the receipt's rectangle widens into the dialog's.
+      tl.fromTo("#r-view", { clipPath: "inset(776px 178px 826px 178px round 22px)" }, { clipPath: "inset(520px 281px 4px 281px round 28px)", duration: 0.55, ease: "power3.out" }, 0.05);
+      tl.fromTo("#r-receipt", { scale: 1.06, opacity: 1 }, { scale: 1.14, opacity: 0, duration: 0.3, ease: "power2.in" }, 0.05);
+      tl.fromTo("#r-title-" + lang, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 0.45);
+      tl.to("#r-title-" + lang, { opacity: 0, filter: "blur(8px)", duration: 0.15, ease: "power2.in" }, 2.3);
+
+      // Punch in: the form fills the frame on the student and their balance.
+      tl.to("#r-view", { clipPath: "inset(0px 0px 0px 0px round 0px)", duration: 0.45, ease: "power2.inOut" }, 2.4);
+      tl.to("#r-cam", { ...cam(195, 457, 1.12), duration: 0.45, ease: "power2.inOut" }, 2.4);
+      tl.fromTo("#r-c1-" + lang, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: "expo.out" }, 2.95);
+      tl.to("#r-c1-" + lang, { opacity: 0, duration: 0.15, ease: "power2.in" }, 4.75);
+
+      // One tap per field: the camera brings each field under the finger; the UI changes on the rebound.
+      gsap.set("#r-finger", { x: fingerX, y: 760 });
+      tl.fromTo("#r-finger", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.25, ease: "expo.out" }, 4.95);
+      const tap = (at) => { tl.to("#r-finger", { scale: 0.82, duration: 0.1, ease: "power2.in" }, at); tl.to("#r-finger", { scale: 1, duration: 0.12, ease: "power2.out" }, at + 0.1); };
+      const step = (at, fy, n, fx) => { tl.to("#r-cam", { ...cam(195, fy, 1.12), duration: 0.35, ease: "power2.inOut" }, at); tl.to("#r-finger", { x: fx, duration: 0.35, ease: "power2.inOut" }, at); tap(at + 0.4); show(n, at + 0.5); };
+      step(4.9, 544, 2, FX.amount);   // amount 800
+      step(6.0, 696, 3, FX.method);   // method InstaPay
+      step(7.0, 1024, 4, FX.ref);   // reference IP2611784403
+      tl.fromTo("#r-c2-" + lang, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: "expo.out" }, 7.65);
+      tl.to("#r-c2-" + lang, { opacity: 0, duration: 0.15, ease: "power2.in" }, 8.75);
+      step(8.9, 778, 5, FX.status);   // status Pending
+      // Down to Save ("Add to demo data": the app's own label, it is sample data).
+      tl.to("#r-cam", { ...cam(195, 1232, 1.12), duration: 0.45, ease: "power2.inOut" }, 9.75);
+      tl.to("#r-finger", { x: FX.save, duration: 0.45, ease: "power2.inOut" }, 9.75);
+      tap(10.25);
+
+      window.__timelines["record"] = tl;
+    })();
+  </script>
+</template>

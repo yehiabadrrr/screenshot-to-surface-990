@@ -1,0 +1,103 @@
+<template>
+  <style>
+    @font-face { font-family: "Manrope"; src: url("assets/fonts/manrope.woff2") format("woff2"); font-weight: 200 800; }
+    @font-face { font-family: "Inter"; src: url("assets/fonts/inter.woff2") format("woff2"); font-weight: 100 900; }
+    @font-face { font-family: "Plex Arabic"; src: url("assets/fonts/plex-arabic-600.woff2") format("woff2"); font-weight: 600; }
+    @font-face { font-family: "Plex Arabic"; src: url("assets/fonts/plex-arabic-700.woff2") format("woff2"); font-weight: 700; }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #f4f6fa; font-family: "Inter", sans-serif; color: #142b4a; }
+    [data-composition-id="ledger"][data-lang="en"] .ar, [data-composition-id="ledger"][data-lang="ar"] .en { display: none; }
+    .l-layer { position: absolute; inset: 0; overflow: hidden; }
+    .l-cam { position: absolute; left: 0; top: 0; width: 1080px; height: 4431px; }
+    .l-cam img { position: absolute; left: 0; top: 0; width: 1080px; height: 4431px; }
+    #l-en-c, #l-ar-c { opacity: 0; }
+    .l-ring { position: absolute; border: 5px solid #19a7a0; border-radius: 34px; opacity: 0; }
+    .l-call { position: absolute; left: 120px; top: 320px; max-width: 768px; padding: 24px 32px; border-radius: 20px; background: #142b4a; color: #fff; font: 600 44px/1.2 "Inter", sans-serif; box-shadow: 0 24px 60px rgba(20, 43, 74, 0.22); opacity: 0; }
+    .l-call.ar { left: auto; right: 192px; direction: rtl; font-family: "Plex Arabic", sans-serif; }
+    .l-call b { color: #5fd3cc; font-weight: 700; }
+    .l-finger { position: absolute; left: 0; top: 0; width: 76px; height: 76px; margin: -38px 0 0 -38px; border-radius: 50%; background: rgba(255, 255, 255, 0.22); border: 3px solid #142b4a; box-shadow: 0 6px 16px rgba(20, 43, 74, 0.25); opacity: 0; }
+    .l-chip { position: absolute; left: 0; top: 0; padding: 14px 30px; border-radius: 999px; background: #0e7c77; color: #fff; font: 800 64px/1 "Manrope", sans-serif; letter-spacing: -0.01em; white-space: nowrap; box-shadow: 0 18px 40px rgba(14, 124, 119, 0.35); opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="ledger" data-width="1080" data-height="1920"
+    data-composition-variables='[{"id":"lang","type":"enum","label":"Language","default":"en","options":[{"value":"en","label":"English"},{"value":"ar","label":"Arabic"}]}]'>
+
+    <!-- B: the real Finance ledger, pending then confirmed (assets/cap/*/ledger-*.jpg). -->
+    <div id="l-ledger" class="l-layer" data-layout-ignore>
+      <div id="l-cam" class="l-cam">
+        <img id="l-en-p" class="en" src="assets/cap/en/ledger-pending.jpg" alt="" />
+        <img id="l-en-c" class="en" src="assets/cap/en/ledger-confirmed.jpg" alt="" />
+        <img id="l-ar-p" class="ar" src="assets/cap/ar/ledger-pending.jpg" alt="" />
+        <img id="l-ar-c" class="ar" src="assets/cap/ar/ledger-confirmed.jpg" alt="" />
+        <div id="l-ring-en" class="l-ring en" style="left:41px;top:2649px;width:998px;height:317px"></div>
+        <div id="l-ring-ar" class="l-ring ar" style="left:41px;top:2646px;width:998px;height:270px"></div>
+      </div>
+    </div>
+    <!-- A: the form, carried into the row it creates. -->
+    <div id="l-form" class="l-layer" data-layout-ignore>
+      <div id="l-cam-a" class="l-cam">
+        <img class="en" src="assets/cap/en/pay-5-pending.jpg" alt="" />
+        <img class="ar" src="assets/cap/ar/pay-5-pending.jpg" alt="" />
+      </div>
+    </div>
+
+    <div id="l-c1-en" class="l-call en">Pending: not counted yet</div>
+    <div id="l-c1-ar" class="l-call ar">معلّقة: لسه مش محسوبة</div>
+    <div id="l-c2-en" class="l-call en">Money in. <b>Now it counts.</b></div>
+    <div id="l-c2-ar" class="l-call ar">الفلوس وصلت. <b>ودلوقتي اتحسبت.</b></div>
+
+    <div id="l-finger" class="l-finger"></div>
+    <div id="l-chip-en" class="l-chip en">+EGP 800</div>
+    <div id="l-chip-ar" class="l-chip ar" dir="ltr">+800 ج.م</div>
+  </div>
+  <script>
+    (() => {
+      const lang = (window.__hyperframes?.getVariables?.() ?? {}).lang === "ar" ? "ar" : "en";
+      document.querySelector('[data-composition-id="ledger"]').dataset.lang = lang;
+      const tl = gsap.timeline({ paused: true });
+      const K = 1080 / 390, Z = 1.1;
+      const cam = (fx, fy, z, X = 540, Y = 760) => ({ x: X - fx * K * z, y: Y - fy * K * z, scale: z });
+      const scr = (fx, fy, f) => ({ x: 540 + (fx - f[0]) * K * Z, y: 760 + (fy - f[1]) * K * Z });
+      // Real boxes from the captures (CSS px): pending row, Confirm, and the original row after confirming.
+      const G = lang === "ar"
+        ? { rowY: 919.5, shift: 93, confirm: [111.5, 893], amount: [62, 975] }
+        : { rowY: 920, shift: 110, confirm: [267, 877], amount: [335, 978] };
+      gsap.set(["#l-cam", "#l-cam-a"], { transformOrigin: "0 0" });
+      gsap.set(".l-chip", { xPercent: -50, yPercent: -50 });
+
+      // Carry across: the form shrinks into the ledger row it creates.
+      gsap.set("#l-cam-a", cam(195, 1232, 1.12));
+      gsap.set("#l-cam", cam(195, G.rowY, Z));
+      tl.fromTo("#l-form", { scale: 1, y: 0, filter: "blur(0px)", opacity: 1 }, { scale: 0.34, y: 0, duration: 0.65, ease: "power2.inOut", transformOrigin: "540px 760px" }, 0);
+      tl.to("#l-form", { filter: "blur(6px)", duration: 0.3, ease: "power2.in" }, 0.1);
+      tl.to("#l-form", { opacity: 0, duration: 0.2, ease: "none" }, 0.5);
+      tl.fromTo("#l-ledger", { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: 0.5, ease: "expo.out", transformOrigin: "540px 760px" }, 0.25);
+
+      tl.fromTo("#l-c1-" + lang, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: "expo.out" }, 0.9);
+      tl.to("#l-c1-" + lang, { opacity: 0, duration: 0.15, ease: "power2.in" }, 2.35);
+
+      // Tap Confirm: the row becomes Completed and a Confirmation entry is added above it.
+      const f0 = [195, G.rowY];
+      const c = scr(G.confirm[0], G.confirm[1], f0);
+      gsap.set("#l-finger", { x: c.x, y: c.y });
+      tl.fromTo("#l-finger", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.25, ease: "expo.out" }, 2.3);
+      tl.to("#l-finger", { scale: 0.82, duration: 0.1, ease: "power2.in" }, 2.75);
+      tl.to("#l-finger", { scale: 1, duration: 0.12, ease: "power2.out" }, 2.85);
+      tl.to("#l-finger", { opacity: 0, duration: 0.2, ease: "power2.in" }, 3.1);
+      tl.set("#l-" + lang + "-c", { opacity: 1 }, 2.85);
+      tl.set("#l-" + lang + "-p", { opacity: 0 }, 2.85);
+      // Keep the original row where it was, then reveal the Confirmation entry above it.
+      tl.set("#l-cam", cam(195, G.rowY + G.shift, Z), 2.85);
+      tl.to("#l-cam", { ...cam(195, G.rowY + G.shift - 70, Z), duration: 0.5, ease: "power2.inOut" }, 3.0);
+      tl.fromTo("#l-ring-" + lang, { opacity: 0, scale: 1.03 }, { opacity: 1, scale: 1, duration: 0.3, ease: "expo.out", transformOrigin: "50% 50%" }, 2.9);
+      tl.fromTo("#l-c2-" + lang, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: "expo.out" }, 3.2);
+      tl.to("#l-c2-" + lang, { opacity: 0, duration: 0.15, ease: "power2.in" }, 4.75);
+
+      // The 800 leaves the row, heading for today's collections.
+      const a = scr(G.amount[0], G.amount[1], [195, G.rowY + G.shift - 70]);
+      gsap.set("#l-chip-" + lang, { x: Math.min(Math.max(a.x, 260), 820), y: a.y });
+      tl.fromTo("#l-chip-" + lang, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(1.8)" }, 4.55);
+      tl.to("#l-chip-" + lang, { x: 540, y: -160, duration: 0.55, ease: "power3.in" }, 4.95);
+
+      window.__timelines["ledger"] = tl;
+    })();
+  </script>
+</template>

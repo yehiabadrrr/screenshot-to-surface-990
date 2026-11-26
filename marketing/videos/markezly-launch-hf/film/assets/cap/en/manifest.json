@@ -1,0 +1,317 @@
+{
+  "teacher-before": {
+    "file": "teacher-before.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "card": {
+        "x": 17,
+        "y": 530,
+        "w": 356,
+        "h": 302
+      }
+    }
+  },
+  "overview-before": {
+    "file": "overview-before.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "record": {
+        "x": 36,
+        "y": 351,
+        "w": 166,
+        "h": 40
+      },
+      "collected": {
+        "x": 36,
+        "y": 591,
+        "w": 153,
+        "h": 117
+      }
+    }
+  },
+  "pay-0-open": {
+    "file": "pay-0-open.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "dialog": {
+        "x": 0,
+        "y": 283,
+        "w": 390,
+        "h": 1034
+      }
+    }
+  },
+  "pay-1-student": {
+    "file": "pay-1-student.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "dialog": {
+        "x": 0,
+        "y": 275,
+        "w": 390,
+        "h": 1050
+      },
+      "student": {
+        "x": 25,
+        "y": 428,
+        "w": 340,
+        "h": 36
+      }
+    }
+  },
+  "pay-2-amount": {
+    "file": "pay-2-amount.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "dialog": {
+        "x": 0,
+        "y": 275,
+        "w": 390,
+        "h": 1050
+      },
+      "amount": {
+        "x": 25,
+        "y": 526,
+        "w": 340,
+        "h": 36
+      }
+    }
+  },
+  "pay-3-method": {
+    "file": "pay-3-method.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "dialog": {
+        "x": 0,
+        "y": 275,
+        "w": 390,
+        "h": 1050
+      },
+      "method": {
+        "x": 25,
+        "y": 678,
+        "w": 340,
+        "h": 36
+      }
+    }
+  },
+  "pay-4-ref": {
+    "file": "pay-4-ref.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "dialog": {
+        "x": 0,
+        "y": 275,
+        "w": 390,
+        "h": 1050
+      },
+      "ref": {
+        "x": 25,
+        "y": 1006,
+        "w": 340,
+        "h": 36
+      }
+    }
+  },
+  "pay-5-pending": {
+    "file": "pay-5-pending.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "dialog": {
+        "x": 0,
+        "y": 275,
+        "w": 390,
+        "h": 1050
+      },
+      "status": {
+        "x": 25,
+        "y": 760,
+        "w": 340,
+        "h": 36
+      },
+      "save": {
+        "x": 25,
+        "y": 1212,
+        "w": 340,
+        "h": 40
+      }
+    }
+  },
+  "pay-5b-save": {
+    "file": "pay-5b-save.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "dialog": {
+        "x": 0,
+        "y": 275,
+        "w": 390,
+        "h": 1050
+      },
+      "status": {
+        "x": 25,
+        "y": 760,
+        "w": 340,
+        "h": 36
+      },
+      "save": {
+        "x": 25,
+        "y": 1212,
+        "w": 340,
+        "h": 40
+      }
+    }
+  },
+  "pay-6-saved": {
+    "file": "pay-6-saved.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "toast": {
+        "x": 16,
+        "y": 16,
+        "w": 358,
+        "h": 92
+      }
+    }
+  },
+  "ledger-pending": {
+    "file": "ledger-pending.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "row": {
+        "x": 17,
+        "y": 849,
+        "w": 356,
+        "h": 142
+      },
+      "confirm": {
+        "x": 221,
+        "y": 861,
+        "w": 92,
+        "h": 32
+      },
+      "payables": {
+        "x": 201,
+        "y": 496,
+        "w": 173,
+        "h": 106
+      }
+    }
+  },
+  "ledger-confirmed": {
+    "file": "ledger-confirmed.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "row": {
+        "x": 17,
+        "y": 849,
+        "w": 356,
+        "h": 110
+      },
+      "orig": {
+        "x": 17,
+        "y": 959,
+        "w": 356,
+        "h": 110
+      },
+      "toast": {
+        "x": 16,
+        "y": 16,
+        "w": 358,
+        "h": 92
+      },
+      "payables": {
+        "x": 201,
+        "y": 496,
+        "w": 173,
+        "h": 106
+      }
+    }
+  },
+  "overview-after": {
+    "file": "overview-after.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "collected": {
+        "x": 36,
+        "y": 591,
+        "w": 153,
+        "h": 117
+      }
+    }
+  },
+  "students-after": {
+    "file": "students-after.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "row": {
+        "x": 17,
+        "y": 525,
+        "w": 356,
+        "h": 157
+      }
+    }
+  },
+  "student-after": {
+    "file": "student-after.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "balance": {
+        "x": 104,
+        "y": 405,
+        "w": 74,
+        "h": 61
+      }
+    }
+  },
+  "teacher-after": {
+    "file": "teacher-after.jpg",
+    "width": 390,
+    "height": 1600,
+    "scale": 3,
+    "boxes": {
+      "card": {
+        "x": 17,
+        "y": 530,
+        "w": 356,
+        "h": 302
+      }
+    }
+  },
+  "_meta": {
+    "app": "http://127.0.0.1:5173",
+    "lang": "en",
+    "capturedAt": "2026-11-26T18:33:18.680Z",
+    "viewport": "390x1600@3",
+    "errors": []
+  }
+}

@@ -1,0 +1,121 @@
+<template>
+  <style>
+    @font-face { font-family: "Manrope"; src: url("assets/fonts/manrope.woff2") format("woff2"); font-weight: 200 800; }
+    @font-face { font-family: "Inter"; src: url("assets/fonts/inter.woff2") format("woff2"); font-weight: 100 900; }
+    @font-face { font-family: "Plex Arabic"; src: url("assets/fonts/plex-arabic-600.woff2") format("woff2"); font-weight: 600; }
+    @font-face { font-family: "Plex Arabic"; src: url("assets/fonts/plex-arabic-700.woff2") format("woff2"); font-weight: 700; }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #f4f6fa; font-family: "Inter", sans-serif; color: #142b4a; }
+    [data-composition-id="payoff"][data-lang="en"] .ar, [data-composition-id="payoff"][data-lang="ar"] .en { display: none; }
+    .p-layer { position: absolute; inset: 0; overflow: hidden; }
+    .p-cam { position: absolute; left: 0; top: 0; width: 1080px; height: 4431px; }
+    .p-cam img { position: absolute; left: 0; top: 0; width: 1080px; height: 4431px; }
+    #p-en-oa, #p-ar-oa, #p-en-fa, #p-ar-fa, #p-fin, #p-st { opacity: 0; }
+    .p-ring { position: absolute; border: 4px solid #19a7a0; border-radius: 22px; opacity: 0; }
+    .p-call { position: absolute; left: 120px; top: 1100px; max-width: 768px; padding: 24px 32px; border-radius: 20px; background: #142b4a; color: #fff; font: 600 44px/1.2 "Inter", sans-serif; box-shadow: 0 24px 60px rgba(20, 43, 74, 0.22); opacity: 0; }
+    .p-call.ar { left: auto; right: 192px; direction: rtl; font-family: "Plex Arabic", sans-serif; }
+    .p-call b { color: #5fd3cc; font-weight: 700; }
+    .p-chip { position: absolute; left: 0; top: 0; padding: 14px 30px; border-radius: 999px; background: #0e7c77; color: #fff; font: 800 64px/1 "Manrope", sans-serif; letter-spacing: -0.01em; white-space: nowrap; box-shadow: 0 18px 40px rgba(14, 124, 119, 0.35); opacity: 0; }
+    .p-claim { position: absolute; left: 120px; top: 640px; width: 840px; text-align: center; font: 800 128px/1.02 "Manrope", sans-serif; letter-spacing: -0.03em; }
+    .p-claim.ar { font-family: "Plex Arabic", sans-serif; font-weight: 700; line-height: 1.3; letter-spacing: 0; direction: rtl; }
+    .p-claim span { display: inline-block; }
+    #p-dot { position: absolute; left: 527px; top: 1027px; width: 26px; height: 26px; border-radius: 50%; background: #19a7a0; opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="payoff" data-width="1080" data-height="1920"
+    data-composition-variables='[{"id":"lang","type":"enum","label":"Language","default":"en","options":[{"value":"en","label":"English"},{"value":"ar","label":"Arabic"}]}]'>
+
+    <!-- 1. Owner's dashboard: Collected today, before and after (assets/cap/*/overview-*.jpg). -->
+    <div id="p-ov" class="p-layer" data-layout-ignore>
+      <div id="p-cam1" class="p-cam">
+        <img id="p-en-ob" class="en" src="assets/cap/en/overview-before.jpg" alt="" />
+        <img id="p-en-oa" class="en" src="assets/cap/en/overview-after.jpg" alt="" />
+        <img id="p-ar-ob" class="ar" src="assets/cap/ar/overview-before.jpg" alt="" />
+        <img id="p-ar-oa" class="ar" src="assets/cap/ar/overview-after.jpg" alt="" />
+        <div id="p-ring1-en" class="p-ring en" style="left:88px;top:1625px;width:440px;height:340px"></div>
+        <div id="p-ring1-ar" class="p-ring ar" style="left:545px;top:1559px;width:440px;height:334px"></div>
+      </div>
+    </div>
+    <!-- 2. Finance: Teacher payables, before and after confirming (assets/cap/*/ledger-*.jpg). -->
+    <div id="p-fin" class="p-layer" data-layout-ignore>
+      <div id="p-cam2" class="p-cam">
+        <img id="p-en-fb" class="en" src="assets/cap/en/ledger-pending.jpg" alt="" />
+        <img id="p-en-fa" class="en" src="assets/cap/en/ledger-confirmed.jpg" alt="" />
+        <img id="p-ar-fb" class="ar" src="assets/cap/ar/ledger-pending.jpg" alt="" />
+        <img id="p-ar-fa" class="ar" src="assets/cap/ar/ledger-confirmed.jpg" alt="" />
+        <div id="p-ring2-en" class="p-ring en" style="left:545px;top:1362px;width:491px;height:305px"></div>
+        <div id="p-ring2-ar" class="p-ring ar" style="left:38px;top:1454px;width:491px;height:258px"></div>
+      </div>
+    </div>
+    <!-- 3. The student's profile: settled (assets/cap/*/student-after.jpg). -->
+    <div id="p-st" class="p-layer" data-layout-ignore>
+      <div id="p-cam3" class="p-cam">
+        <img class="en" src="assets/cap/en/student-after.jpg" alt="" />
+        <img class="ar" src="assets/cap/ar/student-after.jpg" alt="" />
+      </div>
+    </div>
+
+    <div id="p-c1-en" class="p-call en">40% to the teacher: <b>+320</b></div>
+    <div id="p-c1-ar" class="p-call ar">٤٠٪ للمدرس: <b>+320</b></div>
+    <div id="p-c2-en" class="p-call en">Youssef: <b>settled</b></div>
+    <div id="p-c2-ar" class="p-call ar">يوسف: <b>خالص</b></div>
+
+    <div id="p-chip1-en" class="p-chip en">+EGP 800</div>
+    <div id="p-chip1-ar" class="p-chip ar" dir="ltr">+800 ج.م</div>
+    <div id="p-chip2-en" class="p-chip en">+EGP 320</div>
+    <div id="p-chip2-ar" class="p-chip ar" dir="ltr">+320 ج.م</div>
+
+    <h1 id="p-claim-en" class="p-claim en"><span>Every</span> <span>pound,</span> <span>traced.</span></h1>
+    <h1 id="p-claim-ar" class="p-claim ar"><span>كل</span> <span>جنيه</span> <span>ليه</span> <span>أثر.</span></h1>
+    <div id="p-dot"></div>
+  </div>
+  <script>
+    (() => {
+      const lang = (window.__hyperframes?.getVariables?.() ?? {}).lang === "ar" ? "ar" : "en";
+      document.querySelector('[data-composition-id="payoff"]').dataset.lang = lang;
+      const tl = gsap.timeline({ paused: true });
+      const K = 1080 / 390;
+      const cam = (fx, fy, z, X = 540, Y = 760) => ({ x: X - fx * K * z, y: Y - fy * K * z, scale: z });
+      const rtl = lang === "ar";
+      // Real boxes (CSS px): Collected today tile, Teacher payables tile, the student's balance.
+      const G = rtl
+        ? { col: [277.5, 624.5], pay: [102.5, 573.5], bal: [260, 435], focusSt: [195, 380] }
+        : { col: [112.5, 649.5], pay: [287.5, 549], bal: [141, 435], focusSt: [195, 380] };
+      const out = rtl ? 1 : -1; // whip direction follows reading direction
+      gsap.set([".p-cam"], { transformOrigin: "0 0" });
+      gsap.set(".p-chip", { xPercent: -50, yPercent: -50 });
+      gsap.set("#p-cam1", cam(G.col[0], G.col[1], 1.9));
+      gsap.set("#p-cam2", cam(G.pay[0], G.pay[1], 1.9));
+      gsap.set("#p-cam3", cam(G.focusSt[0], G.focusSt[1], 1.4));
+
+      // 1. The 800 lands in today's collections: 1,650 -> 2,450.
+      const chip1 = "#p-chip1-" + lang;
+      tl.fromTo(chip1, { x: 540, y: -160, opacity: 1, scale: 1 }, { x: 540, y: 700, duration: 0.45, ease: "back.out(1.4)" }, 0);
+      tl.to(chip1, { scale: 0.45, opacity: 0, duration: 0.18, ease: "power3.in" }, 0.5);
+      tl.set("#p-" + lang + "-oa", { opacity: 1 }, 0.6);
+      tl.fromTo("#p-ring1-" + lang, { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.3, ease: "expo.out", transformOrigin: "50% 50%" }, 0.6);
+
+      // 2. Whip to Finance: 40% of it is the teacher's. Payables 88,237 -> 88,557.
+      tl.to("#p-ov", { x: out * 1080, filter: "blur(12px)", duration: 0.25, ease: "power3.in" }, 1.9);
+      tl.fromTo("#p-fin", { x: -out * 1080, opacity: 1, filter: "blur(12px)" }, { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 2.1);
+      const chip2 = "#p-chip2-" + lang;
+      tl.fromTo(chip2, { x: 540, y: -160, opacity: 1, scale: 1 }, { x: 540, y: 700, duration: 0.45, ease: "back.out(1.4)" }, 2.5);
+      tl.to(chip2, { scale: 0.45, opacity: 0, duration: 0.18, ease: "power3.in" }, 3.0);
+      tl.set("#p-" + lang + "-fa", { opacity: 1 }, 3.1);
+      tl.fromTo("#p-ring2-" + lang, { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.3, ease: "expo.out", transformOrigin: "50% 50%" }, 3.1);
+      tl.fromTo("#p-c1-" + lang, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: "expo.out" }, 3.2);
+      tl.to("#p-c1-" + lang, { opacity: 0, duration: 0.15, ease: "power2.in" }, 4.6);
+
+      // 3. Whip to the student: settled.
+      tl.to("#p-fin", { x: out * 1080, filter: "blur(12px)", duration: 0.25, ease: "power3.in" }, 4.7);
+      tl.fromTo("#p-st", { x: -out * 1080, opacity: 1, filter: "blur(12px)" }, { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 4.9);
+      tl.fromTo("#p-c2-" + lang, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: "expo.out" }, 5.3);
+      tl.to("#p-c2-" + lang, { opacity: 0, duration: 0.15, ease: "power2.in" }, 5.95);
+
+      // 4. Claim: the screen clears to the app's ground; one teal point stays.
+      tl.to("#p-st", { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power2.in" }, 6.0);
+      tl.fromTo("#p-dot", { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 6.05);
+      tl.fromTo("#p-claim-" + lang + " span", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.13, stagger: 0.067, ease: "power2.out" }, 6.15);
+
+      window.__timelines["payoff"] = tl;
+    })();
+  </script>
+</template>
