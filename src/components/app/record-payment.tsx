@@ -110,7 +110,8 @@ export function RecordPaymentDialog({ trigger, studentId, controlledOpen, onOpen
           </div>
           <div className="space-y-1.5">
             <Label>{t("Class")} {optional}</Label>
-            <Select value={classId} onValueChange={setClassId} dir={dir}>
+            {/* Radix reports "" when the selected class is not yet among the mounted options (just after a student change); keep the class. */}
+            <Select value={classId} onValueChange={(v) => { if (v) setClassId(v); }} dir={dir}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={NO_CLASS}>{t("Not linked to a class")}</SelectItem>
