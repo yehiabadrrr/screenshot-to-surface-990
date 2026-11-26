@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createStudent, getStudent, listAllStudents, listStudents, updateStudent } from "@/lib/api/students";
+import { useStudentSource } from "./source";
 import type { CreateStudentInput, ListStudentsInput, UpdateStudentInput } from "./schema";
 
 export const studentKeys = {
@@ -9,28 +9,38 @@ export const studentKeys = {
   one: (centerId: string, code: string) => ["students", centerId, "one", code] as const,
 };
 
-export const useAllStudents = (centerId: string) =>
-  useQuery({ queryKey: studentKeys.all(centerId), queryFn: () => listAllStudents({ data: { centerId } }), staleTime: 30_000 });
+/* Every hook reads from the active StudentSource: Supabase in the console, the local store in the demo. */
 
-export const useStudentList = (params: ListStudentsInput) =>
-  useQuery({ queryKey: studentKeys.list(params), queryFn: () => listStudents({ data: params }), placeholderData: keepPreviousData, staleTime: 15_000 });
+export const useAllStudents = (centerId: string) => {
+  const src = useStudentSource();
+  return useQuery({ queryKey: studentKeys.all(centerId), queryFn: () => src.listAll(centerId), staleTime: 30_000 });
+};
 
-export const useStudent = (centerId: string, code: string) =>
-  useQuery({ queryKey: studentKeys.one(centerId, code), queryFn: () => getStudent({ data: { centerId, code } }) });
+export const useStudentList = (params: ListStudentsInput) => {
+  const src = useStudentSource();
+  return useQuery({ queryKey: studentKeys.list(params), queryFn: () => src.list(params), placeholderData: keepPreviousData, staleTime: 15_000 });
+};
+
+export const useStudent = (centerId: string, code: string) => {
+  const src = useStudentSource();
+  return useQuery({ queryKey: studentKeys.one(centerId, code), queryFn: () => src.get(centerId, code) });
+};
 
 /** Mutations refresh every student query of the center, so lists, profile and the demo screens agree. */
 export function useCreateStudent() {
   const qc = useQueryClient();
+  const src = useStudentSource();
   return useMutation({
-    mutationFn: (input: CreateStudentInput) => createStudent({ data: input }),
+    mutationFn: (input: CreateStudentInput) => src.create(input),
     onSuccess: (_row, input) => qc.invalidateQueries({ queryKey: studentKeys.center(input.centerId) }),
   });
 }
 
 export function useUpdateStudent() {
   const qc = useQueryClient();
+  const src = useStudentSource();
   return useMutation({
-    mutationFn: (input: UpdateStudentInput) => updateStudent({ data: input }),
+    mutationFn: (input: UpdateStudentInput) => src.update(input),
     onSuccess: (row, input) => {
       qc.setQueryData(studentKeys.one(input.centerId, input.code), row);
       return qc.invalidateQueries({ queryKey: studentKeys.center(input.centerId) });

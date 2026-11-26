@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { useI18n, type Lang } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
 import { CONTACT_WHATSAPP, LANDING_COPY, SAMPLE_NAMES } from "@/components/landing/copy";
 import { RegisterSection } from "@/components/landing/register-demo";
 import landingCss from "@/components/landing/landing.css?url";
@@ -111,6 +112,9 @@ function useLandingScroll(root: RefObject<HTMLDivElement | null>, onChapter: (i:
 
 function Landing() {
   const { lang, setLang } = useI18n();
+  const { theme, toggle: toggleTheme } = useTheme();
+  const dark = theme === "dark";
+  const shot = (name: "overview" | "attendance") => `/landing/${name}-${lang}${dark ? "-dark" : ""}.webp`;
   const c = LANDING_COPY[lang];
   const names = SAMPLE_NAMES[lang];
   const root = useRef<HTMLDivElement>(null);
@@ -126,7 +130,7 @@ function Landing() {
   useEffect(() => { dispatchEvent(new Event("resize")); }, [lang]);
 
   const cta = (
-    <Link to="/overview" className="lp-btn lp-btn--primary">
+    <Link to="/demo" className="lp-btn lp-btn--primary">
       {c.cta}
       <svg className="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
     </Link>
@@ -142,8 +146,13 @@ function Landing() {
         <p className="lp-folio" aria-hidden="true"><span className="lp-folio__n" dir="ltr">{chapter + 1}</span><span>{c.chapters[chapter]}</span></p>
         <div className="lp-bar__end">
           <button type="button" className="lp-lang" lang={lang === "en" ? "ar" : "en"} onClick={() => setLang(lang === "en" ? "ar" : "en")}>{c.langSwitch}</button>
+          <button type="button" className="lp-lang lp-theme" onClick={toggleTheme} aria-label={dark ? c.lightMode : c.darkMode} title={dark ? c.lightMode : c.darkMode}>
+            {dark
+              ? <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3" /><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" /></svg>
+              : <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z" /></svg>}
+          </button>
           <Link to="/login" className="lp-signin">{c.signIn}</Link>
-          <Link to="/overview" className="lp-btn lp-btn--primary lp-btn--sm">{c.cta}</Link>
+          <Link to="/demo" className="lp-btn lp-btn--primary lp-btn--sm">{c.cta}</Link>
         </div>
       </header>
 
@@ -161,7 +170,7 @@ function Landing() {
               <figure className="plane plane--far">
                 <div className="win">
                   <div className="win__bar"><span dir="ltr">markazly.dev/overview</span></div>
-                  <img src={`/landing/overview-${lang}.webp`} width={2880} height={1800} alt="" fetchPriority="high" />
+                  <img src={shot("overview")} width={2880} height={1800} alt="" fetchPriority="high" />
                 </div>
                 <figcaption>{c.farCap}</figcaption>
               </figure>
@@ -272,7 +281,7 @@ function Landing() {
               <article className="rule-item rule-item--shot">
                 <div className="win">
                   <div className="win__bar"><span dir="ltr">markazly.dev/attendance</span></div>
-                  <img src={`/landing/attendance-${lang}.webp`} width={2880} height={1800} alt={c.shotAlt} loading="lazy" />
+                  <img src={shot("attendance")} width={2880} height={1800} alt={c.shotAlt} loading="lazy" />
                 </div>
                 <h3>{c.shotT}</h3>
                 <p>{c.shotD}</p>

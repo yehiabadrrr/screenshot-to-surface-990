@@ -22,6 +22,7 @@ import { useI18n } from "@/lib/i18n";
 import { fmtNum, localDays, localTime, ruleKindLabel, ruleSummary, shortDateL, noteText } from "@/lib/l10n";
 import { formatPercent } from "@/lib/format";
 import { useCenter } from "@/lib/center-context";
+import { useDemoMode } from "@/lib/demo-mode";
 import { useStudent, useUpdateStudent, errorMessage } from "@/lib/students/queries";
 import { toStudent } from "@/lib/students/model";
 import { studentFields, STUDENT_STATUSES } from "@/lib/students/schema";
@@ -56,6 +57,7 @@ function Profile() {
   const { t, lang } = useI18n();
   const L = useLedger();
   const { center, branches, canEditStudents } = useCenter();
+  const publicDemo = useDemoMode();
   // Persistent fields come from the server (RLS-scoped); demo attendance is joined from the store.
   const remote = useStudent(center.id, id);
   const stored = L.findStudent(id);
@@ -204,7 +206,7 @@ function Profile() {
           </TabsContent>
 
           <TabsContent value="edit" className="mt-0">
-            <Panel title={t("Personal details")} icon={IdCard} subtitle={t("Saved to your center's database")}>
+            <Panel title={t("Personal details")} icon={IdCard} subtitle={t(publicDemo ? "Kept until you refresh" : "Saved to your center's database")}>
               {canEditStudents && remote.data ? <EditStudentForm row={remote.data} /> : (
                 <>
                   <p className="mb-4 flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2.5 text-ui text-muted-foreground"><Lock className="mt-0.5 size-4 shrink-0" />{t(canEditStudents ? "Loading the saved record…" : "Your role can view students but not edit them.")}</p>

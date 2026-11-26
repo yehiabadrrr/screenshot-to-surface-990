@@ -1,5 +1,5 @@
 import { createFileRoute, Navigate, Outlet, redirect } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { RotateCcw } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
@@ -12,6 +12,8 @@ import { getMyCenters } from "@/lib/api/centers";
 import { useAllStudents, errorMessage } from "@/lib/students/queries";
 import { toStudent } from "@/lib/students/model";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { DemoModeProvider, isDemoMode, LOCAL_DEMO_CENTER, LOCAL_DEMO_CENTER_ID, LOCAL_DEMO_USER } from "@/lib/demo-mode";
+import { createLocalStudents, StudentSourceProvider } from "@/lib/students/source";
 import { useI18n } from "@/lib/i18n";
 
 /**
@@ -21,6 +23,7 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/_console")({
   ssr: false,
   beforeLoad: async ({ location }) => {
+    if (isDemoMode()) return; // the in-browser demo needs no session (see src/lib/demo-mode.tsx)
     if (!isSupabaseConfigured) throw redirect({ to: "/login" });
     const session = await currentSession();
     if (!session) throw redirect({ to: "/login", search: { redirect: location.href } });
@@ -52,6 +55,26 @@ function ConsoleError({ message, retry }: { message: string; retry: () => void }
 }
 
 function ConsoleLayout() {
+  const [demo] = useState(isDemoMode);
+  return demo ? <DemoConsole /> : <SignedInConsole />;
+}
+
+/** The public demo: a local sample center and student store, no Supabase at all. Resets on refresh. */
+function DemoConsole() {
+  const { t } = useI18n();
+  const [source] = useState(() => createLocalStudents(LOCAL_DEMO_CENTER_ID));
+  return (
+    <DemoModeProvider value>
+      <StudentSourceProvider value={source}>
+        <CenterProvider centers={[LOCAL_DEMO_CENTER]} user={{ ...LOCAL_DEMO_USER, name: t(LOCAL_DEMO_USER.name) }}>
+          <CenterWorkspace />
+        </CenterProvider>
+      </StudentSourceProvider>
+    </DemoModeProvider>
+  );
+}
+
+function SignedInConsole() {
   const { status, user } = useAuth();
   const { t } = useI18n();
   const centers = useQuery({ queryKey: ["centers", user?.id], queryFn: () => getMyCenters(), enabled: status === "signedIn" });

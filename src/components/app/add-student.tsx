@@ -18,6 +18,7 @@ import { ruleKindLabel, ruleSummary } from "@/lib/l10n";
 import { contactErrors } from "@/lib/student-display";
 import { useCenter } from "@/lib/center-context";
 import { useCreateStudent, errorMessage } from "@/lib/students/queries";
+import { useDemoMode } from "@/lib/demo-mode";
 
 export const GRADES = ["Thanaweya 3", "Thanaweya 2", "Thanaweya 1", "Prep 3", "Adult"];
 export function AddStudent({ className, variant }: { className?: string; variant?: "default" | "outline" | "secondary" | "ghost" } = {}) {
@@ -25,6 +26,7 @@ export function AddStudent({ className, variant }: { className?: string; variant
   const { setEnrollmentRule, classRule, classes } = useLedger();
   const { center, branches } = useCenter();
   const create = useCreateStudent();
+  const publicDemo = useDemoMode();
   const mobile = useIsMobile();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -60,7 +62,7 @@ export function AddStudent({ className, variant }: { className?: string; variant
       });
       // Per-student billing rules are still in-memory demo data; attach them to the new student code.
       for (const [cid, rule] of Object.entries(own)) setEnrollmentRule(row.student_code, cid, rule);
-      toast.success(t("{name} saved as {id}", { name: row.name, id: row.student_code }), { description: t("Student record saved. Billing rules and payments remain demo data.") });
+      toast.success(t("{name} saved as {id}", { name: row.name, id: row.student_code }), { description: t(publicDemo ? "Kept in this sample center until you refresh." : "Student record saved. Billing rules and payments remain demo data.") });
       setOpen(false);
       void navigate({ to: "/students/$id", params: { id: row.student_code } });
     } catch (err) {
@@ -82,7 +84,9 @@ export function AddStudent({ className, variant }: { className?: string; variant
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     <div className="flex flex-wrap justify-end gap-2 border-t pt-4"><Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("Cancel")}</Button>{step > 0 && <Button type="button" variant="outline" onClick={() => { setStep(step - 1); setError(""); }}>{t("Back")}</Button>}<Button type="submit" disabled={create.isPending}>{create.isPending ? t("Saving…") : t(step === 2 ? "Save student" : "Continue")}</Button></div>
   </form>;
-  const description = t("The student is saved to your center. Classes, billing rules and payments are still demo data in this phase.");
+  const description = t(publicDemo
+    ? "This sample center keeps the student until you refresh. Classes, billing rules and payments are demo data."
+    : "The student is saved to your center. Classes, billing rules and payments are still demo data in this phase.");
   const wrap = (children: ReactNode) => <div className="mx-auto w-full max-w-2xl space-y-5">{children}</div>;
   return <><Button variant={variant} className={className} onClick={() => { reset(); setOpen(true); }}><UserPlus />{t("Add student")}</Button>{mobile ? <Sheet open={open} onOpenChange={setOpen}><SheetContent side="bottom" dir={lang === "ar" ? "rtl" : "ltr"} className="h-dvh w-full overflow-y-auto px-4 pb-6 pt-12">{wrap(<><SheetTitle>{t("Add student")}</SheetTitle><SheetDescription>{description}</SheetDescription>{content}</>)}</SheetContent></Sheet> : <Dialog open={open} onOpenChange={setOpen}><DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl" dir={lang === "ar" ? "rtl" : "ltr"}><DialogHeader><DialogTitle>{t("Add student")}</DialogTitle><DialogDescription>{description}</DialogDescription></DialogHeader>{content}</DialogContent></Dialog>}</>;
 }

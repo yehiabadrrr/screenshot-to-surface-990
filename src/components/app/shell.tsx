@@ -13,6 +13,7 @@ import { initials } from "@/lib/center-config";
 import { useCenter, roleLabel } from "@/lib/center-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
+import { exitDemo, useDemoMode } from "@/lib/demo-mode";
 import { formatMoney } from "@/lib/format";
 import { fmtNum } from "@/lib/l10n";
 import { Logo } from "./logo";
@@ -196,7 +197,10 @@ function UserMenu() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const publicDemo = useDemoMode();
+  const exit = useExitDemo();
   const leave = async () => {
+    if (publicDemo) { exit("/"); return; }
     await signOut();
     queryClient.clear(); // no data from this session survives sign-out
     void navigate({ to: "/login", replace: true });
@@ -217,7 +221,7 @@ function UserMenu() {
         <DropdownMenuItem onClick={() => setLang(lang === "en" ? "ar" : "en")}><Languages />{lang === "en" ? "العربية" : "English"}</DropdownMenuItem>
         <DropdownMenuItem onClick={toggle}>{theme === "dark" ? <Sun /> : <Moon />}{t(theme === "dark" ? "Light mode" : "Dark mode")}</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => void leave()}><LogOut className="rtl:-scale-x-100" />{t("Sign out")}</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => void leave()}><LogOut className="rtl:-scale-x-100" />{t(publicDemo ? "Exit demo" : "Sign out")}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -236,8 +240,36 @@ function useWideLayout() {
   return wide;
 }
 
+/** Leaves the in-browser demo: clears its flag and cached sample data, then goes to the given page. */
+function useExitDemo() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  return (to: "/" | "/signup") => {
+    exitDemo();
+    queryClient.clear();
+    void navigate({ to, replace: true });
+  };
+}
+
+/** The public demo's banner: what it is, plus the two ways out. */
+function PublicDemoBanner() {
+  const { t } = useI18n();
+  const leave = useExitDemo();
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t bg-info-soft px-4 py-1.5 text-meta text-foreground">
+      <span className="flex items-center gap-1.5"><span className="size-1.5 shrink-0 rounded-full bg-brand" /><span className="font-medium">{t("Sample center")}</span><span className="hidden text-muted-foreground sm:inline">· {t("You're exploring Markazly with sample data. Nothing is saved, and it resets when you refresh.")}</span></span>
+      <span className="flex items-center gap-1">
+        {/* Size goes on the label: cn() would read text-meta as a colour and drop the button's own. */}
+        <Button size="sm" className="h-7 px-2.5" onClick={() => leave("/signup")}><span className="text-meta">{t("Create your center")}</span></Button>
+        <Button size="sm" variant="ghost" className="h-7 px-2.5" onClick={() => leave("/")}><span className="text-meta">{t("Exit demo")}</span></Button>
+      </span>
+    </div>
+  );
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { demo } = useLedger();
+  const publicDemo = useDemoMode();
   const [userCollapsed, setCollapsed] = useState(false);
   const wide = useWideLayout();
   const collapsed = userCollapsed || !wide;
@@ -279,10 +311,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               <UserMenu />
             </div>
           </div>
-          {/* Students persist; classes, ledger and attendance are still demo data in Phase 1. */}
-          <div className="flex items-center justify-center gap-1.5 border-t bg-warning-soft px-4 py-1 text-meta text-foreground" title={t("Classes, payments and attendance are demo data and reset on refresh. Student records are saved.")}>
-            <span className="size-1.5 shrink-0 rounded-full bg-warning" /><span className="font-medium">{t(demo ? "Demo Center" : "Demo data")}</span><span className="hidden text-muted-foreground sm:inline">· {t("Classes, payments and attendance are demo data and reset on refresh. Student records are saved.")}</span>
-          </div>
+          {publicDemo ? <PublicDemoBanner /> : (
+            /* Students persist; classes, ledger and attendance are still demo data in Phase 1. */
+            <div className="flex items-center justify-center gap-1.5 border-t bg-warning-soft px-4 py-1 text-meta text-foreground" title={t("Classes, payments and attendance are demo data and reset on refresh. Student records are saved.")}>
+              <span className="size-1.5 shrink-0 rounded-full bg-warning" /><span className="font-medium">{t(demo ? "Demo Center" : "Demo data")}</span><span className="hidden text-muted-foreground sm:inline">· {t("Classes, payments and attendance are demo data and reset on refresh. Student records are saved.")}</span>
+            </div>
+          )}
         </header>
         <main className="min-w-0 flex-1 px-page-mobile pt-5 pb-28 md:px-6 md:pt-7 md:pb-10 lg:px-8">{children}</main>
         <nav aria-label={t("Mobile navigation")} className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t bg-card/95 backdrop-blur md:hidden">

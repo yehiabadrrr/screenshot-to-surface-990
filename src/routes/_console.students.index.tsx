@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { balancesAsOf } from "@/lib/ledger";
 import { useLedger, todayIso } from "@/lib/ledger-store";
 import { useCenter } from "@/lib/center-context";
+import { useDemoMode } from "@/lib/demo-mode";
 import { useStudentList, errorMessage } from "@/lib/students/queries";
 import { toStudent } from "@/lib/students/model";
 import { STUDENT_STATUSES, type ListStudentsInput } from "@/lib/students/schema";
@@ -37,6 +38,7 @@ function useDebounced<T>(value: T, ms: number) {
 function StudentsPage() {
   const { t, lang } = useI18n();
   const { center, branches, canEditStudents } = useCenter();
+  const publicDemo = useDemoMode();
   const { entries, students: all, classes } = useLedger();
   const [q, setQ] = useState(""); const [grade, setGrade] = useState("all"); const [status, setStatus] = useState("all"); const [branchId, setBranchId] = useState("all"); const [bal, setBal] = useState("all"); const [page, setPage] = useState(0);
   const [sort, setSort] = useState<Sort>("name"); const [descending, setDescending] = useState(false);
@@ -100,7 +102,7 @@ function StudentsPage() {
         </>} />
 
       <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border bg-card/60 px-3 py-2 text-meta text-muted-foreground">
-        <span className="inline-flex items-center gap-1.5"><Database className="size-3.5 text-positive" />{t("Student records are saved to your center's database.")}</span>
+        <span className="inline-flex items-center gap-1.5"><Database className="size-3.5 text-positive" />{t(publicDemo ? "Student records here are kept until you refresh. Nothing is saved." : "Student records are saved to your center's database.")}</span>
         <span className="inline-flex items-center gap-1.5"><FlaskConical className="size-3.5 text-warning" />{t("Balances and attendance come from demo ledger and attendance data.")}</span>
       </div>
 

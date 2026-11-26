@@ -482,4 +482,14 @@ export const arUi: Record<string, string> = {
   "{a} active of {n} students": "{a} نشط من {n} طالب",
   "Omar Hassan": "عمر حسن",
   "Sign in to Markazly": "تسجيل الدخول إلى مركزلي",
+  // Public in-browser demo
+  "Sample center": "مركز تجريبي",
+  "You're exploring Markazly with sample data. Nothing is saved, and it resets when you refresh.": "أنت تستكشف مركزلي ببيانات تجريبية. لا يُحفظ شيء، وتعود البيانات كما كانت عند التحديث.",
+  "Create your center": "أنشئ مركزك",
+  "Exit demo": "الخروج من التجربة",
+  "Demo visitor": "زائر تجريبي",
+  "This sample center keeps the student until you refresh. Classes, billing rules and payments are demo data.": "يحتفظ هذا المركز التجريبي بالطالب حتى تحدّث الصفحة. الفصول وأنظمة المحاسبة والمدفوعات بيانات تجريبية.",
+  "Kept in this sample center until you refresh.": "محفوظ في هذا المركز التجريبي حتى تحدّث الصفحة.",
+  "Student records here are kept until you refresh. Nothing is saved.": "سجلات الطلاب هنا تبقى حتى تحدّث الصفحة. لا يُحفظ شيء.",
+  "Kept until you refresh": "يبقى حتى تحدّث الصفحة",
 };
