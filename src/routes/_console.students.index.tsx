@@ -14,8 +14,7 @@ import { useLedger, todayIso } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
 import { fmtNum, pct } from "@/lib/l10n";
 import { pageHead, downloadCsv } from "@/lib/head";
-import { selectStudents, type StudentRow, type StudentSort } from "@/lib/student-display";
-import { centerProfile } from "@/lib/center-config";
+import { DIRECTORY_SORTS, selectStudents, type StudentRow, type StudentSort } from "@/lib/student-display";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_console/students/")({ head: pageHead("Students", "Search, filter and manage enrolled students, billing balances and contact details."), component: StudentsPage });
@@ -26,7 +25,10 @@ function StudentsPage() {
   const { t, lang } = useI18n();
   const [q, setQ] = useState(""); const [grade, setGrade] = useState("all"); const [status, setStatus] = useState("all"); const [branch, setBranch] = useState("all"); const [bal, setBal] = useState("all"); const [page, setPage] = useState(0);
   const [sort, setSort] = useState<StudentSort>("name"); const [descending, setDescending] = useState(false);
-  const { entries, students: all, classes } = useLedger();
+  const { entries, students: all, enrollable, source, branches } = useLedger();
+  const { classes } = enrollable;
+  // A real center's ledger and attendance aren't saved yet, so there are no balances or attendance rates to show.
+  const tracked = source.kind === "demo" || source.isDemoCenter;
   const students = useMemo(() => { const balances = balancesAsOf(entries, todayIso()); return all.map((s) => ({ ...s, balance: balances.get(s.id) ?? 0 })); }, [entries, all]);
   const rows = useMemo(() => selectStudents(students, { query: q, grade, status, branch, balance: bal }, sort, descending), [students, q, grade, status, branch, bal, sort, descending]);
   // Counts for the balance segments respect every other active filter, so they always match the table.
@@ -65,8 +67,10 @@ function StudentsPage() {
           <AddStudent />
         </>} />
 
+      {source.kind === "center" && source.loading && <p role="status" className="mb-4 text-sm text-muted-foreground">{t("Loading students…")}</p>}
+      {source.kind === "center" && source.error && <p role="alert" className="mb-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{t("Students couldn't be loaded: {reason}", { reason: source.error })}</p>}
       {/* Balance segments: the existing balance filter, with live counts */}
-      <div role="tablist" aria-label={t("Balance")} className="mb-4 flex gap-2 overflow-x-auto pb-1">
+      {tracked && <div role="tablist" aria-label={t("Balance")} className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {(["all", ...BALANCES] as const).map((key) => {
           const on = bal === key;
           const dot = key === "Owing" ? "bg-destructive" : key === "Credit" ? "bg-positive" : key === "Settled" ? "bg-muted-foreground" : "bg-brand";
@@ -78,7 +82,7 @@ function StudentsPage() {
             </button>
           );
         })}
-      </div>
+      </div>}
 
       <div className="surface overflow-hidden">
         {/* Search and filters */}
@@ -89,10 +93,10 @@ function StudentsPage() {
             {q && <button type="button" onClick={() => reset(setQ)("")} aria-label={t("Clear search")} className="absolute end-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"><X className="size-4" /></button>}
           </div>
           <Filter value={grade} onChange={reset(setGrade)} label="All grades" options={GRADES} />
-          <Filter value={branch} onChange={reset(setBranch)} label="All branches" options={[...centerProfile.branches]} />
+          <Filter value={branch} onChange={reset(setBranch)} label="All branches" options={[...branches]} />
           <Filter value={status} onChange={reset(setStatus)} label="All statuses" options={["Active", "Paused", "Inactive"]} />
           <div className="col-span-2 grid grid-cols-[minmax(0,1fr)_auto] gap-2 sm:hidden">
-            <Filter value={sort} onChange={(value) => changeSort(value as StudentSort)} label="Sort by" options={["name", "balance", "attendance"]} />
+            <Filter value={sort} onChange={(value) => changeSort(value as StudentSort)} label="Sort by" options={tracked ? DIRECTORY_SORTS : ["name"]} />
             <Button variant="outline" size="icon" className="size-10" aria-label={t("Reverse sort direction")} onClick={() => setDescending(!descending)}>{descending ? <ArrowDown /> : <ArrowUp />}</Button>
           </div>
         </div>
@@ -113,8 +117,8 @@ function StudentsPage() {
                 <th className="px-3 text-start">{t("Grade")}</th>
                 <th className="hidden px-3 text-start xl:table-cell">{t("Branch")}</th>
                 <th className="px-3 text-start">{t("Classes")}</th>
-                {sortHeader("attendance", "Attendance")}
-                {sortHeader("balance", "Balance", true)}
+                {tracked ? sortHeader("attendance", "Attendance") : <th className="px-3 text-start">{t("Attendance")}</th>}
+                <th className="px-3 text-end"><span className="inline-flex items-center gap-1.5 text-xs font-medium">{t("Balance")}{tracked && <DemoTag />}</span></th>
                 <th className="px-3 text-start">{t("Status")}</th>
                 <th className="w-12 px-2"><span className="sr-only">{t("Actions")}</span></th>
               </tr>
@@ -135,9 +139,9 @@ function StudentsPage() {
                   <td className="hidden whitespace-nowrap px-3 text-[13px] xl:table-cell">{t(s.branch)}</td>
                   <td className="min-w-40 max-w-64 px-3">{classChips(s.classIds)}</td>
                   <td className="w-32 px-3">
-                    <div className="flex items-center gap-2"><span className="w-10 shrink-0 text-[13px] font-medium num"><bdi>{pct(s.attendance, lang)}</bdi></span><Meter value={s.attendance} tone={s.attendance >= 90 ? "positive" : s.attendance >= 80 ? "teal" : "warning"} label={t("Attendance")} className="w-14" /></div>
+                    {tracked ? <div className="flex items-center gap-2"><span className="w-10 shrink-0 text-[13px] font-medium num"><bdi>{pct(s.attendance, lang)}</bdi></span><Meter value={s.attendance} tone={s.attendance >= 90 ? "positive" : s.attendance >= 80 ? "teal" : "warning"} label={t("Attendance")} className="w-14" /></div> : <NotTracked />}
                   </td>
-                  <td className="px-3"><StudentBalance value={s.balance} /></td>
+                  <td className="px-3">{tracked ? <StudentBalance value={s.balance} /> : <div className="text-end"><NotTracked /></div>}</td>
                   <td className="px-3"><Pill tone={statusTone(s.status)} dot>{t(s.status)}</Pill></td>
                   <td className="px-2"><StudentActions student={s} /></td>
                 </tr>
@@ -156,12 +160,12 @@ function StudentsPage() {
                   <Link to="/students/$id" params={{ id: s.id }} className="block break-words font-semibold hover:text-brand"><bdi>{s.name}</bdi></Link>
                   <div className="mt-0.5 text-xs text-muted-foreground"><bdi dir="ltr">{s.id}</bdi> · {t(s.grade)} · {t(s.branch)}</div>
                 </div>
-                <StudentBalance value={s.balance} />
+                {tracked ? <StudentBalance value={s.balance} /> : <NotTracked />}
               </div>
               <div className="mt-3">{classChips(s.classIds)}</div>
               <div className="mt-3 flex items-center gap-2">
                 <Pill tone={statusTone(s.status)} dot>{t(s.status)}</Pill>
-                <span className="text-xs text-muted-foreground">{t("Attendance")} <b className="font-semibold text-foreground num"><bdi>{pct(s.attendance, lang)}</bdi></b></span>
+                {tracked && <span className="text-xs text-muted-foreground">{t("Attendance")} <b className="font-semibold text-foreground num"><bdi>{pct(s.attendance, lang)}</bdi></b></span>}
                 <div className="ms-auto flex shrink-0 gap-1">
                   <RecordPaymentDialog studentId={s.id} trigger={<Button variant="outline" size="icon" className="size-9" aria-label={`${t("Record payment")} · ${s.name}`} title={t("Record payment")}><Wallet /></Button>} />
                   <StudentActions student={s} />
@@ -233,4 +237,15 @@ function StudentActions({ student }: { student: StudentRow }) {
     </DropdownMenu>
     {paying && <RecordPaymentDialog studentId={student.id} trigger={null} controlledOpen={paying} onOpenChange={setPaying} />}
   </>;
+}
+
+/** Marks balances computed from the in-memory sample ledger, so they are never mistaken for saved figures. */
+function DemoTag() {
+  const { t } = useI18n();
+  return <span title={t("Computed from sample ledger data that resets on refresh. Sorting by balance returns once payments are saved.")} className="rounded border border-warning/40 bg-warning-soft px-1 py-px text-[10px] font-semibold uppercase tracking-wide text-foreground">{t("Demo")}</span>;
+}
+
+function NotTracked() {
+  const { t } = useI18n();
+  return <span className="text-[13px] text-muted-foreground" title={t("Payments and attendance aren't saved yet, so there's nothing to show.")}>—</span>;
 }

@@ -58,8 +58,11 @@ function Profile() {
   const attendance = useMemo(() => Object.values(L.sessions).filter((r) => r.marks[id] !== undefined || (s?.classIds.includes(r.classId) && r.finalized))
     .sort((a, z) => z.date.localeCompare(a.date)).slice(0, 40), [L.sessions, id, s]);
 
+  const tracked = L.source.kind === "demo" || L.source.isDemoCenter;
+  const findClass = (cid: string) => L.enrollable.classes.find((c) => c.id === cid) ?? classById(cid);
+  if (!s && L.source.loading) return <p role="status" className="mx-auto max-w-3xl text-sm text-muted-foreground">{t("Loading students…")}</p>;
   if (!s) {
-    return <div className="mx-auto max-w-3xl"><div className="surface"><EmptyState icon={UserRound} title={t("Student not found")} hint={t("Sample students added in this tab disappear on refresh.")} action={<Button asChild variant="outline"><Link to="/students"><ArrowLeft className="rtl:rotate-180" />{t("Back to students")}</Link></Button>} /></div></div>;
+    return <div className="mx-auto max-w-3xl"><div className="surface"><EmptyState icon={UserRound} title={t("Student not found")} hint={L.source.kind === "demo" ? t("Sample students added in this tab disappear on refresh.") : undefined} action={<Button asChild variant="outline"><Link to="/students"><ArrowLeft className="rtl:rotate-180" />{t("Back to students")}</Link></Button>} /></div></div>;
   }
 
   const paid = mine.filter((x) => x.type === "Payment" && displayStatus(x, rev) === "Completed").reduce((a, x) => a + x.amount, 0);
@@ -68,7 +71,7 @@ function Profile() {
   const marked = attendance.filter((r) => r.marks[id]);
   const presentPct = marked.length ? Math.round((marked.filter((r) => r.marks[id] === "Present").length / marked.length) * 100) : s.attendance;
   const enrollments = s.classIds.map((cid) => {
-    const c = classById(cid);
+    const c = findClass(cid);
     const { rule, source } = L.ruleFor(s.id, cid);
     const left = rule.kind === "package" ? packageRemaining(L.entries, s.id, cid) : 0;
     return { cid, c, rule, source, left };
@@ -108,11 +111,17 @@ function Profile() {
 
           {/* Summary */}
           <div className="mt-5 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
-            <SummaryTile icon={Wallet} tone={owes ? "negative" : credit ? "positive" : "neutral"} label={t("Balance today")}
-              value={<Money value={Math.abs(balance)} />} hint={t(owes ? "Owing" : credit ? "Credit" : "Settled")} />
-            <SummaryTile icon={Banknote} tone="positive" label={t("Total paid")} value={<Money value={paid} />} hint={t("Completed payments")} />
-            <SummaryTile icon={CalendarCheck} tone="lavender" label={t("Attendance")} value={<bdi>{formatPercent(presentPct, lang)}</bdi>}
-              hint={marked.length ? t("{n} recorded sessions", { n: fmtNum(marked.length, lang) }) : t("Sample average")} />
+            {tracked ? <>
+              <SummaryTile icon={Wallet} tone={owes ? "negative" : credit ? "positive" : "neutral"} label={t("Balance today")}
+                value={<Money value={Math.abs(balance)} />} hint={t(owes ? "Owing" : credit ? "Credit" : "Settled")} />
+              <SummaryTile icon={Banknote} tone="positive" label={t("Total paid")} value={<Money value={paid} />} hint={t("Completed payments")} />
+              <SummaryTile icon={CalendarCheck} tone="lavender" label={t("Attendance")} value={<bdi>{formatPercent(presentPct, lang)}</bdi>}
+                hint={marked.length ? t("{n} recorded sessions", { n: fmtNum(marked.length, lang) }) : t("Sample average")} />
+            </> : <>
+              <SummaryTile icon={Wallet} tone="neutral" label={t("Balance today")} value="—" hint={t("Payments aren't saved yet")} />
+              <SummaryTile icon={Banknote} tone="neutral" label={t("Total paid")} value="—" hint={t("Payments aren't saved yet")} />
+              <SummaryTile icon={CalendarCheck} tone="lavender" label={t("Attendance")} value="—" hint={t("Attendance isn't saved yet")} />
+            </>}
             <SummaryTile icon={BookOpen} tone="brand" label={t("Enrolled classes")} value={fmtNum(s.classIds.length, lang)}
               hint={packages.length ? t("{n} package sessions left", { n: fmtNum(packages.reduce((n, p) => n + Math.max(0, p.left), 0), lang) }) : t("No packages")} />
           </div>
@@ -166,7 +175,7 @@ function Profile() {
                     <li key={r.sessionId}>
                       <Link to="/attendance" search={{ classId: r.classId, date: r.date }} className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-muted/40">
                         <div className="w-14 shrink-0 text-center"><div className="font-display text-base font-bold leading-none num">{Number(r.date.slice(8))}</div><div className="mt-1 text-[10px] uppercase text-muted-foreground">{shortDateL(r.date, lang).replace(/^\d+\s*/, "")}</div></div>
-                        <div className="min-w-0 flex-1"><bdi className="block truncate font-medium">{classById(r.classId).name}</bdi><div className="text-xs text-muted-foreground">{r.finalized ? t("Finalized") : t("Not finalized")}</div></div>
+                        <div className="min-w-0 flex-1"><bdi className="block truncate font-medium">{findClass(r.classId).name}</bdi><div className="text-xs text-muted-foreground">{r.finalized ? t("Finalized") : t("Not finalized")}</div></div>
                         <Pill tone={tone} dot>{t(m ?? "Unmarked")}</Pill>
                       </Link>
                     </li>
@@ -227,7 +236,7 @@ function Profile() {
       <Dialog open={!!ruleFor} onOpenChange={(o) => !o && setRuleFor(null)}>
         <DialogContent className="max-h-[92vh] overflow-y-auto" dir={lang === "ar" ? "rtl" : "ltr"}>
           <DialogHeader>
-            <DialogTitle>{t("Billing rule")} · {ruleFor ? classById(ruleFor).name : ""}</DialogTitle>
+            <DialogTitle>{t("Billing rule")} · {ruleFor ? findClass(ruleFor).name : ""}</DialogTitle>
             <DialogDescription>{t("Applies to future finalized sessions for this student only. Posted charges are not recalculated. Demo only, not saved.")}</DialogDescription>
           </DialogHeader>
           {ruleFor && draft && (
@@ -239,7 +248,7 @@ function Profile() {
               setRuleFor(null);
             }}>
               <label className="flex items-center gap-2 text-sm"><Checkbox checked={useOwn} onCheckedChange={(v) => { setUseOwn(v === true); if (v !== true) setDraft(L.classRule(ruleFor)); }} />{t("Own billing rule for this student")}</label>
-              {useOwn ? <RuleEditor value={draft} onChange={setDraft} fallbackFee={classById(ruleFor).fee} />
+              {useOwn ? <RuleEditor value={draft} onChange={setDraft} fallbackFee={findClass(ruleFor).fee} />
                 : <p className="text-sm text-muted-foreground">{t("Uses the class rule")}: {ruleKindLabel(L.classRule(ruleFor), t)} · {ruleSummary(L.classRule(ruleFor), t, lang)}</p>}
               <RuleEffects rule={useOwn ? draft : L.classRule(ruleFor)} />
               {ruleError && <p role="alert" className="text-sm text-destructive">{ruleError}</p>}
@@ -253,7 +262,7 @@ function Profile() {
         <AlertDialogContent dir={lang === "ar" ? "rtl" : "ltr"}>
           {selling && (() => { const r = L.ruleFor(s.id, selling).rule; return r.kind === "package" ? (<>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t("Add a package")} · {classById(selling).name}</AlertDialogTitle>
+              <AlertDialogTitle>{t("Add a package")} · {findClass(selling).name}</AlertDialogTitle>
               <AlertDialogDescription>{t("Charges {amount} for {n} sessions to this student's balance. Record the payment separately. Demo only, not saved.", { amount: ruleSummary(r, t, lang).split(" · ")[0] ?? "", n: fmtNum(r.sessions, lang) })}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter><AlertDialogCancel>{t("Cancel")}</AlertDialogCancel><AlertDialogAction onClick={() => { const e = L.sellPackage(s.id, selling); toast.success(t("Package charge {id} added to demo data", { id: e.id })); setSelling(null); }}>{t("Add package")}</AlertDialogAction></AlertDialogFooter>
@@ -273,7 +282,7 @@ function EnrollmentRow({ e, actions }: { e: Enrollment; actions?: ReactNode }) {
       <IconTile icon={BookOpen} tone={e.c.kind === "Tutoring" ? "brand" : "teal"} className="hidden size-9 sm:grid [&_svg]:size-4" />
       <div className="min-w-0 flex-1">
         <bdi className="block break-words text-sm font-semibold">{e.c.name}</bdi>
-        <div className="mt-0.5 text-xs text-muted-foreground"><bdi>{teacherById(e.c.teacherId).name}</bdi> · {localDays(e.c.days, t)} · <bdi>{localTime(e.c.time, lang)}</bdi></div>
+        <div className="mt-0.5 text-xs text-muted-foreground"><bdi>{teacherById(e.c.teacherId)?.name ?? "—"}</bdi> · {localDays(e.c.days, t)} · <bdi>{localTime(e.c.time, lang)}</bdi></div>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <Pill tone={e.source === "enrollment" ? "brand" : "neutral"}>{ruleKindLabel(e.rule, t)} · {t(e.source === "enrollment" ? "own rule" : "class rule")}</Pill>
           <span className="text-xs text-muted-foreground">{ruleSummary(e.rule, t, lang)}</span>

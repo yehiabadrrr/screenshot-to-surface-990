@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { LedgerEntry } from "@/lib/ledger";
-import { useLedger, CURRENT_USER } from "@/lib/ledger-store";
+import { useLedger } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
 import { egp } from "@/lib/format";
 import { shortDateL } from "@/lib/l10n";
@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 /** Corrections never edit the original: they append a reversal (and optionally a corrected replacement). */
 export function CorrectEntryDialog({ entry, onClose }: { entry: LedgerEntry | null; onClose: () => void }) {
-  const { correct, students } = useLedger();
+  const { correct, students, currentUser } = useLedger();
   const { t, lang } = useI18n();
   const [mode, setMode] = useState<"reverse" | "adjust">("reverse");
   const [reason, setReason] = useState("");
@@ -58,7 +58,7 @@ export function CorrectEntryDialog({ entry, onClose }: { entry: LedgerEntry | nu
             </RadioGroup>
             {mode === "adjust" && <div className="space-y-1.5"><Label htmlFor="corr-amount">{t("Correct amount (EGP)")}</Label><Input id="corr-amount" dir="ltr" className="font-semibold num" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))} /></div>}
             <div className="space-y-1.5"><Label htmlFor="corr-reason">{t("Reason")}</Label><Textarea id="corr-reason" rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("Typed 1,500 instead of 1,050")} maxLength={200} /></div>
-            <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Info className="size-3.5" />{t("Recorded by {by}.", { by: CURRENT_USER.name })}</p>
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Info className="size-3.5" />{t("Recorded by {by}.", { by: currentUser.name })}</p>
             {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <DialogFooter className="gap-2"><Button type="button" variant="outline" onClick={close}>{t("Cancel")}</Button><Button type="submit" variant="destructive">{t("Add reversal")}</Button></DialogFooter>
           </form>

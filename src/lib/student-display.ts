@@ -2,6 +2,8 @@ import type { Student } from "./data";
 
 export type StudentRow = Student & { balance: number };
 export type StudentSort = "name" | "balance" | "attendance";
+/** Sorts offered in the Students directory. Balance sorting is off until the ledger is saved to the database. */
+export const DIRECTORY_SORTS = ["name", "attendance"] as const satisfies readonly StudentSort[];
 export const balanceLabel = (balance: number) => balance > 0 ? "Owing" : balance < 0 ? "Credit" : "Settled";
 
 export function selectStudents(rows: StudentRow[], filters: { query: string; grade: string; branch: string; balance: string; status: string }, sort: StudentSort, descending: boolean) {

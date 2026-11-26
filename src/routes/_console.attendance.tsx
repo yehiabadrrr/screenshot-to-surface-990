@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { classes, teacherById } from "@/lib/data";
 import { classWeekdays, weekdayOf, sessionIdFor, sessionOutcome, packageRemaining, linkedEntry, type AttendanceStatus, type Mark } from "@/lib/billing";
-import { useLedger, todayIso, teacherActors, CURRENT_USER } from "@/lib/ledger-store";
+import { useLedger, todayIso, teacherActors } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
 import { egp } from "@/lib/format";
 import { fmtNum, localDays, localTime, longDate, outcomeText, ruleKindLabel, ruleSummary, timeOfDay } from "@/lib/l10n";
@@ -103,10 +103,10 @@ function AttendancePage() {
         title={actor.kind === "teacher" ? t("My classes · attendance") : t("Attendance")}
         subtitle={actor.kind === "teacher" ? t("My classes · attendance") : t("Tap a status for each student. Unmarked students are never charged.")}
         actions={
-          <Select value={actor.kind === "admin" ? "admin" : actor.teacherId} onValueChange={(v) => { if (v === "admin") setActor({ kind: "admin", name: CURRENT_USER.name }); else { const next = teacherActors.find((a) => a.teacherId === v); if (next) setActor(next); } }} dir={lang === "ar" ? "rtl" : "ltr"}>
+          <Select value={actor.kind === "admin" ? "admin" : actor.teacherId} onValueChange={(v) => { if (v === "admin") setActor({ kind: "admin", name: L.currentUser.name }); else { const next = teacherActors.find((a) => a.teacherId === v); if (next) setActor(next); } }} dir={lang === "ar" ? "rtl" : "ltr"}>
             <SelectTrigger className="h-9 w-auto min-w-56 gap-2 bg-card" aria-label={t("Viewing as")}><Eye className="size-4 text-muted-foreground" /><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="admin">{t("Viewing as")}: {CURRENT_USER.name} ({t("Owner")})</SelectItem>
+              <SelectItem value="admin">{t("Viewing as")}: {L.currentUser.name} ({t(L.currentUser.role)})</SelectItem>
               {teacherActors.map((a) => <SelectItem key={a.teacherId} value={a.teacherId}>{t("Viewing as")}: {a.name} ({t("Teacher")})</SelectItem>)}
             </SelectContent>
           </Select>

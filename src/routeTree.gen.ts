@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConsoleRouteImport } from './routes/_console'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ConsoleAttendanceRouteImport } from './routes/_console.attendance'
 import { Route as ConsoleClassesRouteImport } from './routes/_console.classes'
 import { Route as ConsoleCommunicationsRouteImport } from './routes/_console.communications'
@@ -35,6 +36,11 @@ const ConsoleRoute = ConsoleRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConsoleAttendanceRoute = ConsoleAttendanceRouteImport.update({
@@ -91,6 +97,7 @@ const ConsoleStudentsIdRoute = ConsoleStudentsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/attendance': typeof ConsoleAttendanceRoute
   '/classes': typeof ConsoleClassesRoute
   '/communications': typeof ConsoleCommunicationsRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/attendance': typeof ConsoleAttendanceRoute
   '/classes': typeof ConsoleClassesRoute
   '/communications': typeof ConsoleCommunicationsRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_console': typeof ConsoleRouteWithChildren
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/_console/attendance': typeof ConsoleAttendanceRoute
   '/_console/classes': typeof ConsoleClassesRoute
   '/_console/communications': typeof ConsoleCommunicationsRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/onboarding'
     | '/attendance'
     | '/classes'
     | '/communications'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/onboarding'
     | '/attendance'
     | '/classes'
     | '/communications'
@@ -166,6 +177,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_console'
     | '/login'
+    | '/onboarding'
     | '/_console/attendance'
     | '/_console/classes'
     | '/_console/communications'
@@ -182,6 +194,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConsoleRoute: typeof ConsoleRouteWithChildren
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_console/attendance': {
@@ -313,6 +333,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConsoleRoute: ConsoleRouteWithChildren,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

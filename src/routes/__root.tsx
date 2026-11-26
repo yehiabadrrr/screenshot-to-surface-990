@@ -12,6 +12,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { I18nProvider } from "@/lib/i18n";
+import { WorkspaceProvider } from "@/lib/backend/workspace";
 import { ThemeProvider, themeBootScript } from "@/lib/theme";
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
@@ -135,7 +136,9 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <ThemeProvider>
         <I18nProvider>
-          <Outlet />
+          <WorkspaceProvider>
+            <Outlet />
+          </WorkspaceProvider>
           <Toaster richColors position="top-center" />
         </I18nProvider>
       </ThemeProvider>

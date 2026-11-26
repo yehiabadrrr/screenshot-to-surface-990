@@ -1,0 +1,22 @@
+# Supabase CLI configuration for local development (`supabase start`, `supabase db reset`).
+# The hosted project is linked with `supabase link --project-ref <ref>`; nothing secret lives here.
+project_id = "markezly"
+
+[api]
+schemas = ["public"]
+
+[db]
+major_version = 15
+
+[db.seed]
+# The demo center is seeded by a tracked migration, not seed.sql, so hosted and local databases match.
+enabled = false
+
+[auth]
+site_url = "http://127.0.0.1:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false

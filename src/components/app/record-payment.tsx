@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { branches, classById } from "@/lib/data";
 import { METHODS, balancesAsOf, type Method } from "@/lib/ledger";
-import { useLedger, CURRENT_USER, todayIso } from "@/lib/ledger-store";
+import { useLedger, todayIso } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
 import { egp } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -19,7 +19,7 @@ const NO_CLASS = "none";
 export function RecordPaymentDialog({ trigger, studentId, controlledOpen, onOpenChange }: { trigger: ReactNode; studentId?: string; controlledOpen?: boolean; onOpenChange?: (open: boolean) => void }) {
   const { t, lang } = useI18n();
   const dir = lang === "ar" ? "rtl" : "ltr";
-  const { entries, students, recordPayment, filter } = useLedger();
+  const { entries, students, recordPayment, filter, currentUser } = useLedger();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (value: boolean) => { setInternalOpen(value); onOpenChange?.(value); };
@@ -126,7 +126,7 @@ export function RecordPaymentDialog({ trigger, studentId, controlledOpen, onOpen
             <Label htmlFor="pay-note">{t("Note")} {optional}</Label>
             <Textarea id="pay-note" value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={300} />
           </div>
-          <p className="text-xs text-muted-foreground sm:col-span-2">{t("Entered by {name} ({role}). A new transaction ID is assigned on save; existing IDs never change.", { name: CURRENT_USER.name, role: t(CURRENT_USER.role) })}</p>
+          <p className="text-xs text-muted-foreground sm:col-span-2">{t("Entered by {name} ({role}). A new transaction ID is assigned on save; existing IDs never change.", { name: currentUser.name, role: t(currentUser.role) })}</p>
           {error && <p role="alert" className="text-sm text-destructive sm:col-span-2">{error}</p>}
           <DialogFooter className="gap-2 sm:col-span-2"><Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("Cancel")}</Button><Button type="submit">{t("Add to demo data")}</Button></DialogFooter>
         </form>
