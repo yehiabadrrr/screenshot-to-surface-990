@@ -1,0 +1,8 @@
+{
+  "name": "markezly-launch-hf",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "hyperframes": "^0.9.99"
+  }
+}
