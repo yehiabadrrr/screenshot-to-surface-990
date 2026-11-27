@@ -8,7 +8,10 @@ export function formatNumber(n: number, _lang: Locale = "en") {
 export function formatMoney(n: number, lang: Locale = "en", signed = false) {
   const negative = n < 0 && Math.round(Math.abs(n) * 100) > 0;
   const sign = negative ? "−" : signed && n > 0 ? "+" : "";
-  const amount = Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 });
+  const amount = Math.abs(n).toLocaleString("en-US", {
+    minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
+    maximumFractionDigits: 2,
+  });
   return lang === "ar" ? `${sign}${amount} ج.م` : `${sign}EGP ${amount}`;
 }
 

@@ -6,7 +6,12 @@ export const BUSINESS_TIME_ZONE = "Africa/Cairo";
 
 /** Today's business date in Cairo. */
 export function cairoToday(now: Date = new Date()): string {
-  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: BUSINESS_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
   const part = (key: string) => parts.find((p) => p.type === key)?.value ?? "";
   return `${part("year")}-${part("month")}-${part("day")}`;
 }

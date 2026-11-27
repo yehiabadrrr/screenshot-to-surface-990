@@ -12,7 +12,13 @@ import { getMyCenters } from "@/lib/api/centers";
 import { useAllStudents, errorMessage } from "@/lib/students/queries";
 import { toStudent } from "@/lib/students/model";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { DemoModeProvider, isDemoMode, LOCAL_DEMO_CENTER, LOCAL_DEMO_CENTER_ID, LOCAL_DEMO_USER } from "@/lib/demo-mode";
+import {
+  DemoModeProvider,
+  isDemoMode,
+  LOCAL_DEMO_CENTER,
+  LOCAL_DEMO_CENTER_ID,
+  LOCAL_DEMO_USER,
+} from "@/lib/demo-mode";
 import { createLocalStudents, StudentSourceProvider } from "@/lib/students/source";
 import { useI18n } from "@/lib/i18n";
 
@@ -35,7 +41,10 @@ export const Route = createFileRoute("/_console")({
 function ConsoleSplash({ label }: { label?: string }) {
   return (
     <div aria-busy="true" className="grid min-h-screen place-items-center bg-background">
-      <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground"><Logo className="size-10 animate-pulse" />{label}</div>
+      <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">
+        <Logo className="size-10 animate-pulse" />
+        {label}
+      </div>
     </div>
   );
 }
@@ -48,7 +57,10 @@ function ConsoleError({ message, retry }: { message: string; retry: () => void }
         <Logo className="mx-auto size-10" />
         <h1 className="mt-4 font-medium">{t("Markazly could not load your data")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t(message)}</p>
-        <Button className="mt-4" onClick={retry}><RotateCcw />{t("Try again")}</Button>
+        <Button className="mt-4" onClick={retry}>
+          <RotateCcw />
+          {t("Try again")}
+        </Button>
       </div>
     </div>
   );
@@ -66,7 +78,10 @@ function DemoConsole() {
   return (
     <DemoModeProvider value>
       <StudentSourceProvider value={source}>
-        <CenterProvider centers={[LOCAL_DEMO_CENTER]} user={{ ...LOCAL_DEMO_USER, name: t(LOCAL_DEMO_USER.name) }}>
+        <CenterProvider
+          centers={[LOCAL_DEMO_CENTER]}
+          user={{ ...LOCAL_DEMO_USER, name: t(LOCAL_DEMO_USER.name) }}
+        >
           <CenterWorkspace />
         </CenterProvider>
       </StudentSourceProvider>
@@ -77,13 +92,27 @@ function DemoConsole() {
 function SignedInConsole() {
   const { status, user } = useAuth();
   const { t } = useI18n();
-  const centers = useQuery({ queryKey: ["centers", user?.id], queryFn: () => getMyCenters(), enabled: status === "signedIn" });
+  const centers = useQuery({
+    queryKey: ["centers", user?.id],
+    queryFn: () => getMyCenters(),
+    enabled: status === "signedIn",
+  });
   if (status === "signedOut") return <Navigate to="/login" />;
-  if (status !== "signedIn" || !user || centers.isPending) return <ConsoleSplash label={t("Loading your center…")} />;
-  if (centers.isError) return <ConsoleError message={errorMessage(centers.error, "Could not load your centers.")} retry={() => void centers.refetch()} />;
+  if (status !== "signedIn" || !user || centers.isPending)
+    return <ConsoleSplash label={t("Loading your center…")} />;
+  if (centers.isError)
+    return (
+      <ConsoleError
+        message={errorMessage(centers.error, "Could not load your centers.")}
+        retry={() => void centers.refetch()}
+      />
+    );
   if (!centers.data.length) return <Navigate to="/onboarding" />;
   return (
-    <CenterProvider centers={centers.data} user={{ id: user.id, email: user.email ?? "", name: displayName(user) }}>
+    <CenterProvider
+      centers={centers.data}
+      user={{ id: user.id, email: user.email ?? "", name: displayName(user) }}
+    >
       <CenterWorkspace />
     </CenterProvider>
   );
@@ -99,10 +128,23 @@ function CenterWorkspace() {
     return (q.data ?? []).map((row) => toStudent(row, (id) => names.get(id) ?? "—"));
   }, [q.data, branches]);
   if (q.isPending) return <ConsoleSplash label={t("Loading students…")} />;
-  if (q.isError) return <ConsoleError message={errorMessage(q.error, "Could not load students.")} retry={() => void q.refetch()} />;
+  if (q.isError)
+    return (
+      <ConsoleError
+        message={errorMessage(q.error, "Could not load students.")}
+        retry={() => void q.refetch()}
+      />
+    );
   return (
-    <LedgerProvider key={`${center.id}:${user.id}`} students={students} demo={center.is_demo} currentUser={{ name: user.name, role: roleLabel[role] }}>
-      <AppShell><Outlet /></AppShell>
+    <LedgerProvider
+      key={`${center.id}:${user.id}`}
+      students={students}
+      demo={center.is_demo}
+      currentUser={{ name: user.name, role: roleLabel[role] }}
+    >
+      <AppShell>
+        <Outlet />
+      </AppShell>
     </LedgerProvider>
   );
 }

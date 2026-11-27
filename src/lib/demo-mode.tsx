@@ -12,10 +12,26 @@ const FLAG = "markazly-demo";
 
 export const isDemoMode = () => {
   if (typeof window === "undefined") return false;
-  try { return sessionStorage.getItem(FLAG) === "1"; } catch { return false; }
+  try {
+    return sessionStorage.getItem(FLAG) === "1";
+  } catch {
+    return false;
+  }
 };
-export const enterDemo = () => { try { sessionStorage.setItem(FLAG, "1"); } catch { /* the demo still opens for this navigation */ } };
-export const exitDemo = () => { try { sessionStorage.removeItem(FLAG); } catch { /* nothing to clear */ } };
+export const enterDemo = () => {
+  try {
+    sessionStorage.setItem(FLAG, "1");
+  } catch {
+    /* the demo still opens for this navigation */
+  }
+};
+export const exitDemo = () => {
+  try {
+    sessionStorage.removeItem(FLAG);
+  } catch {
+    /* nothing to clear */
+  }
+};
 
 /**
  * Its own center id, deliberately not the database Demo Center's, so a signed-in member's cached
@@ -32,6 +48,8 @@ export const LOCAL_DEMO_CENTER: MyCenter = {
 export const LOCAL_DEMO_USER = { id: "demo-visitor", email: "", name: "Demo visitor" };
 
 const Ctx = createContext(false);
-export const DemoModeProvider = ({ value, children }: { value: boolean; children: ReactNode }) => <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+export const DemoModeProvider = ({ value, children }: { value: boolean; children: ReactNode }) => (
+  <Ctx.Provider value={value}>{children}</Ctx.Provider>
+);
 /** True inside the console when it is running the in-browser demo. */
 export const useDemoMode = () => useContext(Ctx);

@@ -12,7 +12,13 @@ export function getBrowserSupabase(): SupabaseClient<Database> {
   if (typeof window === "undefined") throw new Error("getBrowserSupabase() is browser-only");
   assertSupabaseConfigured();
   browserClient ??= createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "markazly-auth", flowType: "implicit" },
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: "markazly-auth",
+      flowType: "implicit",
+    },
   });
   return browserClient;
 }

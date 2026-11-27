@@ -13,17 +13,29 @@ export const studentKeys = {
 
 export const useAllStudents = (centerId: string) => {
   const src = useStudentSource();
-  return useQuery({ queryKey: studentKeys.all(centerId), queryFn: () => src.listAll(centerId), staleTime: 30_000 });
+  return useQuery({
+    queryKey: studentKeys.all(centerId),
+    queryFn: () => src.listAll(centerId),
+    staleTime: 30_000,
+  });
 };
 
 export const useStudentList = (params: ListStudentsInput) => {
   const src = useStudentSource();
-  return useQuery({ queryKey: studentKeys.list(params), queryFn: () => src.list(params), placeholderData: keepPreviousData, staleTime: 15_000 });
+  return useQuery({
+    queryKey: studentKeys.list(params),
+    queryFn: () => src.list(params),
+    placeholderData: keepPreviousData,
+    staleTime: 15_000,
+  });
 };
 
 export const useStudent = (centerId: string, code: string) => {
   const src = useStudentSource();
-  return useQuery({ queryKey: studentKeys.one(centerId, code), queryFn: () => src.get(centerId, code) });
+  return useQuery({
+    queryKey: studentKeys.one(centerId, code),
+    queryFn: () => src.get(centerId, code),
+  });
 };
 
 /** Mutations refresh every student query of the center, so lists, profile and the demo screens agree. */
@@ -32,7 +44,8 @@ export function useCreateStudent() {
   const src = useStudentSource();
   return useMutation({
     mutationFn: (input: CreateStudentInput) => src.create(input),
-    onSuccess: (_row, input) => qc.invalidateQueries({ queryKey: studentKeys.center(input.centerId) }),
+    onSuccess: (_row, input) =>
+      qc.invalidateQueries({ queryKey: studentKeys.center(input.centerId) }),
   });
 }
 
@@ -49,4 +62,5 @@ export function useUpdateStudent() {
 }
 
 /** Server errors arrive as Error instances with a user-facing message. */
-export const errorMessage = (e: unknown, fallback: string) => (e instanceof Error && e.message ? e.message : fallback);
+export const errorMessage = (e: unknown, fallback: string) =>
+  e instanceof Error && e.message ? e.message : fallback;

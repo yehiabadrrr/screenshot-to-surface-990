@@ -20,13 +20,22 @@ export type BillingRule =
 export type AttendanceStatus = "Present" | "Absent" | "Excused";
 export type Mark = AttendanceStatus | undefined;
 
-export type OutcomeCode = "unmarked" | "monthly" | "excused" | "absent_free" | "charge" | "no_show_charge" | "package_use" | "package_exhausted";
+export type OutcomeCode =
+  | "unmarked"
+  | "monthly"
+  | "excused"
+  | "absent_free"
+  | "charge"
+  | "no_show_charge"
+  | "package_use"
+  | "package_exhausted";
 export type Outcome =
   | { kind: "none"; code: OutcomeCode }
   | { kind: "charge"; code: OutcomeCode; amount: number }
   | { kind: "package_use"; code: OutcomeCode };
 
-export const unitPrice = (r: Extract<BillingRule, { kind: "package" }>) => Math.round(r.price / r.sessions);
+export const unitPrice = (r: Extract<BillingRule, { kind: "package" }>) =>
+  Math.round(r.price / r.sessions);
 
 export function sessionOutcome(rule: BillingRule, status: Mark, packageRemaining: number): Outcome {
   if (!status) return { kind: "none", code: "unmarked" };
@@ -34,7 +43,9 @@ export function sessionOutcome(rule: BillingRule, status: Mark, packageRemaining
   if (status === "Excused") return { kind: "none", code: "excused" };
   if (rule.kind === "per_session") {
     if (status === "Present") return { kind: "charge", code: "charge", amount: rule.rate };
-    return rule.chargeNoShow ? { kind: "charge", code: "no_show_charge", amount: rule.rate } : { kind: "none", code: "absent_free" };
+    return rule.chargeNoShow
+      ? { kind: "charge", code: "no_show_charge", amount: rule.rate }
+      : { kind: "none", code: "absent_free" };
   }
   const billable = status === "Present" || rule.countNoShow;
   if (!billable) return { kind: "none", code: "absent_free" };
@@ -63,20 +74,65 @@ export function packageRemaining(entries: LedgerEntry[], studentId: string, clas
 /** The live (non-reversed) ledger entry linked to a student in a session, if any. */
 export function linkedEntry(entries: LedgerEntry[], sessionId: string, studentId: string) {
   const ok = live(entries);
-  return entries.find((e) => e.sessionId === sessionId && e.studentId === studentId && (e.type === "Charge" || e.type === "PackageUse") && ok(e));
+  return entries.find(
+    (e) =>
+      e.sessionId === sessionId &&
+      e.studentId === studentId &&
+      (e.type === "Charge" || e.type === "PackageUse") &&
+      ok(e),
+  );
 }
 
 export interface SessionInput {
-  sessionId: string; classId: string; date: string; branch: string;
+  sessionId: string;
+  classId: string;
+  date: string;
+  branch: string;
   marks: Record<string, Mark>;
   enrollments: { studentId: string; rule: BillingRule }[];
-  by: string; now: string;
+  by: string;
+  now: string;
 }
 
-function entryFor(entries: LedgerEntry[], o: Outcome, s: Omit<SessionInput, "marks" | "enrollments">, studentId: string, date: string, extra: Partial<LedgerEntry> = {}): LedgerEntry | null {
-  const base = { studentId, classId: s.classId, branch: s.branch, date, status: "Completed" as const, enteredBy: s.by, enteredAt: s.now, sessionId: s.sessionId, ...extra };
-  if (o.kind === "charge") return { ...base, id: nextId(entries, "INV-"), type: "Charge", amount: o.amount, note: extra.note ?? (o.code === "package_exhausted" ? `Session ${s.date} · package used up, unit price` : `Session ${s.date}`) };
-  if (o.kind === "package_use") return { ...base, id: nextId(entries, "TX-"), type: "PackageUse", amount: 0, note: extra.note ?? `Session ${s.date} · 1 package session` };
+function entryFor(
+  entries: LedgerEntry[],
+  o: Outcome,
+  s: Omit<SessionInput, "marks" | "enrollments">,
+  studentId: string,
+  date: string,
+  extra: Partial<LedgerEntry> = {},
+): LedgerEntry | null {
+  const base = {
+    studentId,
+    classId: s.classId,
+    branch: s.branch,
+    date,
+    status: "Completed" as const,
+    enteredBy: s.by,
+    enteredAt: s.now,
+    sessionId: s.sessionId,
+    ...extra,
+  };
+  if (o.kind === "charge")
+    return {
+      ...base,
+      id: nextId(entries, "INV-"),
+      type: "Charge",
+      amount: o.amount,
+      note:
+        extra.note ??
+        (o.code === "package_exhausted"
+          ? `Session ${s.date} · package used up, unit price`
+          : `Session ${s.date}`),
+    };
+  if (o.kind === "package_use")
+    return {
+      ...base,
+      id: nextId(entries, "TX-"),
+      type: "PackageUse",
+      amount: 0,
+      note: extra.note ?? `Session ${s.date} · 1 package session`,
+    };
   return null;
 }
 
@@ -89,17 +145,33 @@ export function finalizeSession(entries: LedgerEntry[], s: SessionInput) {
   const created: LedgerEntry[] = [];
   for (const { studentId, rule } of s.enrollments) {
     if (linkedEntry(next, s.sessionId, studentId)) continue;
-    const o = sessionOutcome(rule, s.marks[studentId], rule.kind === "package" ? packageRemaining(next, studentId, s.classId) : 0);
+    const o = sessionOutcome(
+      rule,
+      s.marks[studentId],
+      rule.kind === "package" ? packageRemaining(next, studentId, s.classId) : 0,
+    );
     const e = entryFor(next, o, s, studentId, s.date);
-    if (e) { next = [...next, e]; created.push(e); }
+    if (e) {
+      next = [...next, e];
+      created.push(e);
+    }
   }
   return { entries: next, created };
 }
 
 export interface AmendInput {
-  sessionId: string; classId: string; date: string; branch: string;
-  studentId: string; rule: BillingRule; from: Mark; to: Mark;
-  reason: string; by: string; now: string; today: string;
+  sessionId: string;
+  classId: string;
+  date: string;
+  branch: string;
+  studentId: string;
+  rule: BillingRule;
+  from: Mark;
+  to: Mark;
+  reason: string;
+  by: string;
+  now: string;
+  today: string;
 }
 
 /**
@@ -110,31 +182,51 @@ export function amendAttendance(entries: LedgerEntry[], a: AmendInput) {
   if (!a.reason.trim()) throw new Error("A reason is required");
   if (a.from === a.to) throw new Error("Status is unchanged");
   const existing = linkedEntry(entries, a.sessionId, a.studentId);
-  const remainingIfReversed = a.rule.kind === "package"
-    ? packageRemaining(entries, a.studentId, a.classId) + (existing?.type === "PackageUse" ? 1 : 0) : 0;
+  const remainingIfReversed =
+    a.rule.kind === "package"
+      ? packageRemaining(entries, a.studentId, a.classId) +
+        (existing?.type === "PackageUse" ? 1 : 0)
+      : 0;
   const o = sessionOutcome(a.rule, a.to, remainingIfReversed);
   const same = existing
-    ? (o.kind === "charge" && existing.type === "Charge" && existing.amount === o.amount) || (o.kind === "package_use" && existing.type === "PackageUse")
+    ? (o.kind === "charge" && existing.type === "Charge" && existing.amount === o.amount) ||
+      (o.kind === "package_use" && existing.type === "PackageUse")
     : o.kind === "none";
   if (same) return { entries, reversal: undefined, created: undefined };
   let next = [...entries];
   let reversal: LedgerEntry | undefined;
   if (existing) {
     reversal = {
-      id: nextId(next, "TX-"), type: "Reversal", studentId: a.studentId, classId: a.classId, branch: a.branch, date: a.today,
-      amount: existing.amount, status: "Completed", enteredBy: a.by, enteredAt: a.now, reversesId: existing.id, sessionId: a.sessionId,
+      id: nextId(next, "TX-"),
+      type: "Reversal",
+      studentId: a.studentId,
+      classId: a.classId,
+      branch: a.branch,
+      date: a.today,
+      amount: existing.amount,
+      status: "Completed",
+      enteredBy: a.by,
+      enteredAt: a.now,
+      reversesId: existing.id,
+      sessionId: a.sessionId,
       reason: `${a.reason.trim()} (attendance ${a.from ?? "unmarked"} → ${a.to ?? "unmarked"})`,
     };
     next = [...next, reversal];
   }
-  const created = entryFor(next, o, a, a.studentId, a.today, {
-    reason: a.reason.trim(), note: `Adjustment · session ${a.date} · ${a.from ?? "unmarked"} → ${a.to ?? "unmarked"}`,
-  }) ?? undefined;
+  const created =
+    entryFor(next, o, a, a.studentId, a.today, {
+      reason: a.reason.trim(),
+      note: `Adjustment · session ${a.date} · ${a.from ?? "unmarked"} → ${a.to ?? "unmarked"}`,
+    }) ?? undefined;
   if (created) next = [...next, created];
   return { entries: next, reversal, created };
 }
 
 /* ---------- weekdays ---------- */
 export const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
-export const classWeekdays = (days: string) => days.split(" · ").map((d) => WEEKDAYS.indexOf(d as (typeof WEEKDAYS)[number])).filter((n) => n >= 0);
+export const classWeekdays = (days: string) =>
+  days
+    .split(" · ")
+    .map((d) => WEEKDAYS.indexOf(d as (typeof WEEKDAYS)[number]))
+    .filter((n) => n >= 0);
 export const weekdayOf = (date: string) => new Date(`${date}T12:00:00Z`).getUTCDay();

@@ -4,13 +4,27 @@ import { getBrowserSupabase } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export type AuthStatus = "loading" | "signedOut" | "signedIn" | "unconfigured";
-type AuthState = { status: AuthStatus; session: Session | null; user: User | null; recovering: boolean; signOut: () => Promise<void> };
+type AuthState = {
+  status: AuthStatus;
+  session: Session | null;
+  user: User | null;
+  recovering: boolean;
+  signOut: () => Promise<void>;
+};
 
-const Ctx = createContext<AuthState>({ status: "loading", session: null, user: null, recovering: false, signOut: async () => {} });
+const Ctx = createContext<AuthState>({
+  status: "loading",
+  session: null,
+  user: null,
+  recovering: false,
+  signOut: async () => {},
+});
 
 /** Display name for a Supabase user: the name given at sign-up, else the email's local part. */
 export const displayName = (user: User | null | undefined) =>
-  ((user?.user_metadata as { full_name?: string } | undefined)?.full_name?.trim()) || user?.email?.split("@")[0] || "";
+  (user?.user_metadata as { full_name?: string } | undefined)?.full_name?.trim() ||
+  user?.email?.split("@")[0] ||
+  "";
 
 /** Tracks the Supabase session in the browser. The server never relies on this; it verifies tokens itself. */
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -19,7 +33,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [recovering, setRecovering] = useState(false);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) { setStatus("unconfigured"); return; }
+    if (!isSupabaseConfigured) {
+      setStatus("unconfigured");
+      return;
+    }
     const supabase = getBrowserSupabase();
     let active = true;
     void supabase.auth.getSession().then(({ data }) => {
@@ -32,17 +49,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(next);
       setStatus(next ? "signedIn" : "signedOut");
     });
-    return () => { active = false; sub.subscription.unsubscribe(); };
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
-  const value = useMemo<AuthState>(() => ({
-    status, session, user: session?.user ?? null, recovering,
-    signOut: async () => {
-      if (!isSupabaseConfigured) return;
-      await getBrowserSupabase().auth.signOut();
-      try { localStorage.removeItem("markazly-center"); } catch { /* storage may be unavailable */ }
-    },
-  }), [status, session, recovering]);
+  const value = useMemo<AuthState>(
+    () => ({
+      status,
+      session,
+      user: session?.user ?? null,
+      recovering,
+      signOut: async () => {
+        if (!isSupabaseConfigured) return;
+        await getBrowserSupabase().auth.signOut();
+        try {
+          localStorage.removeItem("markazly-center");
+        } catch {
+          /* storage may be unavailable */
+        }
+      },
+    }),
+    [status, session, recovering],
+  );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

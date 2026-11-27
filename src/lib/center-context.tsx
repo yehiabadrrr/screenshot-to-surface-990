@@ -16,22 +16,46 @@ export type CenterContextValue = {
 const Ctx = createContext<CenterContextValue | null>(null);
 const KEY = "markazly-center";
 
-export const readStoredCenter = () => { try { return localStorage.getItem(KEY); } catch { return null; } };
+export const readStoredCenter = () => {
+  try {
+    return localStorage.getItem(KEY);
+  } catch {
+    return null;
+  }
+};
 
 /** The signed-in user and the center they are working in. Filled from Supabase by the console layout. */
-export function CenterProvider({ centers, user, children }: { centers: MyCenter[]; user: CenterContextValue["user"]; children: ReactNode }) {
+export function CenterProvider({
+  centers,
+  user,
+  children,
+}: {
+  centers: MyCenter[];
+  user: CenterContextValue["user"];
+  children: ReactNode;
+}) {
   const [activeId, setActiveId] = useState(() => readStoredCenter());
   const current = centers.find((c) => c.center.id === activeId) ?? centers[0]!;
-  const value = useMemo<CenterContextValue>(() => ({
-    center: current.center,
-    branches: current.branches,
-    branchNames: current.branches.map((b) => b.name),
-    role: current.role,
-    canEditStudents: ["owner", "admin", "front_desk"].includes(current.role),
-    user,
-    centers,
-    setActiveCenter: (id) => { setActiveId(id); try { localStorage.setItem(KEY, id); } catch { /* storage may be unavailable */ } },
-  }), [current, user, centers]);
+  const value = useMemo<CenterContextValue>(
+    () => ({
+      center: current.center,
+      branches: current.branches,
+      branchNames: current.branches.map((b) => b.name),
+      role: current.role,
+      canEditStudents: ["owner", "admin", "front_desk"].includes(current.role),
+      user,
+      centers,
+      setActiveCenter: (id) => {
+        setActiveId(id);
+        try {
+          localStorage.setItem(KEY, id);
+        } catch {
+          /* storage may be unavailable */
+        }
+      },
+    }),
+    [current, user, centers],
+  );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
@@ -41,4 +65,10 @@ export function useCenter() {
   return v;
 }
 
-export const roleLabel: Record<MembershipRole, string> = { owner: "Owner", admin: "Admin", accountant: "Accountant", front_desk: "Front desk", teacher: "Teacher" };
+export const roleLabel: Record<MembershipRole, string> = {
+  owner: "Owner",
+  admin: "Admin",
+  accountant: "Accountant",
+  front_desk: "Front desk",
+  teacher: "Teacher",
+};

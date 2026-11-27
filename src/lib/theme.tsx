@@ -24,9 +24,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next);
     document.documentElement.classList.toggle("dark", next === "dark");
-    try { localStorage.setItem(KEY, next); } catch { /* Storage may be unavailable; the toggle still works for this tab. */ }
+    try {
+      localStorage.setItem(KEY, next);
+    } catch {
+      /* Storage may be unavailable; the toggle still works for this tab. */
+    }
   }, []);
-  const toggle = useCallback(() => setTheme(document.documentElement.classList.contains("dark") ? "light" : "dark"), [setTheme]);
+  const toggle = useCallback(
+    () => setTheme(document.documentElement.classList.contains("dark") ? "light" : "dark"),
+    [setTheme],
+  );
   return <Ctx.Provider value={{ theme, setTheme, toggle }}>{children}</Ctx.Provider>;
 }
 

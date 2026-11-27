@@ -28,31 +28,75 @@ function ResetPassword() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
-    if (password.length < 8) { setError(t("Use at least 8 characters.")); return; }
-    if (password !== confirm) { setError(t("The passwords do not match.")); return; }
+    if (password.length < 8) {
+      setError(t("Use at least 8 characters."));
+      return;
+    }
+    if (password !== confirm) {
+      setError(t("The passwords do not match."));
+      return;
+    }
     setBusy(true);
     const { error: err } = await getBrowserSupabase().auth.updateUser({ password });
     setBusy(false);
-    if (err) { setError(t(authErrorText(err))); return; }
+    if (err) {
+      setError(t(authErrorText(err)));
+      return;
+    }
     toast.success(t("Password updated"));
     void navigate({ to: "/overview", replace: true });
   };
 
-  if (status === "loading") return <AuthLayout title={t("Choose a new password")}><p className="text-sm text-muted-foreground">{t("Checking your link…")}</p></AuthLayout>;
+  if (status === "loading")
+    return (
+      <AuthLayout title={t("Choose a new password")}>
+        <p className="text-sm text-muted-foreground">{t("Checking your link…")}</p>
+      </AuthLayout>
+    );
   if (status !== "signedIn") {
     return (
-      <AuthLayout title={t("This link has expired")} footer={<Link to="/forgot-password" className="font-medium text-brand hover:underline">{t("Send a new link")}</Link>}>
-        <div className="flex items-start gap-3 rounded-lg border bg-card p-4 text-sm"><Link2Off className="mt-0.5 size-5 shrink-0 text-destructive" /><p>{t("Reset links work once and expire after one hour. Ask for a new one.")}</p></div>
+      <AuthLayout
+        title={t("This link has expired")}
+        footer={
+          <Link to="/forgot-password" className="font-medium text-brand hover:underline">
+            {t("Send a new link")}
+          </Link>
+        }
+      >
+        <div className="flex items-start gap-3 rounded-lg border bg-card p-4 text-sm">
+          <Link2Off className="mt-0.5 size-5 shrink-0 text-destructive" />
+          <p>{t("Reset links work once and expire after one hour. Ask for a new one.")}</p>
+        </div>
       </AuthLayout>
     );
   }
   return (
     <AuthLayout title={t("Choose a new password")}>
       <form className="space-y-4" onSubmit={submit} noValidate>
-        <Field id="rp-new" label={t("New password")} type="password" autoComplete="new-password" dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} hint={t("At least 8 characters.")} />
-        <Field id="rp-confirm" label={t("Confirm new password")} type="password" autoComplete="new-password" dir="ltr" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+        <Field
+          id="rp-new"
+          label={t("New password")}
+          type="password"
+          autoComplete="new-password"
+          dir="ltr"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          hint={t("At least 8 characters.")}
+        />
+        <Field
+          id="rp-confirm"
+          label={t("Confirm new password")}
+          type="password"
+          autoComplete="new-password"
+          dir="ltr"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+        />
         <FormError message={error} />
-        <Button type="submit" className="h-10 w-full" disabled={busy}><KeyRound />{busy ? t("Saving…") : t("Save password")}</Button>
+        <Button type="submit" className="h-10 w-full" disabled={busy}>
+          <KeyRound />
+          {busy ? t("Saving…") : t("Save password")}
+        </Button>
       </form>
     </AuthLayout>
   );

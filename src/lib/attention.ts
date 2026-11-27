@@ -31,10 +31,18 @@ export function useAttention() {
     const inBranch = (b: string) => branch === "all" || b === branch;
 
     const todaysClasses = today
-      ? classes.filter((c) => inBranch(c.branch) && classWeekdays(c.days).includes(weekdayOf(today))).sort((a, b) => classStartMinutes(a.time) - classStartMinutes(b.time))
+      ? classes
+          .filter((c) => inBranch(c.branch) && classWeekdays(c.days).includes(weekdayOf(today)))
+          .sort((a, b) => classStartMinutes(a.time) - classStartMinutes(b.time))
       : [];
     /** Classes that have started today and are not finalized yet. */
-    const unfinalized = clock ? todaysClasses.filter((c) => classStartMinutes(c.time) <= clock.minutes && attendanceLabel(sessions[sessionIdFor(c.id, today)]) !== "Finalized") : [];
+    const unfinalized = clock
+      ? todaysClasses.filter(
+          (c) =>
+            classStartMinutes(c.time) <= clock.minutes &&
+            attendanceLabel(sessions[sessionIdFor(c.id, today)]) !== "Finalized",
+        )
+      : [];
 
     const lowPackages: { studentId: string; classId: string; remaining: number }[] = [];
     for (const s of students) {
@@ -42,15 +50,31 @@ export function useAttention() {
       for (const cid of s.classIds) {
         if (ruleFor(s.id, cid).rule.kind !== "package") continue;
         const remaining = packageRemaining(entries, s.id, cid);
-        if (remaining <= LOW_PACKAGE_THRESHOLD) lowPackages.push({ studentId: s.id, classId: cid, remaining });
+        if (remaining <= LOW_PACKAGE_THRESHOLD)
+          lowPackages.push({ studentId: s.id, classId: cid, remaining });
       }
     }
     lowPackages.sort((a, b) => a.remaining - b.remaining);
 
     const metrics = computeMetrics(entries, filter);
-    const owing = [...balancesAsOf(entries, filter.to, filter.branch)].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+    const owing = [...balancesAsOf(entries, filter.to, filter.branch)]
+      .filter(([, v]) => v > 0)
+      .sort((a, b) => b[1] - a[1]);
 
-    const count = unfinalized.length + lowPackages.length + (metrics.pendingCount > 0 ? 1 : 0) + (owing.length > 0 ? 1 : 0);
-    return { ready: !!clock, today, todaysClasses, unfinalized, lowPackages, pending: { count: metrics.pendingCount, amount: metrics.pending }, owing, count };
+    const count =
+      unfinalized.length +
+      lowPackages.length +
+      (metrics.pendingCount > 0 ? 1 : 0) +
+      (owing.length > 0 ? 1 : 0);
+    return {
+      ready: !!clock,
+      today,
+      todaysClasses,
+      unfinalized,
+      lowPackages,
+      pending: { count: metrics.pendingCount, amount: metrics.pending },
+      owing,
+      count,
+    };
   }, [entries, students, classes, sessions, filter, branch, ruleFor, now]);
 }

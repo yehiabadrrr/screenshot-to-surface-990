@@ -24,7 +24,14 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 const readPending = () => {
-  try { return JSON.parse(localStorage.getItem(PENDING_CENTER_KEY) ?? "null") as { name: string; branches: string[] } | null; } catch { return null; }
+  try {
+    return JSON.parse(localStorage.getItem(PENDING_CENTER_KEY) ?? "null") as {
+      name: string;
+      branches: string[];
+    } | null;
+  } catch {
+    return null;
+  }
 };
 
 function Onboarding() {
@@ -38,7 +45,11 @@ function Onboarding() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const centers = useQuery({ queryKey: ["centers", user?.id], queryFn: () => getMyCenters(), enabled: status === "signedIn" });
+  const centers = useQuery({
+    queryKey: ["centers", user?.id],
+    queryFn: () => getMyCenters(),
+    enabled: status === "signedIn",
+  });
 
   if (status === "signedOut") return <Navigate to="/login" />;
   if (centers.data?.length) return <Navigate to="/overview" />;
@@ -49,7 +60,8 @@ function Onboarding() {
     const parsed = createCenterInput.safeParse({ name, branches: splitBranches(branches) });
     if (!parsed.success) {
       const next: Record<string, string> = {};
-      for (const issue of parsed.error.issues) next[issue.path[0] === "name" ? "name" : "branches"] ??= t(issue.message);
+      for (const issue of parsed.error.issues)
+        next[issue.path[0] === "name" ? "name" : "branches"] ??= t(issue.message);
       setErrors(next);
       return;
     }
@@ -57,7 +69,11 @@ function Onboarding() {
     setBusy(true);
     try {
       await createCenter({ data: parsed.data });
-      try { localStorage.removeItem(PENDING_CENTER_KEY); } catch { /* optional */ }
+      try {
+        localStorage.removeItem(PENDING_CENTER_KEY);
+      } catch {
+        /* optional */
+      }
       await qc.invalidateQueries({ queryKey: ["centers"] });
       void navigate({ to: "/overview", replace: true });
     } catch (err) {
@@ -68,13 +84,41 @@ function Onboarding() {
   };
 
   return (
-    <AuthLayout title={t("Set up your center")} subtitle={t("You will be its owner. You can add branches later.")}
-      footer={<button type="button" onClick={() => void signOut().then(() => navigate({ to: "/login" }))} className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline"><LogOut className="size-3.5 rtl:-scale-x-100" />{t("Sign out")}</button>}>
+    <AuthLayout
+      title={t("Set up your center")}
+      subtitle={t("You will be its owner. You can add branches later.")}
+      footer={
+        <button
+          type="button"
+          onClick={() => void signOut().then(() => navigate({ to: "/login" }))}
+          className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline"
+        >
+          <LogOut className="size-3.5 rtl:-scale-x-100" />
+          {t("Sign out")}
+        </button>
+      }
+    >
       <form className="space-y-4" onSubmit={submit} noValidate>
-        <Field id="ob-center" label={t("Center name")} value={name} onChange={(e) => setName(e.target.value)} error={errors["name"]} />
-        <Field id="ob-branches" label={t("Branches")} value={branches} onChange={(e) => setBranches(e.target.value)} error={errors["branches"]} hint={t("Separate branches with commas, e.g. Nasr City, Maadi")} />
+        <Field
+          id="ob-center"
+          label={t("Center name")}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          error={errors["name"]}
+        />
+        <Field
+          id="ob-branches"
+          label={t("Branches")}
+          value={branches}
+          onChange={(e) => setBranches(e.target.value)}
+          error={errors["branches"]}
+          hint={t("Separate branches with commas, e.g. Nasr City, Maadi")}
+        />
         <FormError message={error} />
-        <Button type="submit" className="h-10 w-full" disabled={busy || centers.isPending}><Building2 />{busy ? t("Creating…") : t("Create center")}</Button>
+        <Button type="submit" className="h-10 w-full" disabled={busy || centers.isPending}>
+          <Building2 />
+          {busy ? t("Creating…") : t("Create center")}
+        </Button>
       </form>
     </AuthLayout>
   );

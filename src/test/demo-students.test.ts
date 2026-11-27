@@ -22,19 +22,33 @@ describe("in-browser demo student store", () => {
 
   it("filters like listStudents: search on name, code and phone, plus grade, branch and status", () => {
     const one = rows[17]!;
-    expect(queryStudents(rows, { ...base, q: one.student_code.toLowerCase() }).rows.map((r) => r.student_code)).toContain(one.student_code);
+    expect(
+      queryStudents(rows, { ...base, q: one.student_code.toLowerCase() }).rows.map(
+        (r) => r.student_code,
+      ),
+    ).toContain(one.student_code);
     expect(queryStudents(rows, { ...base, q: one.phone }).rows.map((r) => r.id)).toContain(one.id);
     const byStatus = queryStudents(rows, { ...base, status: "Paused", pageSize: 100 });
     expect(byStatus.total).toBe(rows.filter((r) => r.status === "Paused").length);
-    const byBranch = queryStudents(rows, { ...base, branchId: DEMO_BRANCH_IDS.Maadi, pageSize: 100 });
+    const byBranch = queryStudents(rows, {
+      ...base,
+      branchId: DEMO_BRANCH_IDS.Maadi,
+      pageSize: 100,
+    });
     expect(byBranch.rows.every((r) => r.branch_id === DEMO_BRANCH_IDS.Maadi)).toBe(true);
     expect(queryStudents(rows, { ...base, codes: [] })).toEqual({ rows: [], total: 0 });
   });
 
   it("sorts and pages: name with code as tie-breaker, code, newest", () => {
     const byName = queryStudents(rows, { ...base, pageSize: 100 }).rows;
-    for (let i = 1; i < byName.length; i++) expect(byName[i - 1]!.name <= byName[i]!.name).toBe(true);
-    const byCode = queryStudents(rows, { ...base, sort: "code", descending: true, pageSize: 100 }).rows;
+    for (let i = 1; i < byName.length; i++)
+      expect(byName[i - 1]!.name <= byName[i]!.name).toBe(true);
+    const byCode = queryStudents(rows, {
+      ...base,
+      sort: "code",
+      descending: true,
+      pageSize: 100,
+    }).rows;
     expect(byCode[0]!.student_code >= byCode[1]!.student_code).toBe(true);
     const newest = queryStudents(rows, { ...base, sort: "newest", pageSize: 100 }).rows;
     expect(newest[0]!.joined_on >= newest[99]!.joined_on).toBe(true);
@@ -45,9 +59,25 @@ describe("in-browser demo student store", () => {
 
   it("creates with the next S- code and updates in memory; a new store starts from the seed again", async () => {
     const store = createLocalStudents(C);
-    const made = await store.create({ centerId: C, branchId: DEMO_BRANCH_IDS["Nasr City"], name: "Test Student", phone: "01000000000", guardianName: "", guardianPhone: "", grade: "Grade 10", status: "Active", classCodes: [] });
-    expect(made.student_code).toBe(`S-${Math.max(...rows.map((r) => Number(r.student_code.slice(2)))) + 1}`);
-    const edited = await store.update({ centerId: C, code: made.student_code, patch: { name: "Renamed" } });
+    const made = await store.create({
+      centerId: C,
+      branchId: DEMO_BRANCH_IDS["Nasr City"],
+      name: "Test Student",
+      phone: "01000000000",
+      guardianName: "",
+      guardianPhone: "",
+      grade: "Grade 10",
+      status: "Active",
+      classCodes: [],
+    });
+    expect(made.student_code).toBe(
+      `S-${Math.max(...rows.map((r) => Number(r.student_code.slice(2)))) + 1}`,
+    );
+    const edited = await store.update({
+      centerId: C,
+      code: made.student_code,
+      patch: { name: "Renamed" },
+    });
     expect(edited.name).toBe("Renamed");
     expect((await store.get(C, made.student_code))?.name).toBe("Renamed");
     expect(await createLocalStudents(C).get(C, made.student_code)).toBeNull();
@@ -55,6 +85,18 @@ describe("in-browser demo student store", () => {
 
   it("refuses writes to any other center", async () => {
     const store = createLocalStudents(C);
-    await expect(store.create({ centerId: "d3e00000-0000-4000-8000-000000000001", branchId: DEMO_BRANCH_IDS.Maadi, name: "X Y", phone: "01000000000", guardianName: "", guardianPhone: "", grade: "Grade 10", status: "Active", classCodes: [] })).rejects.toThrow();
+    await expect(
+      store.create({
+        centerId: "d3e00000-0000-4000-8000-000000000001",
+        branchId: DEMO_BRANCH_IDS.Maadi,
+        name: "X Y",
+        phone: "01000000000",
+        guardianName: "",
+        guardianPhone: "",
+        grade: "Grade 10",
+        status: "Active",
+        classCodes: [],
+      }),
+    ).rejects.toThrow();
   });
 });

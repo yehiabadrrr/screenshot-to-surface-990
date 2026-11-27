@@ -2,4 +2,8 @@
 export const PENDING_CENTER_KEY = "markazly-pending-center";
 
 /** Branch names typed as a comma (or Arabic comma / newline) separated list. */
-export const splitBranches = (s: string) => s.split(/[,،\n]/).map((x) => x.trim()).filter(Boolean);
+export const splitBranches = (s: string) =>
+  s
+    .split(/[,،\n]/)
+    .map((x) => x.trim())
+    .filter(Boolean);

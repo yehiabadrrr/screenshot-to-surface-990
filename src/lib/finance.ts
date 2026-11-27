@@ -25,7 +25,12 @@ export function teacherPayout(model: CompensationModel, i: PayoutInputs): number
 }
 
 /** Positive = student owes; negative = prepaid credit. */
-export function studentBalance(charges: number, payments: number, discounts = 0, refunds = 0): number {
+export function studentBalance(
+  charges: number,
+  payments: number,
+  discounts = 0,
+  refunds = 0,
+): number {
   return charges - discounts - payments + refunds;
 }
 

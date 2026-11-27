@@ -6,7 +6,13 @@ import { reportingMonths } from "./business-date";
 import { cairoToday } from "./business-date";
 
 const user = { name: "Owner", role: "Owner" };
-const wrap = (demo: boolean) => ({ children }: { children: ReactNode }) => <LedgerProvider students={[]} demo={demo} currentUser={user}>{children}</LedgerProvider>;
+const wrap =
+  (demo: boolean) =>
+  ({ children }: { children: ReactNode }) => (
+    <LedgerProvider students={[]} demo={demo} currentUser={user}>
+      {children}
+    </LedgerProvider>
+  );
 
 describe("ledger store catalog and periods", () => {
   it("gives customer centers no sample classes, teachers, rules or payables inputs", () => {

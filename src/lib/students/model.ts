@@ -4,7 +4,10 @@ import type { StudentRow } from "@/lib/supabase/types";
 /** A persisted student, in the shape the existing screens and the demo ledger use (id = student code). */
 export type PersistedStudent = Student & { uuid: string; branchId: string };
 
-export function toStudent(row: StudentRow, branchName: (branchId: string) => string): PersistedStudent {
+export function toStudent(
+  row: StudentRow,
+  branchName: (branchId: string) => string,
+): PersistedStudent {
   return {
     id: row.student_code,
     uuid: row.id,

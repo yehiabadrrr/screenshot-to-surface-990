@@ -1,12 +1,26 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Info } from "lucide-react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCenter } from "@/lib/center-context";
 import { METHODS, balancesAsOf, type Method } from "@/lib/ledger";
 import { useLedger, todayIso } from "@/lib/ledger-store";
@@ -16,14 +30,34 @@ import { cn } from "@/lib/utils";
 
 const NO_CLASS = "none";
 
-export function RecordPaymentDialog({ trigger, studentId, controlledOpen, onOpenChange }: { trigger: ReactNode; studentId?: string; controlledOpen?: boolean; onOpenChange?: (open: boolean) => void }) {
+export function RecordPaymentDialog({
+  trigger,
+  studentId,
+  controlledOpen,
+  onOpenChange,
+}: {
+  trigger: ReactNode;
+  studentId?: string;
+  controlledOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const { t, lang } = useI18n();
   const dir = lang === "ar" ? "rtl" : "ltr";
-  const { entries, students, recordPayment, filter, currentUser: CURRENT_USER, classById } = useLedger();
+  const {
+    entries,
+    students,
+    recordPayment,
+    filter,
+    currentUser: CURRENT_USER,
+    classById,
+  } = useLedger();
   const { branchNames: branches } = useCenter();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
-  const setOpen = (value: boolean) => { setInternalOpen(value); onOpenChange?.(value); };
+  const setOpen = (value: boolean) => {
+    setInternalOpen(value);
+    onOpenChange?.(value);
+  };
   const [sid, setSid] = useState(studentId ?? "");
   const initialStudent = students.find((student) => student.id === studentId);
   const [classId, setClassId] = useState(initialStudent?.classIds[0] ?? NO_CLASS);
@@ -36,23 +70,51 @@ export function RecordPaymentDialog({ trigger, studentId, controlledOpen, onOpen
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const s = students.find((x) => x.id === sid);
-  const balance = useMemo(() => (s ? balancesAsOf(entries, todayIso()).get(s.id) ?? 0 : 0), [entries, s]);
+  const balance = useMemo(
+    () => (s ? (balancesAsOf(entries, todayIso()).get(s.id) ?? 0) : 0),
+    [entries, s],
+  );
 
   const pickStudent = (id: string) => {
     setSid(id);
     const st = students.find((x) => x.id === id);
-    if (st) { setBranch(st.branch); setClassId(st.classIds[0] ?? NO_CLASS); }
+    if (st) {
+      setBranch(st.branch);
+      setClassId(st.classIds[0] ?? NO_CLASS);
+    }
   };
-  const reset = () => { setAmount(""); setMethod("Cash"); setReference(""); setNote(""); setError(""); setStatus("Completed"); setDate(todayIso()); };
+  const reset = () => {
+    setAmount("");
+    setMethod("Cash");
+    setReference("");
+    setNote("");
+    setError("");
+    setStatus("Completed");
+    setDate(todayIso());
+  };
   const optional = <span className="font-normal text-muted-foreground">({t("optional")})</span>;
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { reset(); if (studentId) pickStudent(studentId); } }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (o) {
+          reset();
+          if (studentId) pickStudent(studentId);
+        }
+      }}
+    >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-lg" dir={dir}>
         <DialogHeader>
           <DialogTitle>{t("Record payment")}</DialogTitle>
-          <DialogDescription className="flex items-start gap-2 rounded-lg bg-warning-soft px-3 py-2 text-xs text-foreground"><Info className="mt-0.5 size-3.5 shrink-0 text-warning" />{t("Demo only: this adds the payment to the sample data in this tab. It is not saved to a real ledger and disappears on refresh.")}</DialogDescription>
+          <DialogDescription className="flex items-start gap-2 rounded-lg bg-warning-soft px-3 py-2 text-xs text-foreground">
+            <Info className="mt-0.5 size-3.5 shrink-0 text-warning" />
+            {t(
+              "Demo only: this adds the payment to the sample data in this tab. It is not saved to a real ledger and disappears on refresh.",
+            )}
+          </DialogDescription>
         </DialogHeader>
         <form
           className="grid gap-4 sm:grid-cols-2"
@@ -61,75 +123,222 @@ export function RecordPaymentDialog({ trigger, studentId, controlledOpen, onOpen
             const n = Number(amount);
             if (!s) return setError(t("Choose a student."));
             if (!(n > 0)) return setError(t("Enter an amount greater than zero."));
-            if (!date || date > todayIso()) return setError(t("Choose a transaction date that is not in the future."));
+            if (!date || date > todayIso())
+              return setError(t("Choose a transaction date that is not in the future."));
             if (!branch) return setError(t("Choose a branch."));
             try {
               const entry = recordPayment({
-                studentId: s.id, branch, date, amount: n, method, status,
+                studentId: s.id,
+                branch,
+                date,
+                amount: n,
+                method,
+                status,
                 ...(classId !== NO_CLASS ? { classId } : {}),
                 ...(reference.trim() ? { reference: reference.trim() } : {}),
                 ...(note.trim() ? { note: note.trim() } : {}),
               });
-              const outside = date < filter.from || date > filter.to || (filter.branch !== "all" && filter.branch !== branch);
+              const outside =
+                date < filter.from ||
+                date > filter.to ||
+                (filter.branch !== "all" && filter.branch !== branch);
               toast.success(t("{id} added to demo data", { id: entry.id }), {
-                description: [egp(n, lang), t(method), t(status === "Pending" ? "pending, not counted as collected" : "counted in collections"), outside ? t("outside the current filter") : ""].filter(Boolean).join(" · ") + ". " + t("Not saved to a real ledger."),
+                description:
+                  [
+                    egp(n, lang),
+                    t(method),
+                    t(
+                      status === "Pending"
+                        ? "pending, not counted as collected"
+                        : "counted in collections",
+                    ),
+                    outside ? t("outside the current filter") : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" · ") +
+                  ". " +
+                  t("Not saved to a real ledger."),
               });
               setOpen(false);
-            } catch (err) { setError(err instanceof Error ? t(err.message) : t("Could not add payment")); }
+            } catch (err) {
+              setError(err instanceof Error ? t(err.message) : t("Could not add payment"));
+            }
           }}
         >
           <div className="space-y-1.5 sm:col-span-2">
             <Label>{t("Student")}</Label>
             <Select value={sid} onValueChange={pickStudent} dir={dir}>
-              <SelectTrigger><SelectValue placeholder={t("Select student")} /></SelectTrigger>
-              <SelectContent className="max-h-64">{students.filter((x) => x.status !== "Inactive").map((x) => <SelectItem key={x.id} value={x.id}>{x.name} · {x.id}</SelectItem>)}</SelectContent>
+              <SelectTrigger>
+                <SelectValue placeholder={t("Select student")} />
+              </SelectTrigger>
+              <SelectContent className="max-h-64">
+                {students
+                  .filter((x) => x.status !== "Inactive")
+                  .map((x) => (
+                    <SelectItem key={x.id} value={x.id}>
+                      {x.name} · {x.id}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
             </Select>
-            {s && <p className={cn("text-xs font-medium", balance > 0 ? "text-destructive" : balance < 0 ? "text-positive" : "text-muted-foreground")}>{t("Balance today")}: {balance > 0 ? t("{amount} due", { amount: egp(balance, lang) }) : balance < 0 ? t("{amount} prepaid credit", { amount: egp(-balance, lang) }) : t("settled")}</p>}
+            {s && (
+              <p
+                className={cn(
+                  "text-xs font-medium",
+                  balance > 0
+                    ? "text-destructive"
+                    : balance < 0
+                      ? "text-positive"
+                      : "text-muted-foreground",
+                )}
+              >
+                {t("Balance today")}:{" "}
+                {balance > 0
+                  ? t("{amount} due", { amount: egp(balance, lang) })
+                  : balance < 0
+                    ? t("{amount} prepaid credit", { amount: egp(-balance, lang) })
+                    : t("settled")}
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="pay-amount">{t("Amount")} ({t("EGP")})</Label>
-            <Input id="pay-amount" inputMode="numeric" dir="ltr" className="font-medium num" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))} placeholder={balance > 0 ? String(balance) : "0"} />
+            <Label htmlFor="pay-amount">
+              {t("Amount")} ({t("EGP")})
+            </Label>
+            <Input
+              id="pay-amount"
+              inputMode="numeric"
+              dir="ltr"
+              className="font-medium num"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
+              placeholder={balance > 0 ? String(balance) : "0"}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="pay-date">{t("Date")}</Label>
-            <Input id="pay-date" type="date" value={date} max={todayIso()} onChange={(e) => setDate(e.target.value)} />
+            <Input
+              id="pay-date"
+              type="date"
+              value={date}
+              max={todayIso()}
+              onChange={(e) => setDate(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("Method")}</Label>
-            <Select value={method} onValueChange={(v) => setMethod(v as Method)} dir={dir}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{METHODS.map((m) => <SelectItem key={m} value={m}>{t(m)}</SelectItem>)}</SelectContent></Select>
+            <Select value={method} onValueChange={(v) => setMethod(v as Method)} dir={dir}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {METHODS.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {t(m)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label>{t("Status")}</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as "Completed" | "Pending")} dir={dir}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="Completed">{t("Completed (money received)")}</SelectItem><SelectItem value="Pending">{t("Pending (awaiting confirmation)")}</SelectItem></SelectContent>
+            <Select
+              value={status}
+              onValueChange={(v) => setStatus(v as "Completed" | "Pending")}
+              dir={dir}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Completed">{t("Completed (money received)")}</SelectItem>
+                <SelectItem value="Pending">{t("Pending (awaiting confirmation)")}</SelectItem>
+              </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label>{t("Branch")}</Label>
-            <Select value={branch} onValueChange={setBranch} dir={dir}><SelectTrigger><SelectValue placeholder={t("Choose branch")} /></SelectTrigger><SelectContent>{branches.map((b) => <SelectItem key={b} value={b}>{t(b)}</SelectItem>)}</SelectContent></Select>
+            <Select value={branch} onValueChange={setBranch} dir={dir}>
+              <SelectTrigger>
+                <SelectValue placeholder={t("Choose branch")} />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((b) => (
+                  <SelectItem key={b} value={b}>
+                    {t(b)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>{t("Class")} {optional}</Label>
+            <Label>
+              {t("Class")} {optional}
+            </Label>
             <Select value={classId} onValueChange={setClassId} dir={dir}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={NO_CLASS}>{t("Not linked to a class")}</SelectItem>
-                {s?.classIds.filter((c) => classById(c)).map((c) => <SelectItem key={c} value={c}>{classById(c)!.name}</SelectItem>)}
+                {s?.classIds
+                  .filter((c) => classById(c))
+                  .map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {classById(c)!.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="pay-ref">{t("Receipt / reference")} {optional}</Label>
-            <Input id="pay-ref" dir="ltr" value={reference} onChange={(e) => setReference(e.target.value)} placeholder={t(method === "InstaPay" ? "InstaPay transaction ID" : method === "Fawry" ? "Fawry reference" : "Receipt no.")} maxLength={60} />
+            <Label htmlFor="pay-ref">
+              {t("Receipt / reference")} {optional}
+            </Label>
+            <Input
+              id="pay-ref"
+              dir="ltr"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              placeholder={t(
+                method === "InstaPay"
+                  ? "InstaPay transaction ID"
+                  : method === "Fawry"
+                    ? "Fawry reference"
+                    : "Receipt no.",
+              )}
+              maxLength={60}
+            />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="pay-note">{t("Note")} {optional}</Label>
-            <Textarea id="pay-note" value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={300} />
+            <Label htmlFor="pay-note">
+              {t("Note")} {optional}
+            </Label>
+            <Textarea
+              id="pay-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              maxLength={300}
+            />
           </div>
-          <p className="text-xs text-muted-foreground sm:col-span-2">{t("Entered by {name} ({role}). A new transaction ID is assigned on save; existing IDs never change.", { name: CURRENT_USER.name, role: t(CURRENT_USER.role) })}</p>
-          {error && <p role="alert" className="text-sm text-destructive sm:col-span-2">{error}</p>}
-          <DialogFooter className="gap-2 sm:col-span-2"><Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("Cancel")}</Button><Button type="submit">{t("Add to demo data")}</Button></DialogFooter>
+          <p className="text-xs text-muted-foreground sm:col-span-2">
+            {t(
+              "Entered by {name} ({role}). A new transaction ID is assigned on save; existing IDs never change.",
+              { name: CURRENT_USER.name, role: t(CURRENT_USER.role) },
+            )}
+          </p>
+          {error && (
+            <p role="alert" className="text-sm text-destructive sm:col-span-2">
+              {error}
+            </p>
+          )}
+          <DialogFooter className="gap-2 sm:col-span-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              {t("Cancel")}
+            </Button>
+            <Button type="submit">{t("Add to demo data")}</Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

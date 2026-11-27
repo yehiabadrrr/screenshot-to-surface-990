@@ -17,7 +17,15 @@ export const LANDING_COPY = {
     cta: "افتح النسخة التجريبية",
     wa: "احجز عرض على واتساب",
     waText: "أهلًا، عايز أحجز عرض لمركزلي.",
-    chapters: ["الاستقبال", "الفلوس بتضيع فين", "كشف الحضور", "سجل المراجعة", "نظام السنتر", "أسئلة", "ابدأ"],
+    chapters: [
+      "الاستقبال",
+      "الفلوس بتضيع فين",
+      "كشف الحضور",
+      "سجل المراجعة",
+      "نظام السنتر",
+      "أسئلة",
+      "ابدأ",
+    ],
     h1a: "سجّل الحضور.",
     h1b: "والحساب بيتعمل لوحده.",
     lede: "الاشتراكات والمدفوعات ومستحقات المدرسين للسناتر في مصر، من كشف الحضور اللي عندك.",
@@ -69,11 +77,36 @@ export const LANDING_COPY = {
     rangeH: "نظام السنتر بتاعك، مش نظامنا.",
     rangeP: "حدّد نظام الحساب لكل فصل، وغيّره لطالب معيّن لو محتاج.",
     rules: [
-      { ex: "INV-2051 · +400", exNote: "اشتراك نوفمبر · جنى منصور", t: "شهري", d: "اشتراك ثابت كل شهر، والحضور بيتسجّل من غير رسوم زيادة." },
-      { ex: "INV-2052 · +80", exNote: "حصة الأربعاء · عمر فتحي", t: "بالحصة", d: "كل حصة حضرها الطالب بتتسجّل رسومها لوحدها." },
-      { ex: "PKG · 2 / 8", exNote: "باكدج مدفوع مقدمًا · سيف حسن", t: "باكدج", d: "باكدج مدفوع مقدمًا، وكل حصة بتنقص من الرصيد." },
-      { ex: "PAY-0194 · InstaPay · Ref 48201", exNote: "كاش · إنستاباي · فوري · تحويل بنكي", t: "كل طرق الدفع", d: "سجّل طريقة الدفع ورقم العملية، عشان أي تحويل يتتبع." },
-      { ex: "40% × 12,400 = 4,960", exNote: "أ. مجدي · تحصيل فصوله في نوفمبر", t: "مستحقات المدرسين", d: "مرتب ثابت، أو بالحصة، أو نسبة من تحصيل فصوله." },
+      {
+        ex: "INV-2051 · +400",
+        exNote: "اشتراك نوفمبر · جنى منصور",
+        t: "شهري",
+        d: "اشتراك ثابت كل شهر، والحضور بيتسجّل من غير رسوم زيادة.",
+      },
+      {
+        ex: "INV-2052 · +80",
+        exNote: "حصة الأربعاء · عمر فتحي",
+        t: "بالحصة",
+        d: "كل حصة حضرها الطالب بتتسجّل رسومها لوحدها.",
+      },
+      {
+        ex: "PKG · 2 / 8",
+        exNote: "باكدج مدفوع مقدمًا · سيف حسن",
+        t: "باكدج",
+        d: "باكدج مدفوع مقدمًا، وكل حصة بتنقص من الرصيد.",
+      },
+      {
+        ex: "PAY-0194 · InstaPay · Ref 48201",
+        exNote: "كاش · إنستاباي · فوري · تحويل بنكي",
+        t: "كل طرق الدفع",
+        d: "سجّل طريقة الدفع ورقم العملية، عشان أي تحويل يتتبع.",
+      },
+      {
+        ex: "40% × 12,400 = 4,960",
+        exNote: "أ. مجدي · تحصيل فصوله في نوفمبر",
+        t: "مستحقات المدرسين",
+        d: "مرتب ثابت، أو بالحصة، أو نسبة من تحصيل فصوله.",
+      },
     ],
     shotT: "الكشف بيوريك الحساب قبل ما يتسجّل",
     shotD: "قبل الاعتماد، شوف كل حالة هتتحاسب إزاي حسب نظام الفصل.",
@@ -81,15 +114,31 @@ export const LANDING_COPY = {
     railEnd: "ولكل فرع أو للسنتر كله، بالعربي والإنجليزي، من الموبايل على باب الفصل.",
     faqH: "أسئلة أصحاب السناتر",
     faq: [
-      { q: "بيشتغل على الموبايل؟", a: "أيوه. الحضور والمدفوعات معمولين للموبايل على الاستقبال أو على باب الفصل." },
-      { q: "هو بالعربي؟", a: "كل الشاشات، ومن اليمين للشمال. وكل واحد يقدر يبدّل بين العربي والإنجليزي." },
-      { q: "إحنا شغالين على إكسل. نقدر ننقل؟", a: "في فترة التجربة بنجهّزه معاك، ونبدأ من قائمة الطلاب اللي عندك." },
-      { q: "النسخة التجريبية فيها إيه؟", a: "سنتر تجريبي بتلات فروع و300 طالب، بيشتغل في المتصفح من غير حساب. جرّب براحتك، مفيش حاجة بتتحفظ." },
-      { q: "بكام؟", a: "مجاني لأول السناتر في فترة التجربة. الأسعار لسه مش منشورة، اسألنا على واتساب." },
+      {
+        q: "بيشتغل على الموبايل؟",
+        a: "أيوه. الحضور والمدفوعات معمولين للموبايل على الاستقبال أو على باب الفصل.",
+      },
+      {
+        q: "هو بالعربي؟",
+        a: "كل الشاشات، ومن اليمين للشمال. وكل واحد يقدر يبدّل بين العربي والإنجليزي.",
+      },
+      {
+        q: "إحنا شغالين على إكسل. نقدر ننقل؟",
+        a: "في فترة التجربة بنجهّزه معاك، ونبدأ من قائمة الطلاب اللي عندك.",
+      },
+      {
+        q: "النسخة التجريبية فيها إيه؟",
+        a: "سنتر تجريبي بتلات فروع و300 طالب، بيشتغل في المتصفح من غير حساب. جرّب براحتك، مفيش حاجة بتتحفظ.",
+      },
+      {
+        q: "بكام؟",
+        a: "مجاني لأول السناتر في فترة التجربة. الأسعار لسه مش منشورة، اسألنا على واتساب.",
+      },
     ],
     closeH: "القيد الجاي: السنتر بتاعك.",
     pilotT: "تجربة مجانية لأول السناتر",
-    pilotP: "بنضم مجموعة صغيرة من السناتر دلوقتي. جرّب النسخة التجريبية، وبعدين احكيلنا السنتر بتاعك بيشتغل إزاي.",
+    pilotP:
+      "بنضم مجموعة صغيرة من السناتر دلوقتي. جرّب النسخة التجريبية، وبعدين احكيلنا السنتر بتاعك بيشتغل إزاي.",
     footer: "إدارة السناتر والمراكز التعليمية في مصر.",
   },
   en: {
@@ -104,7 +153,15 @@ export const LANDING_COPY = {
     cta: "Open the demo",
     wa: "Book a demo on WhatsApp",
     waText: "Hi, I'd like to book a Markazly demo.",
-    chapters: ["The front desk", "Where it slips", "The register", "The audit trail", "Your rules", "Questions", "Start"],
+    chapters: [
+      "The front desk",
+      "Where it slips",
+      "The register",
+      "The audit trail",
+      "Your rules",
+      "Questions",
+      "Start",
+    ],
     h1a: "Mark attendance.",
     h1b: "The billing does itself.",
     lede: "Fees, payments and teacher pay for tutoring centers in Egypt, from the register you already keep.",
@@ -120,9 +177,18 @@ export const LANDING_COPY = {
     slipsH: "Where the money slips today",
     unbilled: "4 billed?",
     slips: [
-      { t: "The attendance notebook", d: "Sessions get marked on paper, and nobody bills from the paper." },
-      { t: "Payment screenshots", d: "InstaPay transfers live in WhatsApp chats, not in a ledger." },
-      { t: "Month-end with teachers", d: "Percentage pay gets argued from memory instead of read from collections." },
+      {
+        t: "The attendance notebook",
+        d: "Sessions get marked on paper, and nobody bills from the paper.",
+      },
+      {
+        t: "Payment screenshots",
+        d: "InstaPay transfers live in WhatsApp chats, not in a ledger.",
+      },
+      {
+        t: "Month-end with teachers",
+        d: "Percentage pay gets argued from memory instead of read from collections.",
+      },
     ],
     stickyT: "Mr. Magdy · 40%",
     sample: "Sample center · sample data",
@@ -156,27 +222,70 @@ export const LANDING_COPY = {
     rangeH: "Your center's rules, not ours.",
     rangeP: "Set a billing rule per class, and override it for one student when you need to.",
     rules: [
-      { ex: "INV-2051 · +400", exNote: "November fee · Jana Mansour", t: "Monthly", d: "A fixed fee each month. Attendance is still recorded, with no extra charge." },
-      { ex: "INV-2052 · +80", exNote: "Wednesday session · Omar Fathy", t: "Per session", d: "Every session a student attends is charged on its own." },
-      { ex: "PKG · 2 / 8", exNote: "Prepaid package · Seif Hassan", t: "Package", d: "A prepaid package, and each session comes off the balance." },
-      { ex: "PAY-0194 · InstaPay · Ref 48201", exNote: "Cash · InstaPay · Fawry · Bank transfer", t: "Every way students pay", d: "Record the method and the reference, so each transfer can be traced." },
-      { ex: "40% × 12,400 = 4,960", exNote: "Mr. Magdy · his classes' November collections", t: "Teacher pay", d: "Fixed salary, per session, or a percentage of what their classes collect." },
+      {
+        ex: "INV-2051 · +400",
+        exNote: "November fee · Jana Mansour",
+        t: "Monthly",
+        d: "A fixed fee each month. Attendance is still recorded, with no extra charge.",
+      },
+      {
+        ex: "INV-2052 · +80",
+        exNote: "Wednesday session · Omar Fathy",
+        t: "Per session",
+        d: "Every session a student attends is charged on its own.",
+      },
+      {
+        ex: "PKG · 2 / 8",
+        exNote: "Prepaid package · Seif Hassan",
+        t: "Package",
+        d: "A prepaid package, and each session comes off the balance.",
+      },
+      {
+        ex: "PAY-0194 · InstaPay · Ref 48201",
+        exNote: "Cash · InstaPay · Fawry · Bank transfer",
+        t: "Every way students pay",
+        d: "Record the method and the reference, so each transfer can be traced.",
+      },
+      {
+        ex: "40% × 12,400 = 4,960",
+        exNote: "Mr. Magdy · his classes' November collections",
+        t: "Teacher pay",
+        d: "Fixed salary, per session, or a percentage of what their classes collect.",
+      },
     ],
     shotT: "See the bill before it posts",
     shotD: "Before you finalize, see how each status bills under the class's rule.",
-    shotAlt: "Markazly attendance screen: the student roster and a billing preview under the class rule",
-    railEnd: "Per branch or for the whole center, in Arabic and English, from a phone at the classroom door.",
+    shotAlt:
+      "Markazly attendance screen: the student roster and a billing preview under the class rule",
+    railEnd:
+      "Per branch or for the whole center, in Arabic and English, from a phone at the classroom door.",
     faqH: "Questions owners ask",
     faq: [
-      { q: "Does it work on a phone?", a: "Yes. Attendance and payments are designed for a phone at the front desk or the classroom door." },
-      { q: "Is it in Arabic?", a: "Every screen, right to left. Each person can switch between Arabic and English." },
-      { q: "We use Excel today. Can we move over?", a: "During the pilot we set it up with you, starting from your current student list." },
-      { q: "What does the demo show?", a: "A sample center with three branches and 300 students, running in your browser with no account. Try anything; nothing is saved." },
-      { q: "What does it cost?", a: "Free for the first centers during the pilot. Pricing isn't published yet, so ask us on WhatsApp." },
+      {
+        q: "Does it work on a phone?",
+        a: "Yes. Attendance and payments are designed for a phone at the front desk or the classroom door.",
+      },
+      {
+        q: "Is it in Arabic?",
+        a: "Every screen, right to left. Each person can switch between Arabic and English.",
+      },
+      {
+        q: "We use Excel today. Can we move over?",
+        a: "During the pilot we set it up with you, starting from your current student list.",
+      },
+      {
+        q: "What does the demo show?",
+        a: "A sample center with three branches and 300 students, running in your browser with no account. Try anything; nothing is saved.",
+      },
+      {
+        q: "What does it cost?",
+        a: "Free for the first centers during the pilot. Pricing isn't published yet, so ask us on WhatsApp.",
+      },
     ],
     closeH: "Next entry: your center.",
     pilotT: "Free pilot for the first centers",
-    pilotP: "We're onboarding a small group of centers now. Try the demo, then tell us how your center runs.",
+    pilotP:
+      "We're onboarding a small group of centers now. Try the demo, then tell us how your center runs.",
     footer: "Back office for education centers in Egypt.",
   },
 } as const;
@@ -184,7 +293,15 @@ export const LANDING_COPY = {
 /** Sample names shared by the hero register sheet and the live register demo. */
 export const SAMPLE_NAMES = {
   ar: ["عمر فتحي", "ملك فاروق", "سيف حسن", "جنى منصور", "يوسف نبيل", "هنا شريف", "ليلى مصطفى"],
-  en: ["Omar Fathy", "Malak Farouk", "Seif Hassan", "Jana Mansour", "Youssef Nabil", "Hana Sherif", "Laila Mostafa"],
+  en: [
+    "Omar Fathy",
+    "Malak Farouk",
+    "Seif Hassan",
+    "Jana Mansour",
+    "Youssef Nabil",
+    "Hana Sherif",
+    "Laila Mostafa",
+  ],
 } as const;
 
 /** International form, no "+". Shown as "Book a demo on WhatsApp". */

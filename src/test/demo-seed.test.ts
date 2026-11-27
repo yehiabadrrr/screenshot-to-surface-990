@@ -5,8 +5,14 @@ import path from "node:path";
 import { buildDemoRenameSql, buildDemoSeedSql } from "@/lib/demo-seed";
 import { demoRenames, students } from "@/lib/data";
 
-const file = path.resolve(__dirname, "../../supabase/migrations/20261125120100_demo_center_seed.sql");
-const renameFile = path.resolve(__dirname, "../../supabase/migrations/20261126120000_demo_unique_student_names.sql");
+const file = path.resolve(
+  __dirname,
+  "../../supabase/migrations/20261125120100_demo_center_seed.sql",
+);
+const renameFile = path.resolve(
+  __dirname,
+  "../../supabase/migrations/20261126120000_demo_unique_student_names.sql",
+);
 
 describe("Demo Center seed migration", () => {
   it("matches the deterministic sample data in data.ts", () => {
