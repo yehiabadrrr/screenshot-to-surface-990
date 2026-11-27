@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { classById } from "@/lib/data";
 import { useCenter } from "@/lib/center-context";
 import { METHODS, balancesAsOf, type Method } from "@/lib/ledger";
 import { useLedger, todayIso } from "@/lib/ledger-store";
@@ -20,7 +19,7 @@ const NO_CLASS = "none";
 export function RecordPaymentDialog({ trigger, studentId, controlledOpen, onOpenChange }: { trigger: ReactNode; studentId?: string; controlledOpen?: boolean; onOpenChange?: (open: boolean) => void }) {
   const { t, lang } = useI18n();
   const dir = lang === "ar" ? "rtl" : "ltr";
-  const { entries, students, recordPayment, filter, currentUser: CURRENT_USER } = useLedger();
+  const { entries, students, recordPayment, filter, currentUser: CURRENT_USER, classById } = useLedger();
   const { branchNames: branches } = useCenter();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
@@ -116,7 +115,7 @@ export function RecordPaymentDialog({ trigger, studentId, controlledOpen, onOpen
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={NO_CLASS}>{t("Not linked to a class")}</SelectItem>
-                {s?.classIds.map((c) => <SelectItem key={c} value={c}>{classById(c).name}</SelectItem>)}
+                {s?.classIds.filter((c) => classById(c)).map((c) => <SelectItem key={c} value={c}>{classById(c)!.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

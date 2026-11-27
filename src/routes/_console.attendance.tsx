@@ -11,9 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { classes, teacherById } from "@/lib/data";
 import { classWeekdays, weekdayOf, sessionIdFor, sessionOutcome, packageRemaining, linkedEntry, type AttendanceStatus, type Mark } from "@/lib/billing";
-import { useLedger, todayIso, teacherActors } from "@/lib/ledger-store";
+import { useLedger, todayIso, teacherActorsOf } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
 import { egp } from "@/lib/format";
 import { fmtNum, localDays, localTime, longDate, outcomeText, ruleKindLabel, ruleSummary, timeOfDay } from "@/lib/l10n";
@@ -22,7 +21,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_console/attendance")({
   validateSearch: (search: Record<string, unknown>): { classId?: string; date?: string } => ({
-    ...(typeof search['classId'] === "string" && classes.some((c) => c.id === search['classId']) ? { classId: search['classId'] } : {}),
+    ...(typeof search['classId'] === "string" && /^[\w-]{1,64}$/.test(search['classId']) ? { classId: search['classId'] } : {}),
     ...(typeof search['date'] === "string" && /^\d{4}-\d{2}-\d{2}$/.test(search['date']) && search['date'] <= todayIso() ? { date: search['date'] } : {}),
   }),
   head: pageHead("Attendance", "Mark Present, Absent or Excused, see how each student is billed, and finalize the session."),
@@ -39,7 +38,9 @@ function AttendancePage() {
   const search = Route.useSearch();
   const { t, lang } = useI18n();
   const L = useLedger();
-  const { actor, setActor, entries, currentUser: CURRENT_USER } = L;
+  const { actor, setActor, entries, currentUser: CURRENT_USER, classes, teacherById } = L;
+  const teacherActors = teacherActorsOf(L.teachers);
+  const teacherName = (id: string) => teacherById(id)?.name ?? "—";
   const visible = actor.kind === "teacher" ? classes.filter((c) => c.teacherId === actor.teacherId) : classes;
   const [pickedClass, setPickedClass] = useState(search.classId ?? "");
   const [date, setDate] = useState(search.date ?? todayIso());
@@ -125,7 +126,7 @@ function AttendancePage() {
         </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 text-ui text-muted-foreground sm:px-5">
           <span className="inline-flex items-center gap-1.5 font-medium text-foreground"><CalendarDays className="size-4 text-brand" />{longDate(date, lang)}</span>
-          <span className="inline-flex items-center gap-1.5"><Avatar name={teacherById(cls.teacherId).name} seed={cls.teacherId} size="xs" /><bdi className="font-medium text-foreground">{teacherById(cls.teacherId).name}</bdi></span>
+          <span className="inline-flex items-center gap-1.5"><Avatar name={teacherName(cls.teacherId)} seed={cls.teacherId} size="xs" /><bdi className="font-medium text-foreground">{teacherName(cls.teacherId)}</bdi></span>
           <span className="inline-flex items-center gap-1.5"><Clock3 className="size-4" />{localDays(cls.days, t)} · <bdi>{localTime(cls.time, lang)}</bdi></span>
           <span className="inline-flex items-center gap-1.5"><MapPin className="size-4" />{t(cls.branch)}</span>
           <span className="ms-auto">{finalized ? <Pill tone="positive" dot>{t("Finalized")}</Pill> : <Pill tone="warning" dot>{t("Draft")}</Pill>}</span>

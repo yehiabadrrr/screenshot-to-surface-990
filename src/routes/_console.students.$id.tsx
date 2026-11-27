@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { classById, teacherById, type ClassItem } from "@/lib/data";
+import type { ClassItem } from "@/lib/data";
 import { balancesAsOf, reversedIds, displayStatus, type LedgerEntry } from "@/lib/ledger";
 import { packageRemaining, type BillingRule } from "@/lib/billing";
 import { useLedger, todayIso } from "@/lib/ledger-store";
@@ -56,6 +56,7 @@ function Profile() {
   useEffect(() => setTab(search.tab ?? "overview"), [search.tab, id]);
   const { t, lang } = useI18n();
   const L = useLedger();
+  const { classById } = L;
   const { center, branches, canEditStudents } = useCenter();
   const publicDemo = useDemoMode();
   // Persistent fields come from the server (RLS-scoped); demo attendance is joined from the store.
@@ -87,8 +88,9 @@ function Profile() {
   const typeLabel = (x: LedgerEntry) => x.type === "Charge" ? (x.packageSessions ? t("Package purchase") : x.sessionId ? t("Session charge") : t("Tuition charge")) : x.type === "Reversal" ? t("Reversal of {id}", { id: x.reversesId ?? "" }) : x.type === "PackageUse" ? t("Package session used") : t(x.type);
   const marked = attendance.filter((r) => r.marks[id]);
   const presentPct = marked.length ? Math.round((marked.filter((r) => r.marks[id] === "Present").length / marked.length) * 100) : s.attendance;
-  const enrollments = s.classIds.map((cid) => {
-    const c = classById(cid);
+  // Only classes in this center's catalog; unknown codes are ignored rather than shown as fake classes.
+  const enrollments = s.classIds.filter((cid) => L.classById(cid)).map((cid) => {
+    const c = L.classById(cid)!;
     const { rule, source } = L.ruleFor(s.id, cid);
     const left = rule.kind === "package" ? packageRemaining(L.entries, s.id, cid) : 0;
     return { cid, c, rule, source, left };
@@ -185,7 +187,7 @@ function Profile() {
                     <li key={r.sessionId}>
                       <Link to="/attendance" search={{ classId: r.classId, date: r.date }} className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-muted/40">
                         <div className="w-14 shrink-0 text-center"><div className="text-base font-medium leading-none num">{Number(r.date.slice(8))}</div><div className="mt-1 text-meta text-muted-foreground">{shortDateL(r.date, lang).replace(/^\d+\s*/, "")}</div></div>
-                        <div className="min-w-0 flex-1"><bdi className="block truncate font-medium">{classById(r.classId).name}</bdi><div className="text-xs text-muted-foreground">{r.finalized ? t("Finalized") : t("Not finalized")}</div></div>
+                        <div className="min-w-0 flex-1"><bdi className="block truncate font-medium">{(classById(r.classId)?.name ?? r.classId)}</bdi><div className="text-xs text-muted-foreground">{r.finalized ? t("Finalized") : t("Not finalized")}</div></div>
                         <Pill tone={tone} dot>{t(m ?? "Unmarked")}</Pill>
                       </Link>
                     </li>
@@ -250,7 +252,7 @@ function Profile() {
       <Dialog open={!!ruleFor} onOpenChange={(o) => !o && setRuleFor(null)}>
         <DialogContent className="max-h-[92vh] overflow-y-auto" dir={lang === "ar" ? "rtl" : "ltr"}>
           <DialogHeader>
-            <DialogTitle>{t("Billing rule")} · {ruleFor ? classById(ruleFor).name : ""}</DialogTitle>
+            <DialogTitle>{t("Billing rule")} · {ruleFor ? (classById(ruleFor)?.name ?? ruleFor) : ""}</DialogTitle>
             <DialogDescription>{t("Applies to future finalized sessions for this student only. Posted charges are not recalculated. Demo only, not saved.")}</DialogDescription>
           </DialogHeader>
           {ruleFor && draft && (
@@ -262,7 +264,7 @@ function Profile() {
               setRuleFor(null);
             }}>
               <label className="flex items-center gap-2 text-sm"><Checkbox checked={useOwn} onCheckedChange={(v) => { setUseOwn(v === true); if (v !== true) setDraft(L.classRule(ruleFor)); }} />{t("Own billing rule for this student")}</label>
-              {useOwn ? <RuleEditor value={draft} onChange={setDraft} fallbackFee={classById(ruleFor).fee} />
+              {useOwn ? <RuleEditor value={draft} onChange={setDraft} fallbackFee={(classById(ruleFor)?.fee ?? 0)} />
                 : <p className="text-sm text-muted-foreground">{t("Uses the class rule")}: {ruleKindLabel(L.classRule(ruleFor), t)} · {ruleSummary(L.classRule(ruleFor), t, lang)}</p>}
               <RuleEffects rule={useOwn ? draft : L.classRule(ruleFor)} />
               {ruleError && <p role="alert" className="text-sm text-destructive">{ruleError}</p>}
@@ -276,7 +278,7 @@ function Profile() {
         <AlertDialogContent dir={lang === "ar" ? "rtl" : "ltr"}>
           {selling && (() => { const r = L.ruleFor(s.id, selling).rule; return r.kind === "package" ? (<>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t("Add a package")} · {classById(selling).name}</AlertDialogTitle>
+              <AlertDialogTitle>{t("Add a package")} · {(classById(selling)?.name ?? selling)}</AlertDialogTitle>
               <AlertDialogDescription>{t("Charges {amount} for {n} sessions to this student's balance. Record the payment separately. Demo only, not saved.", { amount: ruleSummary(r, t, lang).split(" · ")[0] ?? "", n: fmtNum(r.sessions, lang) })}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter><AlertDialogCancel>{t("Cancel")}</AlertDialogCancel><AlertDialogAction onClick={() => { const e = L.sellPackage(s.id, selling); toast.success(t("Package charge {id} added to demo data", { id: e.id })); setSelling(null); }}>{t("Add package")}</AlertDialogAction></AlertDialogFooter>
@@ -290,13 +292,14 @@ function Profile() {
 type Enrollment = { cid: string; c: ClassItem; rule: BillingRule; source: "class" | "enrollment"; left: number };
 
 function EnrollmentRow({ e, actions }: { e: Enrollment; actions?: ReactNode }) {
+  const { teacherById } = useLedger();
   const { t, lang } = useI18n();
   return (
     <li className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center">
       <IconTile icon={BookOpen} tone="neutral" className="hidden size-9 sm:grid [&_svg]:size-4" />
       <div className="min-w-0 flex-1">
         <bdi className="block break-words text-sm font-medium">{e.c.name}</bdi>
-        <div className="mt-0.5 text-xs text-muted-foreground"><bdi>{teacherById(e.c.teacherId).name}</bdi> · {localDays(e.c.days, t)} · <bdi>{localTime(e.c.time, lang)}</bdi></div>
+        <div className="mt-0.5 text-xs text-muted-foreground"><bdi>{(teacherById(e.c.teacherId)?.name ?? "—")}</bdi> · {localDays(e.c.days, t)} · <bdi>{localTime(e.c.time, lang)}</bdi></div>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <Pill tone={e.source === "enrollment" ? "brand" : "neutral"}>{ruleKindLabel(e.rule, t)} · {t(e.source === "enrollment" ? "own rule" : "class rule")}</Pill>
           <span className="text-xs text-muted-foreground">{ruleSummary(e.rule, t, lang)}</span>
@@ -346,6 +349,7 @@ const entryMeta: Record<LedgerEntry["type"], [typeof Wallet, Tone]> = {
 };
 
 function TxnList({ rows, label, rev, studentId, compact = false }: { rows: LedgerEntry[]; label: (x: LedgerEntry) => string; rev: Set<string>; studentId: string; compact?: boolean }) {
+  const { classById } = useLedger();
   const { t, lang } = useI18n();
   const { entries } = useLedger();
   if (rows.length === 0) return <EmptyState icon={Receipt} title={t("No transactions yet")} compact />;
@@ -359,7 +363,7 @@ function TxnList({ rows, label, rev, studentId, compact = false }: { rows: Ledge
         const [EIcon, tone] = entryMeta[entry.type];
         const sign = entry.type === "Payment" || entry.type === "Discount" ? "−" : entry.type === "Charge" || entry.type === "Refund" ? "+" : "";
         const links = [entry.reversesId, entry.replacesId, reversal?.id, replacement?.id].filter((x): x is string => !!x);
-        const detail = entry.method ? t(entry.method) : noteText(entry.reason ?? entry.note, t, lang) ?? (entry.classId ? classById(entry.classId).name : "—");
+        const detail = entry.method ? t(entry.method) : noteText(entry.reason ?? entry.note, t, lang) ?? (entry.classId ? (classById(entry.classId)?.name ?? entry.classId) : "—");
         return (
           <li id={compact ? undefined : `entry-${entry.id}`} key={entry.id} className="relative flex scroll-mt-24 gap-3 pb-4 last:pb-0">
             {i < rows.length - 1 && <span aria-hidden className="absolute start-4 top-9 bottom-0 w-px bg-border" />}

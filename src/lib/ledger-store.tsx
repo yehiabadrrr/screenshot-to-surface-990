@@ -1,18 +1,25 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
-import { seedLedger, seedSessions, LEDGER_MONTHS, type SessionRecord, type AuditItem } from "./ledger-seed";
+import { seedLedger, seedSessions, type SessionRecord, type AuditItem } from "./ledger-seed";
+import { cairoToday, reportingMonths } from "./business-date";
 import { appendPayment, correctEntry, nextId, periodFilter, comparisonFilter, type Filter, type LedgerEntry, type NewPayment } from "./ledger";
 import { amendAttendance, finalizeSession, sessionIdFor, type BillingRule, type Mark } from "./billing";
-import { students as sampleStudents, classes, classById, teachers, seedEnrollmentRules, enrollmentKey, type Student } from "./data";
+import { students as sampleStudents, classes as sampleClasses, teachers as sampleTeachers, seedEnrollmentRules, enrollmentKey, type ClassItem, type Student, type Teacher } from "./data";
+
+const EMPTY_CATALOG = { classes: [] as ClassItem[], teachers: [] as Teacher[] };
 
 /** The signed-in user, as recorded on ledger entries and attendance (Phase 1: real Supabase identity). */
 export type CurrentUser = { name: string; role: string };
 export type Actor = { kind: "admin"; name: string } | { kind: "teacher"; teacherId: string; name: string };
 
-export const todayIso = () => new Date().toISOString().slice(0, 10);
+/** Business date in Africa/Cairo (see business-date.ts), never the UTC date. */
+export const todayIso = () => cairoToday();
 
 interface Store {
-  classes: typeof classes;
-  teachers: typeof teachers;
+  /** The center's class and teacher catalog. Only the Demo Center gets the sample catalog; customer centers start empty. */
+  classes: ClassItem[];
+  teachers: Teacher[];
+  classById: (id: string) => ClassItem | undefined;
+  teacherById: (id: string) => Teacher | undefined;
   entries: LedgerEntry[];
   period: string; setPeriod: (p: string) => void;
   branch: string; setBranch: (b: string) => void;
@@ -51,8 +58,14 @@ const Ctx = createContext<Store | null>(null);
 export function LedgerProvider({ children, students: loaded, demo, currentUser }: { children: ReactNode; students: Student[]; demo: boolean; currentUser: CurrentUser }) {
   const CURRENT_USER = currentUser;
   const [entries, setEntries] = useState<LedgerEntry[]>(() => (demo ? seedLedger : []));
-  const [classRules, setClassRules] = useState<Record<string, BillingRule>>(() => Object.fromEntries(classes.map((c) => [c.id, c.rule])));
-  const [enrollmentRules, setEnrollmentRules] = useState<Record<string, BillingRule>>(seedEnrollmentRules);
+  // The sample catalog (Nile Academy's classes and teachers) belongs to the Demo Center only.
+  const catalog = demo ? { classes: sampleClasses, teachers: sampleTeachers } : EMPTY_CATALOG;
+  const classes = catalog.classes;
+  const classById = (id: string) => (demo ? catalog.classes.find((c) => c.id === id) : undefined);
+  const requireClass = (id: string) => { const c = classById(id); if (!c) throw new Error("Unknown class"); return c; };
+  const teacherById = (id: string) => catalog.teachers.find((x) => x.id === id);
+  const [classRules, setClassRules] = useState<Record<string, BillingRule>>(() => Object.fromEntries(catalog.classes.map((c) => [c.id, c.rule])));
+  const [enrollmentRules, setEnrollmentRules] = useState<Record<string, BillingRule>>(() => (demo ? seedEnrollmentRules : {}));
   const [sessions, setSessions] = useState<Record<string, SessionRecord>>(() => (demo ? seedSessions : {}));
   const [actor, setActor] = useState<Actor>({ kind: "admin", name: CURRENT_USER.name });
   // Attendance shown beside each student is derived from recorded (demo) sessions, never stored. The Demo
@@ -71,9 +84,11 @@ export function LedgerProvider({ children, students: loaded, demo, currentUser }
       return { ...s, attendance: x ? Math.round((x.present / x.marked) * 100) : sample?.get(s.id) ?? null };
     });
   }, [loaded, sessions, demo]);
-  const [period, setPeriod] = useState(LEDGER_MONTHS[LEDGER_MONTHS.length - 1]!);
-  const [branch, setBranch] = useState("all");
   const today = todayIso();
+  // Rolling window ending with the current Cairo month, so every new month is selectable.
+  const months = useMemo(() => reportingMonths(today, 12), [today]);
+  const [period, setPeriod] = useState(() => months[months.length - 1]!);
+  const [branch, setBranch] = useState("all");
   const filter = useMemo(() => periodFilter(period, branch, today), [period, branch, today]);
   const compare = useMemo(() => comparisonFilter(filter), [filter]);
 
@@ -85,11 +100,11 @@ export function LedgerProvider({ children, students: loaded, demo, currentUser }
 
   const ruleForRef = (studentId: string, classId: string) => {
     const o = ref.current.enrollmentRules[enrollmentKey(studentId, classId)];
-    return o ? { rule: o, source: "enrollment" as const } : { rule: ref.current.classRules[classId] ?? classById(classId).rule, source: "class" as const };
+    return o ? { rule: o, source: "enrollment" as const } : { rule: ref.current.classRules[classId] ?? requireClass(classId).rule, source: "class" as const };
   };
   const ruleFor = useCallback((studentId: string, classId: string) => {
     const o = enrollmentRules[enrollmentKey(studentId, classId)];
-    return o ? { rule: o, source: "enrollment" as const } : { rule: classRules[classId] ?? classById(classId).rule, source: "class" as const };
+    return o ? { rule: o, source: "enrollment" as const } : { rule: classRules[classId] ?? requireClass(classId).rule, source: "class" as const };
   }, [enrollmentRules, classRules]);
 
   const recordPayment = useCallback<Store["recordPayment"]>((p) => {
@@ -119,7 +134,7 @@ export function LedgerProvider({ children, students: loaded, demo, currentUser }
   const finalize = useCallback<Store["finalize"]>((classId, date) => {
     const s = session(classId, date);
     if (s.finalized) throw new Error("This session is already finalized");
-    const c = classById(classId);
+    const c = requireClass(classId);
     const by = ref.current.actor.name;
     const now = new Date().toISOString();
     const r = finalizeSession(ref.current.entries, {
@@ -134,7 +149,7 @@ export function LedgerProvider({ children, students: loaded, demo, currentUser }
   const amend = useCallback<Store["amend"]>((classId, date, studentId, to, reason) => {
     const s = session(classId, date);
     if (!s.finalized) throw new Error("Session is not finalized");
-    const c = classById(classId);
+    const c = requireClass(classId);
     const by = ref.current.actor.name;
     const now = new Date().toISOString();
     const from = s.marks[studentId];
@@ -151,7 +166,7 @@ export function LedgerProvider({ children, students: loaded, demo, currentUser }
   const sellPackage = useCallback<Store["sellPackage"]>((studentId, classId) => {
     const { rule } = ruleForRef(studentId, classId);
     if (rule.kind !== "package") throw new Error("This enrollment is not on a package");
-    const c = classById(classId);
+    const c = requireClass(classId);
     const entry: LedgerEntry = {
       id: nextId(ref.current.entries, "INV-"), type: "Charge", studentId, classId, branch: c.branch, date: todayIso(), amount: rule.price,
       packageSessions: rule.sessions, status: "Completed", enteredBy: CURRENT_USER.name, enteredAt: new Date().toISOString(), note: `Package · ${rule.sessions} sessions`,
@@ -172,10 +187,10 @@ export function LedgerProvider({ children, students: loaded, demo, currentUser }
 
   const studentMap = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
   const value: Store = {
-    classes, teachers,
-    entries, period, setPeriod, branch, setBranch, months: LEDGER_MONTHS, filter, compare, today, recordPayment, correct,
+    classes, teachers: catalog.teachers, classById, teacherById,
+    entries, period, setPeriod, branch, setBranch, months, filter, compare, today, recordPayment, correct,
     demo, currentUser,
-    students, findStudent: (id) => studentMap.get(id), ruleFor, classRule: (id) => classRules[id] ?? classById(id).rule,
+    students, findStudent: (id) => studentMap.get(id), ruleFor, classRule: (id) => classRules[id] ?? requireClass(id).rule,
     setClassRule, setEnrollmentRule, sellPackage,
     actor, setActor, sessions, setMark, setMarks, finalize, amend,
   };
@@ -191,4 +206,5 @@ export function useLedger() {
 export const monthLabel = (ym: string, lang: "en" | "ar" = "en") =>
   new Date(`${ym}-15T00:00:00Z`).toLocaleDateString(lang === "ar" ? "ar-EG-u-nu-latn" : "en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
 
-export const teacherActors = teachers.map((t) => ({ kind: "teacher" as const, teacherId: t.id, name: t.name }));
+/** Teachers the attendance screen can act as (the center's own catalog). */
+export const teacherActorsOf = (teachers: Teacher[]) => teachers.map((t) => ({ kind: "teacher" as const, teacherId: t.id, name: t.name }));

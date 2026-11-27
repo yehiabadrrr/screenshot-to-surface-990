@@ -41,6 +41,8 @@ This section **supersedes the Lovable "Database" and "Secrets" rules above** (de
 ## Finance
 - Overview display selectors stay in `overview-display.ts` and never calculate money; attendance deep links select an existing class/date without changing posting rules.
 - Center name, branches and the signed-in user come from the center context (`src/lib/center-context.tsx`), loaded from Supabase; `center-config.ts` remains only for helpers and sample identity used by the demo seed.
+- Business dates are Africa/Cairo calendar dates (`src/lib/business-date.ts`); reporting months are a rolling window ending with the current Cairo month. Never use `toISOString().slice(0, 10)` for a business date.
+- The sample class and teacher catalog (`src/lib/data.ts`) belongs to the Demo Center only. Screens read the catalog from `useLedger()` (`classes`, `teachers`, `classById`, `teacherById`), never by importing `data.ts`; customer centers start empty. The database refuses `students.class_codes` outside the Demo Center (migration 20261127090000).
 - Students are persistent (Supabase) since Phase 1; classes, ledger and attendance are still in-memory demo data. The Demo Center reproduces the original sample students with their original `S-` codes so the demo ledger still matches them.
 - Presentation formatting lives in `format.ts`; `Money` and localization helpers delegate to it, without changing ledger calculations.
 - The shell command search uses the ledger store's live students and read-only class catalog; sidebar preference is hydrated after mount to avoid SSR mismatches.

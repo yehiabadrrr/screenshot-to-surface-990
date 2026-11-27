@@ -46,7 +46,8 @@ export function AddStudent({ className, variant }: { className?: string; variant
   const validate = () => {
     setAttempted(true);
     if (Object.values(errors).some(Boolean)) { setStep(0); return false; }
-    if (!picked.length) { setError(t("Choose at least one class.")); setStep(1); return false; }
+    // A center with no classes yet can still add students; enrollment comes later.
+    if (!picked.length && classes.length) { setError(t("Choose at least one class.")); setStep(1); return false; }
     if (Object.values(own).some((rule) => !ruleIsValid(rule))) { setError(t("Every amount in a billing rule must be greater than zero.")); setStep(1); return false; }
     return true;
   };

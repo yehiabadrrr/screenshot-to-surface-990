@@ -145,4 +145,3 @@ export interface AuditItem { studentId: string; from: Mark; to: Mark; by: string
 export interface SessionRecord { sessionId: string; classId: string; date: string; marks: Record<string, Mark>; finalized?: { by: string; at: string } | undefined; audit: AuditItem[] }
 export const seedSessions: Record<string, SessionRecord> = {};
 export const seedLedger: LedgerEntry[] = build();
-export { MONTHS as LEDGER_MONTHS };

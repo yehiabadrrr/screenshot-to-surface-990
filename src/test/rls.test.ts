@@ -191,6 +191,14 @@ describe("Demo Center", () => {
     expect(await rows("select next_student_number from public.centers where id = $1", [DEMO_CENTER_ID])).toEqual([{ next_student_number: 1301 }]);
     expect(await rows("select count(*)::int as n from public.students where center_id in ($1, $2)", [centerA, centerB])).toEqual([{ n: 3 }]);
   });
+  it("only the Demo Center may hold sample class codes", async () => {
+    await as(U.a);
+    await expect(db.query("insert into public.students (center_id, branch_id, name, phone, grade, class_codes) values ($1, $2, 'Fake Class', '01012345670', 'Adult', array['C-201'])", [centerA, branchA])).rejects.toThrow(/only allowed in the Demo Center/);
+    await expect(db.query("update public.students set class_codes = array['C-201'] where id = $1", [studentA])).rejects.toThrow(/only allowed in the Demo Center/);
+    await asSuperuser();
+    const demoWithClasses = await rows<{ n: number }>("select count(*)::int as n from public.students where center_id = $1 and cardinality(class_codes) > 0", [DEMO_CENTER_ID]);
+    expect(demoWithClasses[0]!.n).toBeGreaterThan(0);
+  });
   it("re-applying the seed is idempotent", async () => {
     await asSuperuser();
     const seed = readdirSync(MIGRATIONS).find((n) => n.includes("demo_center_seed"))!;

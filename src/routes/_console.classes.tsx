@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { classes, teacherById, type ClassItem } from "@/lib/data";
+import type { ClassItem } from "@/lib/data";
 import type { BillingRule } from "@/lib/billing";
 import { useLedger } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
@@ -29,7 +29,7 @@ const levelOf = (name: string) => name.split(" · ").slice(1).join(" · ") || un
 
 function ClassesPage() {
   const { t, lang } = useI18n();
-  const { classRule, setClassRule, students, branch } = useLedger();
+  const { classRule, setClassRule, students, branch, classes } = useLedger();
   const [kind, setKind] = useState("all");
   const [edit, setEdit] = useState<ClassItem | null>(null);
   const [draft, setDraft] = useState<BillingRule | null>(null);
@@ -108,7 +108,7 @@ function ClassesPage() {
 
 function ClassCard({ c, rule, roster, onEdit }: { c: ClassItem; rule: BillingRule; roster: { id: string; name: string }[]; onEdit: () => void }) {
   const { t, lang } = useI18n();
-  const teacher = teacherById(c.teacherId);
+  const teacher = useLedger().teacherById(c.teacherId) ?? { id: c.teacherId, name: "—", subject: "" };
   const tint = tintFor(teacher.subject);
   const n = roster.length;
   const fill = c.capacity ? (n / c.capacity) * 100 : 0;

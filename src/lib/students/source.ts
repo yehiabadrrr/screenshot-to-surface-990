@@ -3,6 +3,7 @@ import { createStudent, getStudent, listAllStudents, listStudents, updateStudent
 import type { StudentRow } from "@/lib/supabase/types";
 import { DEMO_BRANCH_IDS } from "@/lib/demo-seed";
 import { students as sampleStudents } from "@/lib/data";
+import { cairoToday } from "@/lib/business-date";
 import {
   createStudentInput, listStudentsInput, sanitizeSearch, updateStudentInput,
   type CreateStudentInput, type ListStudentsInput, type UpdateStudentInput,
@@ -92,7 +93,7 @@ export function createLocalStudents(centerId: string, seed: StudentRow[] = sampl
   const rows = seed.map((r) => ({ ...r, class_codes: [...r.class_codes] }));
   let next = Math.max(1000, ...rows.map((r) => codeNumber(r.student_code))) + 1;
   const copy = (r: StudentRow): StudentRow => ({ ...r, class_codes: [...r.class_codes] });
-  const today = () => new Date().toISOString().slice(0, 10);
+  const today = () => cairoToday();
 
   return {
     listAll: async (id) => rows.filter((r) => r.center_id === id).sort((a, b) => byText(a.student_code, b.student_code)).map(copy),
