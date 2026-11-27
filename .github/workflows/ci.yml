@@ -1,0 +1,39 @@
+# Runs on every push to main and every pull request: typecheck, lint (includes Prettier), unit + PGlite RLS
+# tests, and a production build. The live Supabase RLS suite runs only when the test-project secrets exist.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_TEST_URL: ${{ secrets.SUPABASE_TEST_URL }}
+      SUPABASE_TEST_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_TEST_PUBLISHABLE_KEY }}
+      SUPABASE_TEST_USER_A_EMAIL: ${{ secrets.SUPABASE_TEST_USER_A_EMAIL }}
+      SUPABASE_TEST_USER_A_PASSWORD: ${{ secrets.SUPABASE_TEST_USER_A_PASSWORD }}
+      SUPABASE_TEST_USER_B_EMAIL: ${{ secrets.SUPABASE_TEST_USER_B_EMAIL }}
+      SUPABASE_TEST_USER_B_PASSWORD: ${{ secrets.SUPABASE_TEST_USER_B_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Typecheck
+        run: npx tsc --noEmit -p .
+      - name: Lint and format
+        run: npm run lint
+      - name: Tests (unit + PGlite RLS)
+        run: npm test
+      - name: Live RLS suite (Supabase test project)
+        if: ${{ env.SUPABASE_TEST_URL != '' }}
+        run: npm run test:rls-live
+      - name: Build
+        run: npm run build

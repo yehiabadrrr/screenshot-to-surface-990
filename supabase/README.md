@@ -101,6 +101,12 @@ on conflict (center_id, user_id) do nothing;
 
 Customer-created centers (`create_center`) are always `is_demo = false` and never receive sample records.
 
+## Database-side limits
+
+- `create_center`: at most 3 new centers per user per day and 10 owned (migration 20261127100000).
+- `invite_member`: at most 30 invitations per center per day. Memberships are created only by `create_center` and `accept_invitation`; clients cannot insert them.
+- A center always keeps at least one owner (trigger `memberships_keep_an_owner`).
+
 ## Auth settings (dashboard, per project)
 
 Authentication settings are not schema and cannot live in a migration; record any change here.
@@ -112,6 +118,9 @@ Authentication settings are not schema and cannot live in a migration; record an
 | Redirect URLs | `<site>/onboarding` (email confirmation) and `<site>/reset-password` (password recovery); add `http://localhost:8080/**` on the test project for local development. |
 | Confirm email | On for production. The app handles both: without a session after sign-up it asks the user to confirm, then finishes center setup at `/onboarding`. |
 | Minimum password length | 8 (matches the app's validation). |
+| Rate limits (Authentication → Rate Limits) | Keep Supabase defaults or lower: sign-ups and sign-ins per IP, emails per hour. |
+| Bot protection (Authentication → Attack Protection) | Turn on CAPTCHA (Cloudflare Turnstile or hCaptcha) before public launch; the sign-up form then needs the site key (not done yet). |
+| SMTP (Authentication → Emails) | Your own sender (e.g. Resend, Postmark). The built-in Supabase mailer is limited to a few emails per hour and is not for production. |
 
 ## Secrets
 
