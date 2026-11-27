@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BillingRule } from "../billing";
-import type { Branch, ClassItem, Student } from "../data";
+import type { Branch, ClassItem, Student, Teacher } from "../data";
 import { enrollmentKey } from "../data";
-import { columnsToRule, ruleToColumns, toEgp, type RuleColumns } from "../db/rules";
+import type { CompensationModel } from "../finance";
+import { columnsToRule, ruleToColumns, toEgp, toPiastres, type RuleColumns } from "../db/rules";
 
 export interface StudentRowDb {
   id: string;
@@ -83,12 +84,30 @@ export function classFromRow(r: ClassRowDb, enrolled: number): ClassItem {
   };
 }
 
+export interface TeacherRowDb {
+  id: string; code: string; name: string; subject: string; phone: string;
+  pay_model: CompensationModel["type"]; pay_amount_piastres: number | string | null; pay_percent: number | string | null;
+  branches: { name: string } | null;
+}
+const TEACHER_COLUMNS = "id, code, name, subject, phone, pay_model, pay_amount_piastres, pay_percent, branches(name)";
+
+export function teacherFromRow(r: TeacherRowDb): Teacher {
+  const model: CompensationModel = r.pay_model === "percentage"
+    ? { type: "percentage", percent: Number(r.pay_percent ?? 0) }
+    : { type: r.pay_model, amount: toEgp(r.pay_amount_piastres ?? 0) };
+  // sessions/attending/attendance are sample statistics; a real center has none until attendance is saved.
+  return { id: r.code, name: r.name, subject: r.subject, phone: r.phone, branch: (r.branches?.name ?? "") as Branch, model, sessions: 0, attending: 0, attendance: 0 };
+}
+
 export interface CenterData {
   students: Student[];
   classes: ClassItem[];
+  teachers: Teacher[];
   enrollmentRules: Record<string, BillingRule>;
   /** Class code → database id, for writes. */
   classIds: Map<string, string>;
+  /** Teacher code → database id, for writes. */
+  teacherIds: Map<string, string>;
 }
 
 async function all<T>(
@@ -108,7 +127,7 @@ async function all<T>(
 }
 
 export async function loadCenterData(sb: SupabaseClient, centerId: string): Promise<CenterData> {
-  const [studentRows, classRows] = await Promise.all([
+  const [studentRows, classRows, teacherRows] = await Promise.all([
     all<StudentRowDb>((a, b) =>
       sb
         .from("students")
@@ -127,6 +146,9 @@ export async function loadCenterData(sb: SupabaseClient, centerId: string): Prom
         .range(a, b)
         .returns<ClassRowDb[]>(),
     ),
+    all<TeacherRowDb>((a, b) =>
+      sb.from("teachers").select(TEACHER_COLUMNS).eq("center_id", centerId).order("code").range(a, b).returns<TeacherRowDb[]>(),
+    ),
   ]);
   const students = studentRows.map(studentFromRow);
   const counts = new Map<string, number>();
@@ -136,8 +158,58 @@ export async function loadCenterData(sb: SupabaseClient, centerId: string): Prom
     students,
     classes: classRows.map((c) => classFromRow(c, counts.get(c.code) ?? 0)),
     enrollmentRules: enrollmentRulesFromRows(studentRows),
+    teachers: teacherRows.map(teacherFromRow),
     classIds: new Map(classRows.map((c) => [c.code, c.id])),
+    teacherIds: new Map(teacherRows.map((t) => [t.code, t.id])),
   };
+}
+
+/** What the class and teacher editors produce (EGP; codes are the app's IDs, empty for a new record). */
+export type ClassInput = Omit<ClassItem, "id" | "enrolled" | "revenue" | "attendance"> & { id?: string };
+export type TeacherInput = Pick<Teacher, "name" | "subject" | "phone" | "branch" | "model"> & { id?: string };
+
+export interface CatalogRefs { classIds: Map<string, string>; teacherIds: Map<string, string>; branchIds: Record<string, string> }
+
+export function teacherColumns(t: TeacherInput, refs: CatalogRefs) {
+  return {
+    name: t.name.trim(), subject: t.subject.trim(), phone: t.phone, branch_id: refs.branchIds[t.branch] ?? null,
+    pay_model: t.model.type,
+    pay_amount_piastres: t.model.type === "percentage" ? null : toPiastres(t.model.amount),
+    pay_percent: t.model.type === "percentage" ? t.model.percent : null,
+  };
+}
+
+export function classColumns(c: ClassInput, refs: CatalogRefs) {
+  const teacherId = refs.teacherIds.get(c.teacherId);
+  if (c.teacherId && !teacherId) throw new Error(`Unknown teacher ${c.teacherId}`);
+  return {
+    name: c.name.trim(), kind: c.kind === "Tutoring" ? "tutoring" : "language_course", teacher_id: teacherId ?? null,
+    branch_id: refs.branchIds[c.branch] ?? null, days: c.days, start_time: c.time, capacity: c.capacity,
+    fee_piastres: toPiastres(c.fee), ...ruleToColumns(c.rule),
+  };
+}
+
+/** Insert or update, then read the row back so the app shows what the database stored (codes included). */
+export async function saveTeacher(sb: SupabaseClient, centerId: string, t: TeacherInput, refs: CatalogRefs): Promise<{ teacher: Teacher; dbId: string }> {
+  const cols = teacherColumns(t, refs);
+  const dbId = t.id ? refs.teacherIds.get(t.id) : undefined;
+  const q = dbId
+    ? sb.from("teachers").update(cols).eq("id", dbId).select(TEACHER_COLUMNS).single<TeacherRowDb>()
+    : sb.from("teachers").insert({ center_id: centerId, ...cols }).select(TEACHER_COLUMNS).single<TeacherRowDb>();
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return { teacher: teacherFromRow(data), dbId: data.id };
+}
+
+export async function saveClass(sb: SupabaseClient, centerId: string, c: ClassInput, refs: CatalogRefs, enrolled: number): Promise<{ cls: ClassItem; dbId: string }> {
+  const cols = classColumns(c, refs);
+  const dbId = c.id ? refs.classIds.get(c.id) : undefined;
+  const q = dbId
+    ? sb.from("classes").update(cols).eq("id", dbId).select(CLASS_COLUMNS).single<ClassRowDb>()
+    : sb.from("classes").insert({ center_id: centerId, ...cols }).select(CLASS_COLUMNS).single<ClassRowDb>();
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return { cls: classFromRow(data, enrolled), dbId: data.id };
 }
 
 export interface NewStudentInput {

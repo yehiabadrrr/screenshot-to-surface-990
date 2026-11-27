@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { GraduationCap, Phone, MapPin, BookOpen, Users, Info, Construction } from "lucide-react";
+import { useMemo, useState } from "react";
+import { GraduationCap, Phone, MapPin, BookOpen, Users, Info, Construction, Plus, Pencil } from "lucide-react";
+import { TeacherEditor } from "@/components/app/teacher-editor";
+import type { Teacher } from "@/lib/data";
 import { PageHeader, Pill, Avatar, MiniStat, EmptyState, tintClass, tintFor } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { useLedger } from "@/lib/ledger-store";
@@ -29,7 +31,8 @@ const modelLabel: Record<CompensationModel["type"], string> = { monthly: "Monthl
 
 function Page() {
   const { t, lang } = useI18n();
-  const { teachers, classes, students, branch } = useLedger();
+  const { teachers, classes, students, branch, canManageCatalog } = useLedger();
+  const [editing, setEditing] = useState<Teacher | null | "new">(null);
   const scoped = teachers.filter((x) => branch === "all" || x.branch === branch);
   const activeByClass = useMemo(() => {
     const m = new Map<string, number>();
@@ -41,11 +44,12 @@ function Page() {
 
   return (
     <div className="mx-auto max-w-[90rem]">
-      <PageHeader subtitle={t("{n} teachers · {s} subjects", { n: fmtNum(scoped.length, lang), s: fmtNum(subjects, lang) })} />
+      <PageHeader subtitle={t("{n} teachers · {s} subjects", { n: fmtNum(scoped.length, lang), s: fmtNum(subjects, lang) })}
+        actions={canManageCatalog ? <Button onClick={() => setEditing("new")}><Plus />{t("Add teacher")}</Button> : undefined} />
 
       <div className="mb-5 flex items-start gap-3 rounded-xl border border-info/20 bg-info-soft px-4 py-3 text-sm">
         <Construction className="mt-0.5 size-4 shrink-0 text-info" />
-        <div><div className="font-semibold">{t("Teacher management is next in line")}</div><p className="mt-0.5 text-[13px] text-muted-foreground">{t("This roster is read-only and comes from the class catalog. Adding teachers, payout settlement and payslips are not built yet. Accrued payables appear on Finance.")}</p></div>
+        <div><div className="font-semibold">{t("Payouts and payslips are next")}</div><p className="mt-0.5 text-[13px] text-muted-foreground">{t("Add teachers and set their pay agreement here. Accrued payables appear on Finance; settling payouts and payslips are not built yet.")}</p></div>
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -55,7 +59,7 @@ function Page() {
         <MiniStat tone="warning" icon={Info} label={t("Fixed or per-unit pay")} value={fmtNum(scoped.length - (models["percentage"] ?? 0), lang)} hint={t("Salary, per session or per student")} />
       </div>
 
-      {scoped.length === 0 ? <div className="surface"><EmptyState icon={GraduationCap} title={t("No teachers in this branch")} /></div> : (
+      {scoped.length === 0 ? <div className="surface"><EmptyState icon={GraduationCap} title={t(teachers.length ? "No teachers in this branch" : "No teachers yet")} hint={teachers.length ? undefined : t("Add teachers with their pay agreement, then assign them to classes.")} action={!teachers.length && canManageCatalog ? <Button onClick={() => setEditing("new")}><Plus />{t("Add teacher")}</Button> : undefined} /></div> : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {scoped.map((x) => {
             const own = classes.filter((c) => c.teacherId === x.id);
@@ -71,6 +75,7 @@ function Page() {
                       <bdi className="block truncate font-display text-base font-bold tracking-tight">{x.name}</bdi>
                       <div className="mt-1 flex flex-wrap items-center gap-1.5"><span className={cn("rounded-md px-1.5 py-0.5 text-[11px] font-semibold", tintClass[tint])}>{t(x.subject)}</span><span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"><MapPin className="size-3" />{t(x.branch)}</span></div>
                     </div>
+                    {canManageCatalog && <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => setEditing(x)} aria-label={`${t("Edit teacher")} · ${x.name}`} title={t("Edit teacher")}><Pencil className="size-4" /></Button>}
                     <Button variant="ghost" size="icon" className="size-8 shrink-0" asChild><a href={`tel:${x.phone}`} aria-label={`${t("Call")} · ${x.name}`} title={t("Call")}><Phone className="size-4" /></a></Button>
                   </div>
 
@@ -99,6 +104,7 @@ function Page() {
           })}
         </div>
       )}
+      <TeacherEditor open={editing !== null} onOpenChange={(o) => { if (!o) setEditing(null); }} initial={editing === "new" ? null : editing} />
     </div>
   );
 }

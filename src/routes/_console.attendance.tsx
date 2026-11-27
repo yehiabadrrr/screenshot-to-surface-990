@@ -11,9 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { classes, teacherById } from "@/lib/data";
 import { classWeekdays, weekdayOf, sessionIdFor, sessionOutcome, packageRemaining, linkedEntry, type AttendanceStatus, type Mark } from "@/lib/billing";
-import { useLedger, todayIso, teacherActors } from "@/lib/ledger-store";
+import { useLedger, todayIso } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
 import { egp } from "@/lib/format";
 import { fmtNum, localDays, localTime, longDate, outcomeText, ruleKindLabel, ruleSummary, timeOfDay } from "@/lib/l10n";
@@ -22,7 +21,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_console/attendance")({
   validateSearch: (search: Record<string, unknown>): { classId?: string; date?: string } => ({
-    ...(typeof search['classId'] === "string" && classes.some((c) => c.id === search['classId']) ? { classId: search['classId'] } : {}),
+    ...(typeof search['classId'] === "string" && /^C-\d+$/.test(search['classId']) ? { classId: search['classId'] } : {}),
     ...(typeof search['date'] === "string" && /^\d{4}-\d{2}-\d{2}$/.test(search['date']) && search['date'] <= todayIso() ? { date: search['date'] } : {}),
   }),
   head: pageHead("Attendance", "Mark Present, Absent or Excused, see how each student is billed, and finalize the session."),
@@ -40,7 +39,7 @@ function AttendancePage() {
   const { t, lang } = useI18n();
   const L = useLedger();
   const { actor, setActor, entries } = L;
-  const visible = actor.kind === "teacher" ? classes.filter((c) => c.teacherId === actor.teacherId) : classes;
+  const visible = actor.kind === "teacher" ? L.classes.filter((c) => c.teacherId === actor.teacherId) : L.classes;
   const [pickedClass, setPickedClass] = useState(search.classId ?? "");
   const [date, setDate] = useState(search.date ?? todayIso());
   // With no class picked, open on the first class actually scheduled for the selected date.
@@ -52,7 +51,7 @@ function AttendancePage() {
   const [amendError, setAmendError] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const cls = classes.find((c) => c.id === classId);
+  const cls = L.classes.find((c) => c.id === classId);
   const sid = cls ? sessionIdFor(cls.id, date) : "";
   const rec = L.sessions[sid];
   const marks = rec?.marks ?? {};
@@ -67,7 +66,7 @@ function AttendancePage() {
   }), [roster, L, cls, entries, finalized, sid, marks]);
 
   if (!cls) {
-    return <div className="mx-auto max-w-3xl"><PageHeader title={t("Attendance")} /><p className="surface p-6 text-sm text-muted-foreground">{t("No classes are assigned to this teacher.")}</p></div>;
+    return <div className="mx-auto max-w-3xl"><PageHeader title={t("Attendance")} /><p className="surface p-6 text-sm text-muted-foreground">{t(actor.kind === "teacher" ? "No classes are assigned to this teacher." : "No classes yet. Add your first class under Classes, then take its attendance here.")}</p></div>;
   }
 
   const counts = { Present: 0, Absent: 0, Excused: 0 } as Record<AttendanceStatus, number>;
@@ -103,11 +102,11 @@ function AttendancePage() {
         title={actor.kind === "teacher" ? t("My classes · attendance") : t("Attendance")}
         subtitle={actor.kind === "teacher" ? t("My classes · attendance") : t("Tap a status for each student. Unmarked students are never charged.")}
         actions={
-          <Select value={actor.kind === "admin" ? "admin" : actor.teacherId} onValueChange={(v) => { if (v === "admin") setActor({ kind: "admin", name: L.currentUser.name }); else { const next = teacherActors.find((a) => a.teacherId === v); if (next) setActor(next); } }} dir={lang === "ar" ? "rtl" : "ltr"}>
+          <Select value={actor.kind === "admin" ? "admin" : actor.teacherId} onValueChange={(v) => { if (v === "admin") setActor({ kind: "admin", name: L.currentUser.name }); else { const next = L.teacherActors.find((a) => a.teacherId === v); if (next) setActor(next); } }} dir={lang === "ar" ? "rtl" : "ltr"}>
             <SelectTrigger className="h-9 w-auto min-w-56 gap-2 bg-card" aria-label={t("Viewing as")}><Eye className="size-4 text-muted-foreground" /><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="admin">{t("Viewing as")}: {L.currentUser.name} ({t(L.currentUser.role)})</SelectItem>
-              {teacherActors.map((a) => <SelectItem key={a.teacherId} value={a.teacherId}>{t("Viewing as")}: {a.name} ({t("Teacher")})</SelectItem>)}
+              {L.teacherActors.map((a) => <SelectItem key={a.teacherId} value={a.teacherId}>{t("Viewing as")}: {a.name} ({t("Teacher")})</SelectItem>)}
             </SelectContent>
           </Select>
         }
@@ -125,7 +124,7 @@ function AttendancePage() {
         </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 text-[13px] text-muted-foreground sm:px-5">
           <span className="inline-flex items-center gap-1.5 font-semibold text-foreground"><CalendarDays className="size-4 text-brand" />{longDate(date, lang)}</span>
-          <span className="inline-flex items-center gap-1.5"><Avatar name={teacherById(cls.teacherId).name} seed={cls.teacherId} size="xs" /><bdi className="font-medium text-foreground">{teacherById(cls.teacherId).name}</bdi></span>
+          <span className="inline-flex items-center gap-1.5"><Avatar name={(L.findTeacher(cls.teacherId)?.name ?? "—")} seed={cls.teacherId} size="xs" /><bdi className="font-medium text-foreground">{(L.findTeacher(cls.teacherId)?.name ?? "—")}</bdi></span>
           <span className="inline-flex items-center gap-1.5"><Clock3 className="size-4" />{localDays(cls.days, t)} · <bdi>{localTime(cls.time, lang)}</bdi></span>
           <span className="inline-flex items-center gap-1.5"><MapPin className="size-4" />{t(cls.branch)}</span>
           <span className="ms-auto">{finalized ? <Pill tone="positive" dot>{t("Finalized")}</Pill> : <Pill tone="warning" dot>{t("Draft")}</Pill>}</span>

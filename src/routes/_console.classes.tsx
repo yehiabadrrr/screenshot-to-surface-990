@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Pencil, BookOpen, Languages as LanguagesIcon, CalendarCheck, CalendarDays, Clock3, MapPin, MoreHorizontal, Info, Users, Layers, Receipt, Repeat, PackageCheck } from "lucide-react";
+import { Plus, Pencil, BookOpen, Languages as LanguagesIcon, CalendarCheck, CalendarDays, Clock3, MapPin, MoreHorizontal, Info, Users, Layers, Receipt, Repeat, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, Pill, Money, Avatar, Meter, MiniStat, EmptyState, tintClass, tintFor } from "@/components/app/ui";
 import { RuleEditor, ruleIsValid } from "@/components/app/rule-editor";
@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { classes, teacherById, type ClassItem } from "@/lib/data";
+import type { ClassItem } from "@/lib/data";
+import { ClassEditor } from "@/components/app/class-editor";
 import type { BillingRule } from "@/lib/billing";
 import { useLedger } from "@/lib/ledger-store";
 import { useI18n } from "@/lib/i18n";
@@ -29,7 +30,9 @@ const levelOf = (name: string) => name.split(" · ").slice(1).join(" · ") || un
 
 function ClassesPage() {
   const { t, lang } = useI18n();
-  const { classRule, setClassRule, students, branch } = useLedger();
+  const { classRule, students, branch, classes, saveClass, canManageCatalog, source } = useLedger();
+  const [editing, setEditing] = useState<ClassItem | null | "new">(null);
+  const [savingRule, setSavingRule] = useState(false);
   const [kind, setKind] = useState("all");
   const [edit, setEdit] = useState<ClassItem | null>(null);
   const [draft, setDraft] = useState<BillingRule | null>(null);
@@ -53,7 +56,7 @@ function ClassesPage() {
   return (
     <div className="mx-auto max-w-[90rem]">
       <PageHeader subtitle={t("{n} active classes · {e} enrollments", { n: fmtNum(scoped.length, lang), e: fmtNum(totalEnrolled, lang) })}
-        actions={<span className="inline-flex items-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-xs text-muted-foreground"><Info className="size-3.5 shrink-0" />{t("Creating classes needs saved data, which isn't set up yet.")}</span>} />
+        actions={canManageCatalog ? <Button onClick={() => setEditing("new")}><Plus />{t("New class")}</Button> : <span className="inline-flex items-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-xs text-muted-foreground"><Info className="size-3.5 shrink-0" />{t("Only the center's owner can add or edit classes.")}</span>} />
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <MiniStat tone="brand" icon={Layers} label={t("Classes")} value={fmtNum(scoped.length, lang)} hint={t("{t} tutoring · {l} language", { t: fmtNum(counts.Tutoring, lang), l: fmtNum(counts["Language course"], lang) })} />
@@ -73,9 +76,9 @@ function ClassesPage() {
         <span className="text-xs text-muted-foreground">{branch === "all" ? t("All branches") : t(branch)}</span>
       </div>
 
-      {rows.length === 0 ? <div className="surface"><EmptyState icon={BookOpen} title={t("No classes in this branch")} /></div> : (
+      {rows.length === 0 ? <div className="surface"><EmptyState icon={BookOpen} title={t(classes.length ? "No classes in this branch" : "No classes yet")} hint={classes.length ? undefined : t("Add your first class with its teacher, days and billing rule.")} action={!classes.length && canManageCatalog ? <Button onClick={() => setEditing("new")}><Plus />{t("New class")}</Button> : undefined} /></div> : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {rows.map((c) => <ClassCard key={c.id} c={c} rule={classRule(c.id)} roster={roster.get(c.id) ?? []} onEdit={() => openEdit(c)} />)}
+          {rows.map((c) => <ClassCard key={c.id} c={c} rule={classRule(c.id)} roster={roster.get(c.id) ?? []} onEdit={() => openEdit(c)} onEditClass={canManageCatalog ? () => setEditing(c) : undefined} />)}
         </div>
       )}
 
@@ -83,32 +86,40 @@ function ClassesPage() {
         <DialogContent dir={lang === "ar" ? "rtl" : "ltr"} className="max-h-[92vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("Billing rule")} · <bdi>{edit?.name}</bdi></DialogTitle>
-            <DialogDescription>{t("Applies to future finalized sessions for students without their own rule. Posted charges are not recalculated. Demo only, not saved.")}</DialogDescription>
+            <DialogDescription>{t(source.kind === "center" ? "Applies to future finalized sessions for students without their own rule. Posted charges are not recalculated." : "Applies to future finalized sessions for students without their own rule. Posted charges are not recalculated. Demo only, not saved.")}</DialogDescription>
           </DialogHeader>
           {edit && draft && (
-            <form className="space-y-4" onSubmit={(e) => {
+            <form className="space-y-4" onSubmit={async (e) => {
               e.preventDefault();
               if (!ruleIsValid(draft)) { setError(t("Every amount in a billing rule must be greater than zero.")); return; }
-              setClassRule(edit.id, draft);
-              toast.success(t("Billing rule updated in demo data"), { description: `${edit.name} · ${ruleSummary(draft, t, lang)}` });
-              setEdit(null);
+              setSavingRule(true);
+              try {
+                await saveClass({ ...edit, rule: draft });
+                toast.success(t(source.kind === "center" ? "Billing rule saved" : "Billing rule updated in demo data"), { description: `${edit.name} · ${ruleSummary(draft, t, lang)}` });
+                setEdit(null);
+              } catch (err) {
+                setError(t("Couldn't save the class: {reason}", { reason: err instanceof Error ? err.message : String(err) }));
+              } finally { setSavingRule(false); }
             }}>
               <RuleEditor value={draft} onChange={setDraft} fallbackFee={edit.fee} />
               <RuleEffects rule={draft} />
-              <p className="text-xs text-muted-foreground">{t("Other class details (name, teacher, schedule) can't be edited until saved data is set up.")} <Money value={edit.fee} /> · {localDays(edit.days, t)}</p>
+              <p className="text-xs text-muted-foreground"><Money value={edit.fee} /> · {localDays(edit.days, t)}</p>
               {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-              <DialogFooter><Button type="button" variant="outline" onClick={() => setEdit(null)}>{t("Cancel")}</Button><Button type="submit">{t("Save rule")}</Button></DialogFooter>
+              <DialogFooter><Button type="button" variant="outline" onClick={() => setEdit(null)}>{t("Cancel")}</Button><Button type="submit" disabled={savingRule}>{savingRule ? "…" : t("Save rule")}</Button></DialogFooter>
             </form>
           )}
         </DialogContent>
       </Dialog>
+      <ClassEditor open={editing !== null} onOpenChange={(o) => { if (!o) setEditing(null); }} initial={editing === "new" ? null : editing} />
     </div>
   );
 }
 
-function ClassCard({ c, rule, roster, onEdit }: { c: ClassItem; rule: BillingRule; roster: { id: string; name: string }[]; onEdit: () => void }) {
+function ClassCard({ c, rule, roster, onEdit, onEditClass }: { c: ClassItem; rule: BillingRule; roster: { id: string; name: string }[]; onEdit: () => void; onEditClass?: (() => void) | undefined }) {
   const { t, lang } = useI18n();
-  const teacher = teacherById(c.teacherId);
+  const { findTeacher } = useLedger();
+  const found = findTeacher(c.teacherId);
+  const teacher = found ?? { id: c.teacherId || c.id, name: t("No teacher yet"), subject: c.kind };
   const tint = tintFor(teacher.subject);
   const n = roster.length;
   const fill = c.capacity ? (n / c.capacity) * 100 : 0;
@@ -124,7 +135,8 @@ function ClassCard({ c, rule, roster, onEdit }: { c: ClassItem; rule: BillingRul
           <DropdownMenu dir={lang === "ar" ? "rtl" : "ltr"}>
             <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:bg-card/70" aria-label={`${t("Class actions")} · ${c.name}`}><MoreHorizontal /></Button></DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuItem onSelect={onEdit}><Pencil />{t("Edit billing rule")}</DropdownMenuItem>
+              {onEditClass && <DropdownMenuItem onSelect={onEditClass}><Pencil />{t("Edit class")}</DropdownMenuItem>}
+              <DropdownMenuItem onSelect={onEdit}><Receipt />{t("Edit billing rule")}</DropdownMenuItem>
               <DropdownMenuItem asChild><Link to="/attendance" search={{ classId: c.id }}><CalendarCheck />{t("Take attendance")}</Link></DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -323,3 +323,55 @@ describe("enrollments", () => {
     ).rejects.toThrow(/enrollments_rule_complete/);
   });
 });
+
+describe("catalog: branches, teachers, classes", () => {
+  const branchOf = async (center: string) => (await one<{ id: string }>("select id from public.branches where center_id = $1 limit 1", [center])).id;
+
+  it("an owner creates a teacher and a class; codes are assigned per center", async () => {
+    await as(db, A);
+    const branch = await branchOf(centerA);
+    const t = await one<{ id: string; code: string }>(
+      "insert into public.teachers (center_id, name, subject, branch_id, pay_model, pay_percent) values ($1, 'Mona Adel', 'Chemistry', $2, 'percentage', 40) returning id, code",
+      [centerA, branch],
+    );
+    expect(t.code).toBe("T-101");
+    const c = await one<{ code: string }>(
+      "insert into public.classes (center_id, name, kind, teacher_id, branch_id, days, start_time, capacity, fee_piastres, rule_kind, rule_fee_piastres) values ($1, 'Chemistry · Prep 3', 'tutoring', $2, $3, 'Sat · Tue', '4:30 PM', 24, 35000, 'monthly', 35000) returning code",
+      [centerA, t.id, branch],
+    );
+    expect(c.code).toBe("C-201"); // the enrollments test above made a hand-coded "C-1"; numbering still starts at 201
+    await as(db, B);
+    const tb = await one<{ code: string }>("insert into public.teachers (center_id, name, pay_model, pay_amount_piastres) values ($1, 'Karim Fawzy', 'monthly', 900000) returning code", [centerB]);
+    expect(tb.code).toBe("T-101");
+  });
+
+  it("an owner edits names, rules and pay, but never codes or centers", async () => {
+    await as(db, A);
+    expect((await db.query("update public.classes set capacity = 30, rule_kind = 'per_session', rule_fee_piastres = null, rule_rate_piastres = 6000, rule_charge_no_show = false where center_id = $1 and code = 'C-201'", [centerA])).affectedRows).toBe(1);
+    expect((await db.query("update public.teachers set pay_percent = 45 where center_id = $1 and code = 'T-101'", [centerA])).affectedRows).toBe(1);
+    expect((await db.query("update public.branches set name = 'Dokki (main)' where center_id = $1", [centerA])).affectedRows).toBe(1);
+    await expect(db.query("update public.classes set code = 'C-999' where center_id = $1", [centerA])).rejects.toThrow(/permission denied/);
+    await expect(db.query("update public.teachers set center_id = $2 where center_id = $1", [centerA, centerB])).rejects.toThrow(/permission denied/);
+    await expect(db.query("delete from public.classes where center_id = $1", [centerA])).rejects.toThrow(/permission denied/);
+  });
+
+  it("other centers, the demo center and non-owners cannot change the catalog", async () => {
+    await as(db, B);
+    await expect(db.query("insert into public.teachers (center_id, name, pay_model, pay_amount_piastres) values ($1, 'Intruder', 'monthly', 100)", [centerA])).rejects.toThrow(/row-level security/);
+    expect((await db.query("update public.classes set capacity = 1 where center_id = $1", [centerA])).affectedRows).toBe(0);
+    await expect(db.query("insert into public.branches (center_id, name) values ($1, 'Fake branch')", [DEMO_CENTER_ID])).rejects.toThrow(/row-level security/);
+    await as(db, T);
+    await expect(db.query("insert into public.teachers (center_id, name, pay_model, pay_amount_piastres) values ($1, 'Teacher made', 'monthly', 100)", [centerA])).rejects.toThrow(/row-level security/);
+    expect((await db.query("update public.teachers set pay_percent = 99 where center_id = $1", [centerA])).affectedRows).toBe(0);
+  });
+
+  it("a class cannot point at another center's teacher or branch", async () => {
+    await as(db, B);
+    const teacherB = (await one<{ id: string }>("select id from public.teachers where center_id = $1", [centerB])).id;
+    await as(db, A);
+    await expect(db.query(
+      "insert into public.classes (center_id, name, kind, teacher_id, capacity, fee_piastres, rule_kind, rule_fee_piastres) values ($1, 'Cross', 'tutoring', $2, 10, 100, 'monthly', 100)",
+      [centerA, teacherB],
+    )).rejects.toThrow(/foreign key|violates/);
+  });
+});

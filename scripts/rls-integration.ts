@@ -135,6 +135,18 @@ async function main() {
   const second = await a.sb.rpc("create_center", { center_name: "Second center" });
   check("one center per account", !!second.error, second.error?.code);
 
+  // Catalog: owners create and edit teachers and classes; nobody else can touch them.
+  const teacherA = await a.sb.from("teachers").insert({ center_id: centerA, name: `Test Teacher ${run}`, pay_model: "percentage", pay_percent: 40 }).select("id, code").single();
+  check("A's owner adds a teacher (code assigned)", !teacherA.error && /^T-\d+$/.test(teacherA.data?.code ?? ""), teacherA.error?.message ?? teacherA.data?.code);
+  const classA = await a.sb.from("classes").insert({ center_id: centerA, name: `Test Class ${run}`, kind: "tutoring", teacher_id: teacherA.data?.id, capacity: 20, fee_piastres: 40000, rule_kind: "monthly", rule_fee_piastres: 40000 }).select("id, code").single();
+  check("A's owner adds a class (code assigned)", !classA.error && /^C-\d+$/.test(classA.data?.code ?? ""), classA.error?.message ?? classA.data?.code);
+  const bIntoA = await b.sb.from("teachers").insert({ center_id: centerA, name: "Intruder", pay_model: "monthly", pay_amount_piastres: 100 });
+  check("B cannot add a teacher to A's center", !!bIntoA.error, bIntoA.error?.code);
+  const bEditsA = await b.sb.from("classes").update({ capacity: 1 }).eq("id", classA.data!.id).select("id");
+  check("B cannot edit A's class", !bEditsA.error && bEditsA.data.length === 0, bEditsA.error?.message);
+  const recode = await a.sb.from("classes").update({ code: "C-999" }).eq("id", classA.data!.id).select("id");
+  check("class codes cannot be changed", !!recode.error, recode.error?.code);
+
   // Demo center: readable, never writable
   const demo = centersA.data?.find((c) => c.is_demo);
   if (demo) {
@@ -145,6 +157,8 @@ async function main() {
     check("demo center students are readable", (demoCount.count ?? 0) > 0, String(demoCount.count));
     const demoWrite = await addStudent(a.sb, demo.id, `Demo Writer ${run}`);
     check("demo center is read-only", !!demoWrite.error, demoWrite.error?.code);
+    const demoClass = await a.sb.from("classes").insert({ center_id: demo.id, name: "Demo writer", kind: "tutoring", capacity: 1, fee_piastres: 100, rule_kind: "monthly", rule_fee_piastres: 100 });
+    check("demo center catalog is read-only", !!demoClass.error, demoClass.error?.code);
   } else check("demo center is seeded", false);
 
   // Signed out

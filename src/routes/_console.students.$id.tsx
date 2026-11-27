@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { classById, teacherById, type ClassItem } from "@/lib/data";
+import type { ClassItem } from "@/lib/data";
 import { balancesAsOf, ledgerIndex, displayStatus, type LedgerEntry, type LedgerIndex } from "@/lib/ledger";
 import { packageRemaining, type BillingRule } from "@/lib/billing";
 import { useLedger, todayIso } from "@/lib/ledger-store";
@@ -59,7 +59,7 @@ function Profile() {
     .sort((a, z) => z.date.localeCompare(a.date)).slice(0, 40), [L.sessions, id, s]);
 
   const tracked = L.source.kind === "demo" || L.source.isDemoCenter;
-  const findClass = (cid: string) => L.enrollable.classes.find((c) => c.id === cid) ?? classById(cid);
+  const findClass = (cid: string): ClassItem => L.findClass(cid) ?? { id: cid, name: cid, kind: "Tutoring", teacherId: "", branch: "" as ClassItem["branch"], days: "", time: "", capacity: 0, enrolled: 0, fee: 0, revenue: 0, attendance: 0, rule: L.classRule(cid) };
   if (!s && L.source.loading) return <p role="status" className="mx-auto max-w-3xl text-sm text-muted-foreground">{t("Loading students…")}</p>;
   if (!s) {
     return <div className="mx-auto max-w-3xl"><div className="surface"><EmptyState icon={UserRound} title={t("Student not found")} hint={L.source.kind === "demo" ? t("Sample students added in this tab disappear on refresh.") : undefined} action={<Button asChild variant="outline"><Link to="/students"><ArrowLeft className="rtl:rotate-180" />{t("Back to students")}</Link></Button>} /></div></div>;
@@ -277,12 +277,13 @@ type Enrollment = { cid: string; c: ClassItem; rule: BillingRule; source: "class
 
 function EnrollmentRow({ e, actions }: { e: Enrollment; actions?: ReactNode }) {
   const { t, lang } = useI18n();
+  const { findTeacher } = useLedger();
   return (
     <li className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center">
       <IconTile icon={BookOpen} tone={e.c.kind === "Tutoring" ? "brand" : "teal"} className="hidden size-9 sm:grid [&_svg]:size-4" />
       <div className="min-w-0 flex-1">
         <bdi className="block break-words text-sm font-semibold">{e.c.name}</bdi>
-        <div className="mt-0.5 text-xs text-muted-foreground"><bdi>{teacherById(e.c.teacherId)?.name ?? "—"}</bdi> · {localDays(e.c.days, t)} · <bdi>{localTime(e.c.time, lang)}</bdi></div>
+        <div className="mt-0.5 text-xs text-muted-foreground"><bdi>{findTeacher(e.c.teacherId)?.name ?? "—"}</bdi> · {localDays(e.c.days, t)} · <bdi>{localTime(e.c.time, lang)}</bdi></div>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <Pill tone={e.source === "enrollment" ? "brand" : "neutral"}>{ruleKindLabel(e.rule, t)} · {t(e.source === "enrollment" ? "own rule" : "class rule")}</Pill>
           <span className="text-xs text-muted-foreground">{ruleSummary(e.rule, t, lang)}</span>
@@ -332,7 +333,7 @@ const entryMeta: Record<LedgerEntry["type"], [typeof Wallet, Tone]> = {
 
 function TxnList({ rows, label, rev, studentId, compact = false }: { rows: LedgerEntry[]; label: (x: LedgerEntry) => string; rev: LedgerIndex; studentId: string; compact?: boolean }) {
   const { t, lang } = useI18n();
-  const { entries } = useLedger();
+  const { entries, findClass } = useLedger();
   if (rows.length === 0) return <EmptyState icon={Receipt} title={t("No transactions yet")} compact />;
   return (
     <ol className="relative">
@@ -344,7 +345,7 @@ function TxnList({ rows, label, rev, studentId, compact = false }: { rows: Ledge
         const [EIcon, tone] = entryMeta[entry.type];
         const sign = entry.type === "Payment" || entry.type === "Discount" ? "−" : entry.type === "Charge" || entry.type === "Refund" ? "+" : "";
         const links = [entry.reversesId, entry.replacesId, reversal?.id, replacement?.id].filter((x): x is string => !!x);
-        const detail = entry.method ? t(entry.method) : noteText(entry.reason ?? entry.note, t, lang) ?? (entry.classId ? classById(entry.classId).name : "—");
+        const detail = entry.method ? t(entry.method) : noteText(entry.reason ?? entry.note, t, lang) ?? (entry.classId ? findClass(entry.classId)?.name ?? entry.classId : "—");
         return (
           <li id={compact ? undefined : `entry-${entry.id}`} key={entry.id} className="relative flex scroll-mt-24 gap-3 pb-4 last:pb-0">
             {i < rows.length - 1 && <span aria-hidden className="absolute start-4 top-9 bottom-0 w-px bg-border" />}

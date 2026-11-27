@@ -269,8 +269,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           {source.kind === "center" ? (
             <div role="status" className="flex items-center justify-center gap-1.5 border-t border-brand/20 bg-brand/5 px-4 py-1 text-center text-[11px] text-foreground">
               <span className="size-1.5 shrink-0 rounded-full bg-brand" />
-              <span className="font-semibold">{t(source.isDemoCenter ? "Demo Center (read-only)" : "Students are saved")}</span>
-              <span className="hidden text-muted-foreground sm:inline">· {t(source.isDemoCenter ? "Students come from saved sample data. Finance and attendance are sample data that reset on refresh." : "Finance, attendance and classes aren't saved yet: they start empty and reset on refresh.")}</span>
+              <span className="font-semibold">{t(source.isDemoCenter ? "Demo Center (read-only)" : "Students, classes and teachers are saved")}</span>
+              <span className="hidden text-muted-foreground sm:inline">· {t(source.isDemoCenter ? "Students come from saved sample data. Finance and attendance are sample data that reset on refresh." : "Payments and attendance aren't saved yet: they start empty and reset on refresh.")}</span>
             </div>
           ) : (
             <div className="flex items-center justify-center gap-1.5 border-t border-warning/25 bg-warning-soft px-4 py-1 text-[11px] text-foreground" title={t("Sample data resets on refresh. Nothing is saved.")}>

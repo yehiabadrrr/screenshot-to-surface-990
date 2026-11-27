@@ -45,9 +45,9 @@ Phase 1 is complete only when 9–11 pass.
 ### Known gaps (Phase 1)
 
 - Editing a student's details or status has no UI yet (the database allows it for owners, accountants and front desk).
-- There's no UI to create classes or teachers, so new centers have no classes to enroll students in. Students can be added without classes.
+- Classes and teachers: owners create and edit them in the app (migration `20261127000100_catalog_writes.sql`, codes T-101 / C-201 per center). There is no archive or delete yet.
 - Changing a per-student billing rule from a profile only changes memory. It's reachable only in centers that already have classes.
-- Classes, Teachers, Attendance and Finance still show the sample catalog for signed-in users. The banner says so.
+- Attendance and Finance use the center's own classes and teachers, but payments and attendance are still kept in memory until Phase 2. The banner says so.
 - `joined_on` defaults to the database's UTC date; a center time zone setting comes later.
 
 ## Decisions

@@ -15,7 +15,9 @@ function sourceFor(ws: Extract<WorkspaceState, { status: "center" }>): DataSourc
   return {
     kind: "center", centerId: ws.center.id, centerName: ws.center.name, isDemoCenter: ws.center.isDemo,
     branches: ws.branches.map((b) => b.name),
+    branchIds: Object.fromEntries(ws.branches.map((b) => [b.name, b.id])),
     canEdit: !ws.center.isDemo && ws.member.role !== "teacher",
+    canManageCatalog: !ws.center.isDemo && ws.member.role === "owner",
     user: { name: ws.member.displayName, role: ROLE_LABEL[ws.member.role] },
   };
 }
